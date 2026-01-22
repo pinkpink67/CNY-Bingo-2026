@@ -1052,7 +1052,7 @@
     <script>
         // ==================== CACHE CONTROL ====================
         // Add version parameter to force cache refresh
-        const GAME_VERSION = '2.4';
+        const GAME_VERSION = '2.5';
         const lastVersion = localStorage.getItem('gameVersion');
         
         if (lastVersion !== GAME_VERSION) {
@@ -1238,12 +1238,15 @@
             syncMessage.textContent = 'Pushing settings to Firebase...';
             
             try {
-                // Prepare settings to push (exclude player data)
+                // Prepare settings to push (INCLUDE ALL CUSTOMIZATION SETTINGS)
                 const settingsToPush = {
                     settings: gameState.settings,
                     lastUpdated: Date.now(),
                     updatedBy: gameState.currentPlayer ? gameState.currentPlayer.name : 'admin'
                 };
+                
+                // Debug: log what we're pushing
+                console.log('Pushing to Firebase:', settingsToPush);
                 
                 firebaseSettingsRef.set(settingsToPush)
                     .then(() => {
@@ -1296,6 +1299,7 @@
                 .then((snapshot) => {
                     const data = snapshot.val();
                     if (data) {
+                        console.log('Pulled from Firebase:', data);
                         updateGameStateFromFirebase(data);
                         syncMessage.textContent = 'Settings pulled from Firebase successfully!';
                         syncStatus.className = 'sync-status';
@@ -1335,6 +1339,8 @@
         function updateGameStateFromFirebase(firebaseData) {
             try {
                 if (firebaseData.settings) {
+                    console.log('Updating from Firebase data:', firebaseData.settings);
+                    
                     // Update gameState with Firebase settings
                     gameState.settings = { 
                         ...gameState.settings,
@@ -1358,6 +1364,9 @@
                     
                     console.log('Game state updated from Firebase');
                     return true;
+                } else {
+                    console.log('No settings found in Firebase data');
+                    return false;
                 }
             } catch (error) {
                 console.error('Error updating from Firebase:', error);
@@ -1399,7 +1408,7 @@
                 // Also save to individual localStorage for backward compatibility
                 localStorage.setItem('bingoGameState', JSON.stringify(gameState));
                 
-                console.log('Master settings saved');
+                console.log('Master settings saved:', settingsToSave);
                 return true;
             } catch (error) {
                 console.error('Failed to save master settings:', error);
@@ -1426,7 +1435,7 @@
                                 ...parsedMaster.settings.customization
                             }
                         };
-                        console.log('Loaded master settings');
+                        console.log('Loaded master settings:', parsedMaster.settings);
                     }
                 } else if (savedLocal) {
                     // Fallback to local storage
@@ -1440,6 +1449,7 @@
                                 ...parsed.settings.customization
                             }
                         };
+                        console.log('Loaded local settings:', parsed.settings);
                     }
                 }
                 
@@ -1660,8 +1670,8 @@
                     // Apply cell font size
                     cell.style.fontSize = customization.cellFontSize + 'px';
                     
-                    // Apply cell background color - ALWAYS TRANSPARENT
-                    cell.style.backgroundColor = 'transparent';
+                    // Apply cell background color - use transparent if set
+                    cell.style.backgroundColor = customization.cellBackgroundColor === 'transparent' ? 'transparent' : customization.cellBackgroundColor;
                     
                     // Apply cell border if enabled
                     if (customization.cellBorderEnabled) {
@@ -1695,7 +1705,7 @@
                             this.style.color = customization.buttonTextColor;
                         } else {
                             // Reapply transparency to unmarked cell
-                            this.style.backgroundColor = 'transparent';
+                            this.style.backgroundColor = customization.cellBackgroundColor === 'transparent' ? 'transparent' : customization.cellBackgroundColor;
                             this.style.color = customization.cellNumberColor;
                         }
                     });
@@ -1775,6 +1785,8 @@
         function applyCustomizations() {
             const customization = gameState.settings.customization;
             
+            console.log('Applying customizations:', customization);
+            
             // Apply game title icon
             const gameTitleElement = document.getElementById('gameTitle');
             if (customization.gameTitleIcon && customization.gameTitleIcon !== "") {
@@ -1788,26 +1800,37 @@
             if (customization.headerTransparent) {
                 header.style.background = 'transparent';
             } else if (customization.headerBackgroundImage) {
-                header.style.background = `url('${customization.headerBackgroundImage}')`;
+                console.log('Applying header background image');
+                header.style.backgroundImage = `url('${customization.headerBackgroundImage}')`;
                 header.style.backgroundSize = 'cover';
                 header.style.backgroundPosition = 'center';
+                header.style.backgroundRepeat = 'no-repeat';
             } else {
-                header.style.background = customization.headerBackgroundColor;
+                header.style.backgroundImage = 'none';
+                header.style.backgroundColor = customization.headerBackgroundColor;
             }
             
             // Apply header text color
             header.style.color = customization.headerTextColor;
             
             // Apply main background
+            console.log('Main background settings:', {
+                mainTransparent: customization.mainTransparent,
+                mainBackgroundImage: customization.mainBackgroundImage ? 'has image' : 'no image',
+                mainBackgroundColor: customization.mainBackgroundColor
+            });
+            
             if (customization.mainTransparent) {
                 document.body.style.backgroundColor = 'transparent';
                 document.body.style.backgroundImage = 'none';
             } else if (customization.mainBackgroundImage) {
+                console.log('Applying main background image');
                 document.body.style.backgroundColor = 'transparent';
                 document.body.style.backgroundImage = `url('${customization.mainBackgroundImage}')`;
                 document.body.style.backgroundSize = 'cover';
                 document.body.style.backgroundPosition = 'center';
                 document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundRepeat = 'no-repeat';
             } else if (customization.mainBackgroundColor === 'transparent') {
                 document.body.style.backgroundColor = 'transparent';
                 document.body.style.backgroundImage = 'none';
@@ -1892,6 +1915,8 @@
         function loadCustomizationSettings() {
             const customization = gameState.settings.customization;
             
+            console.log('Loading customization settings:', customization);
+            
             // Load text fields
             document.getElementById('gameTitleText').value = customization.gameTitle;
             document.getElementById('gameTitleIcon').value = customization.gameTitleIcon || "";
@@ -1909,11 +1934,15 @@
             document.getElementById('headerTextColorText').value = customization.headerTextColor;
             document.getElementById('headerTransparent').checked = customization.headerTransparent;
             
-            document.getElementById('mainBackgroundColor').value = customization.mainBackgroundColor === 'transparent' ? '#ffffff' : customization.mainBackgroundColor;
+            // Handle main background color (transparent is not a valid color for color picker)
+            const mainBgColor = customization.mainBackgroundColor === 'transparent' ? '#ffffff' : customization.mainBackgroundColor;
+            document.getElementById('mainBackgroundColor').value = mainBgColor;
             document.getElementById('mainBackgroundColorText').value = customization.mainBackgroundColor;
             document.getElementById('mainTransparent').checked = customization.mainTransparent;
             
-            document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor === 'transparent' ? '#ffffff' : customization.cellBackgroundColor;
+            // Handle cell background color
+            const cellBgColor = customization.cellBackgroundColor === 'transparent' ? '#ffffff' : customization.cellBackgroundColor;
+            document.getElementById('cellBackgroundColor').value = cellBgColor;
             document.getElementById('cellBackgroundColorText').value = customization.cellBackgroundColor;
             
             document.getElementById('cellNumberColor').value = customization.cellNumberColor;
@@ -1959,7 +1988,7 @@
             toggleFreeCellTextGroup();
             toggleCellBorderGroups();
             
-            // Update previews
+            // Update previews with actual data
             updatePreview('headerBackgroundPreview', customization.headerBackgroundImage);
             updatePreview('mainBackgroundPreview', customization.mainBackgroundImage);
         }
@@ -2190,24 +2219,36 @@
                 });
             }
             
-            // File upload handlers
+            // File upload handlers - FIXED TO SAVE BASE64 DATA
             document.getElementById('headerBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
-                    gameState.settings.customization.headerBackgroundImage = base64;
-                    gameState.settings.customization.headerTransparent = false;
-                    document.getElementById('headerTransparent').checked = false;
-                    updatePreview('headerBackgroundPreview', base64);
+                    if (base64) {
+                        console.log('Header background image loaded:', base64.substring(0, 100) + '...');
+                        gameState.settings.customization.headerBackgroundImage = base64;
+                        gameState.settings.customization.headerTransparent = false;
+                        document.getElementById('headerTransparent').checked = false;
+                        updatePreview('headerBackgroundPreview', base64);
+                        
+                        // Auto-save to localStorage
+                        saveMasterSettings();
+                    }
                 });
             });
             
             document.getElementById('mainBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
-                    gameState.settings.customization.mainBackgroundImage = base64;
-                    gameState.settings.customization.mainTransparent = false;
-                    gameState.settings.customization.mainBackgroundColor = 'transparent';
-                    document.getElementById('mainTransparent').checked = false;
-                    document.getElementById('mainBackgroundColorText').value = 'transparent';
-                    updatePreview('mainBackgroundPreview', base64);
+                    if (base64) {
+                        console.log('Main background image loaded:', base64.substring(0, 100) + '...');
+                        gameState.settings.customization.mainBackgroundImage = base64;
+                        gameState.settings.customization.mainTransparent = false;
+                        gameState.settings.customization.mainBackgroundColor = 'transparent';
+                        document.getElementById('mainTransparent').checked = false;
+                        document.getElementById('mainBackgroundColorText').value = 'transparent';
+                        updatePreview('mainBackgroundPreview', base64);
+                        
+                        // Auto-save to localStorage
+                        saveMasterSettings();
+                    }
                 });
             });
             
@@ -2228,57 +2269,67 @@
             // Cell number customization handlers
             document.getElementById('cellNumberColor').addEventListener('change', function() {
                 gameState.settings.customization.cellNumberColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('cellFontSize').addEventListener('input', function() {
                 const value = this.value;
                 gameState.settings.customization.cellFontSize = parseInt(value);
                 document.getElementById('cellFontSizeValue').textContent = value + 'px';
+                saveMasterSettings();
             });
             
             document.getElementById('cellSpacing').addEventListener('input', function() {
                 const value = this.value;
                 gameState.settings.customization.cellSpacing = parseInt(value);
                 document.getElementById('cellSpacingValue').textContent = value + 'px';
+                saveMasterSettings();
             });
             
             // FREE cell handlers
             document.getElementById('freeCellEnabled').addEventListener('change', function() {
                 gameState.settings.customization.freeCellEnabled = this.checked;
                 toggleFreeCellTextGroup();
+                saveMasterSettings();
             });
             
             document.getElementById('freeCellText').addEventListener('change', function() {
                 gameState.settings.customization.freeCellText = this.value;
+                saveMasterSettings();
             });
             
             // Cell border handlers
             document.getElementById('cellBorderEnabled').addEventListener('change', function() {
                 gameState.settings.customization.cellBorderEnabled = this.checked;
                 toggleCellBorderGroups();
+                saveMasterSettings();
             });
             
             document.getElementById('cellBorderColor').addEventListener('change', function() {
                 gameState.settings.customization.cellBorderColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('cellBorderThickness').addEventListener('input', function() {
                 const value = this.value;
                 gameState.settings.customization.cellBorderThickness = parseInt(value);
                 document.getElementById('cellBorderThicknessValue').textContent = value + 'px';
+                saveMasterSettings();
             });
             
-            // Color picker handlers
+            // Color picker handlers - FIXED TO SAVE PROPERLY
             document.getElementById('headerBackgroundColor').addEventListener('change', function() {
                 gameState.settings.customization.headerBackgroundImage = null;
                 gameState.settings.customization.headerBackgroundColor = this.value;
                 gameState.settings.customization.headerTransparent = false;
                 document.getElementById('headerTransparent').checked = false;
                 updatePreview('headerBackgroundPreview', this.value, true);
+                saveMasterSettings();
             });
             
             document.getElementById('headerTextColor').addEventListener('change', function() {
                 gameState.settings.customization.headerTextColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('headerTransparent').addEventListener('change', function() {
@@ -2286,6 +2337,7 @@
                 if (this.checked) {
                     gameState.settings.customization.headerBackgroundImage = null;
                 }
+                saveMasterSettings();
             });
             
             document.getElementById('mainBackgroundColor').addEventListener('change', function() {
@@ -2294,6 +2346,7 @@
                 gameState.settings.customization.mainTransparent = false;
                 document.getElementById('mainTransparent').checked = false;
                 updatePreview('mainBackgroundPreview', this.value, true);
+                saveMasterSettings();
             });
             
             document.getElementById('mainTransparent').addEventListener('change', function() {
@@ -2303,63 +2356,78 @@
                     gameState.settings.customization.mainBackgroundColor = 'transparent';
                     document.getElementById('mainBackgroundColorText').value = 'transparent';
                 }
+                saveMasterSettings();
             });
             
             document.getElementById('cellBackgroundColor').addEventListener('change', function() {
                 gameState.settings.customization.cellBackgroundColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('markedCellColor').addEventListener('change', function() {
                 gameState.settings.customization.markedCellColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('freeCellColor').addEventListener('change', function() {
                 gameState.settings.customization.freeCellColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('primaryButtonColor').addEventListener('change', function() {
                 gameState.settings.customization.primaryButtonColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('secondaryButtonColor').addEventListener('change', function() {
                 gameState.settings.customization.secondaryButtonColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('dangerButtonColor').addEventListener('change', function() {
                 gameState.settings.customization.dangerButtonColor = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('buttonTextColor').addEventListener('change', function() {
                 gameState.settings.customization.buttonTextColor = this.value;
+                saveMasterSettings();
             });
             
             // Text field handlers
             document.getElementById('gameTitleText').addEventListener('change', function() {
                 gameState.settings.customization.gameTitle = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('gameTitleIcon').addEventListener('change', function() {
                 gameState.settings.customization.gameTitleIcon = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('gameSubtitleText').addEventListener('change', function() {
                 gameState.settings.customization.gameSubtitle = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('welcomeTitleText').addEventListener('change', function() {
                 gameState.settings.customization.welcomeTitle = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('welcomeMessageText').addEventListener('change', function() {
                 gameState.settings.customization.welcomeMessage = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('loginButtonText').addEventListener('change', function() {
                 gameState.settings.customization.loginButtonText = this.value;
+                saveMasterSettings();
             });
             
             document.getElementById('footerText').addEventListener('change', function() {
                 gameState.settings.customization.footerText = this.value;
+                saveMasterSettings();
             });
             
             // Reset buttons
@@ -2376,6 +2444,7 @@
                 document.getElementById('headerTransparent').checked = false;
                 
                 updatePreview('headerBackgroundPreview', "#6a11cb", true);
+                saveMasterSettings();
             });
             
             document.getElementById('resetMainBackgroundBtn').addEventListener('click', function() {
@@ -2388,6 +2457,7 @@
                 document.getElementById('mainTransparent').checked = true;
                 
                 updatePreview('mainBackgroundPreview', "transparent", true);
+                saveMasterSettings();
             });
             
             document.getElementById('resetCellNumberBtn').addEventListener('click', function() {
@@ -2401,6 +2471,7 @@
                 document.getElementById('cellFontSizeValue').textContent = "18px";
                 document.getElementById('cellSpacing').value = 8;
                 document.getElementById('cellSpacingValue').textContent = "8px";
+                saveMasterSettings();
             });
             
             document.getElementById('resetCellBorderBtn').addEventListener('click', function() {
@@ -2415,6 +2486,7 @@
                 document.getElementById('cellBorderThicknessValue').textContent = "2px";
                 
                 toggleCellBorderGroups();
+                saveMasterSettings();
             });
             
             document.getElementById('resetButtonsBtn').addEventListener('click', function() {
@@ -2431,6 +2503,7 @@
                 document.getElementById('dangerButtonColorText').value = "#dc3545";
                 document.getElementById('buttonTextColor').value = "#ffffff";
                 document.getElementById('buttonTextColorText').value = "#ffffff";
+                saveMasterSettings();
             });
         }
         
@@ -2606,6 +2679,8 @@
             
             if (!playerListTextarea || !maxPlayersInput || !cardsPerPlayerInput || !playerPasswordSettingInput) return;
             
+            console.log('Saving admin settings...');
+            
             // Get player list
             const playerListText = playerListTextarea.value.trim();
             const playerNames = playerListText.split(',')
@@ -2692,6 +2767,12 @@
             // Update transparency settings
             gameState.settings.customization.headerTransparent = document.getElementById('headerTransparent').checked;
             gameState.settings.customization.mainTransparent = document.getElementById('mainTransparent').checked;
+            
+            // IMPORTANT: Make sure background images are preserved
+            console.log('Background images preserved:', {
+                headerBackgroundImage: gameState.settings.customization.headerBackgroundImage ? 'yes' : 'no',
+                mainBackgroundImage: gameState.settings.customization.mainBackgroundImage ? 'yes' : 'no'
+            });
             
             // Apply customizations immediately
             applyCustomizations();
