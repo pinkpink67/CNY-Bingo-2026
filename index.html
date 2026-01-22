@@ -142,6 +142,11 @@
             color: #000;
         }
         
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
         .players-count {
             margin-top: 20px;
             padding: 15px;
@@ -492,6 +497,24 @@
             justify-content: space-between;
             font-size: 0.9rem;
             color: #666;
+        }
+        
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #e9f7ef;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .sync-status.syncing {
+            background-color: #fff3cd;
+        }
+        
+        .sync-status.error {
+            background-color: #f8d7da;
         }
         
         @media (max-width: 480px) {
@@ -970,6 +993,15 @@
                             <i class="fas fa-sync-alt"></i> Clear Cache & Refresh
                         </button>
                         
+                        <button class="btn btn-success" id="forceSyncBtn">
+                            <i class="fas fa-broadcast-tower"></i> Force Sync to All Players
+                        </button>
+                        
+                        <div class="sync-status" id="syncStatus" style="display: none;">
+                            <i class="fas fa-sync fa-spin"></i>
+                            <span id="syncMessage">Syncing with players...</span>
+                        </div>
+                        
                         <p style="font-size: 0.9rem; color: #666;">
                             This will remove all player cards and Lucky 4D numbers. Authorized player list will be preserved.
                         </p>
@@ -999,7 +1031,7 @@
     <script>
         // ==================== CACHE CONTROL ====================
         // Add version parameter to force cache refresh
-        const GAME_VERSION = '2.1';
+        const GAME_VERSION = '2.2';
         const lastVersion = localStorage.getItem('gameVersion');
         
         if (lastVersion !== GAME_VERSION) {
@@ -1087,6 +1119,163 @@
         // Variables to track login attempts
         let pendingLoginName = '';
         let existingPlayerFound = null;
+        
+        // ==================== CENTRALIZED STORAGE SYSTEM ====================
+        
+        // Master key for admin settings
+        const MASTER_SETTINGS_KEY = 'bingoMasterSettings';
+        const PLAYER_DATA_KEY = 'bingoPlayerData';
+        
+        // Save settings to centralized storage
+        function saveMasterSettings() {
+            try {
+                // Only save settings (not player data)
+                const settingsToSave = {
+                    settings: gameState.settings,
+                    lastUpdated: Date.now()
+                };
+                localStorage.setItem(MASTER_SETTINGS_KEY, JSON.stringify(settingsToSave));
+                
+                // Also save to individual localStorage for backward compatibility
+                localStorage.setItem('bingoGameState', JSON.stringify(gameState));
+                
+                console.log('Master settings saved');
+            } catch (error) {
+                console.error('Failed to save master settings:', error);
+            }
+        }
+        
+        // Load settings from centralized storage
+        function loadMasterSettings() {
+            try {
+                const savedMaster = localStorage.getItem(MASTER_SETTINGS_KEY);
+                const savedLocal = localStorage.getItem('bingoGameState');
+                
+                // Priority: Master settings > Local settings
+                if (savedMaster) {
+                    const parsedMaster = JSON.parse(savedMaster);
+                    if (parsedMaster.settings) {
+                        // Update gameState with master settings
+                        gameState.settings = { 
+                            ...gameState.settings,
+                            ...parsedMaster.settings,
+                            customization: {
+                                ...gameState.settings.customization,
+                                ...parsedMaster.settings.customization
+                            }
+                        };
+                        console.log('Loaded master settings');
+                    }
+                } else if (savedLocal) {
+                    // Fallback to local storage
+                    const parsed = JSON.parse(savedLocal);
+                    if (parsed.settings) {
+                        gameState.settings = { 
+                            ...gameState.settings,
+                            ...parsed.settings,
+                            customization: {
+                                ...gameState.settings.customization,
+                                ...parsed.settings.customization
+                            }
+                        };
+                    }
+                }
+                
+                // Always load player data from local storage
+                if (savedLocal) {
+                    const parsed = JSON.parse(savedLocal);
+                    gameState.players = parsed.players || [];
+                    gameState.currentPlayer = parsed.currentPlayer || null;
+                    gameState.currentCardIndex = parsed.currentCardIndex || 0;
+                }
+                
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+            }
+        }
+        
+        // Save player data separately
+        function savePlayerData() {
+            try {
+                const playerData = {
+                    players: gameState.players,
+                    currentPlayer: gameState.currentPlayer,
+                    currentCardIndex: gameState.currentCardIndex,
+                    lastUpdated: Date.now()
+                };
+                localStorage.setItem(PLAYER_DATA_KEY, JSON.stringify(playerData));
+                
+                // Also save to combined for backward compatibility
+                localStorage.setItem('bingoGameState', JSON.stringify(gameState));
+            } catch (error) {
+                console.error('Failed to save player data:', error);
+            }
+        }
+        
+        // Check for settings updates
+        function checkForSettingsUpdates() {
+            const lastUpdateCheck = localStorage.getItem('lastSettingsCheck') || 0;
+            const now = Date.now();
+            
+            // Check every 5 seconds
+            if (now - lastUpdateCheck > 5000) {
+                localStorage.setItem('lastSettingsCheck', now);
+                
+                const savedMaster = localStorage.getItem(MASTER_SETTINGS_KEY);
+                if (savedMaster) {
+                    const parsed = JSON.parse(savedMaster);
+                    const lastSaved = parsed.lastUpdated || 0;
+                    const myLastUpdate = localStorage.getItem('myLastSettingsUpdate') || 0;
+                    
+                    if (lastSaved > myLastUpdate) {
+                        // Settings have been updated by admin
+                        console.log('Settings updated by admin, reloading...');
+                        loadMasterSettings();
+                        applyCustomizations();
+                        
+                        // Update card display if player is logged in
+                        if (gameState.currentPlayer) {
+                            updateCardDisplay();
+                        }
+                        
+                        // Show notification to user
+                        if (gameState.currentPlayer && !document.getElementById('settingsUpdatedAlert')) {
+                            showSettingsUpdatedAlert();
+                        }
+                    }
+                }
+            }
+        }
+        
+        function showSettingsUpdatedAlert() {
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            dialog.style.display = 'flex';
+            dialog.id = 'settingsUpdatedAlert';
+            
+            const content = document.createElement('div');
+            content.className = 'confirmation-content';
+            
+            content.innerHTML = `
+                <h3><i class="fas fa-sync-alt" style="color: #28a745;"></i> Settings Updated</h3>
+                <div style="text-align: left; line-height: 1.6;">
+                    The game settings have been updated by the admin.<br><br>
+                    Your display has been refreshed with the new settings.
+                </div>
+                <div class="confirmation-buttons">
+                    <button class="btn btn-primary" id="settingsUpdatedOkBtn">
+                        OK
+                    </button>
+                </div>
+            `;
+            
+            dialog.appendChild(content);
+            document.body.appendChild(dialog);
+            
+            document.getElementById('settingsUpdatedOkBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+            });
+        }
         
         // ==================== GAME FUNCTIONS ====================
         
@@ -1233,7 +1422,7 @@
                 }
             }
             
-            saveGameState();
+            savePlayerData();
         }
         
         function updateCardDisplay() {
@@ -1357,7 +1546,7 @@
             gameState.currentCardIndex = 0;
             
             updatePlayersCount();
-            saveGameState();
+            savePlayerData();
             
             showCustomAlert(`
                 <strong>All player data has been cleared!</strong><br><br>
@@ -1754,6 +1943,35 @@
                 saveSettingsBtn.addEventListener('click', saveAdminSettings);
             }
             
+            // Force sync button
+            const forceSyncBtn = document.getElementById('forceSyncBtn');
+            if (forceSyncBtn) {
+                forceSyncBtn.addEventListener('click', function() {
+                    const syncStatus = document.getElementById('syncStatus');
+                    const syncMessage = document.getElementById('syncMessage');
+                    
+                    syncStatus.style.display = 'flex';
+                    syncStatus.className = 'sync-status syncing';
+                    syncMessage.textContent = 'Broadcasting settings to all players...';
+                    
+                    // Save settings to master storage
+                    saveMasterSettings();
+                    
+                    // Mark that settings have been updated
+                    localStorage.setItem('myLastSettingsUpdate', Date.now());
+                    
+                    // Show success message
+                    setTimeout(function() {
+                        syncMessage.textContent = 'Settings broadcasted successfully!';
+                        syncStatus.className = 'sync-status';
+                        
+                        setTimeout(function() {
+                            syncStatus.style.display = 'none';
+                        }, 2000);
+                    }, 1500);
+                });
+            }
+            
             // Clear player data button
             const clearPlayerDataBtn = document.getElementById('clearPlayerDataBtn');
             if (clearPlayerDataBtn) {
@@ -1804,7 +2022,8 @@
                         url.searchParams.set('nocache', Date.now());
                         
                         // Save current game state
-                        saveGameState();
+                        saveMasterSettings();
+                        savePlayerData();
                         
                         // Redirect with cache-busting parameter
                         window.location.href = url.toString();
@@ -2249,7 +2468,7 @@
             showScreen('gameScreen');
             
             // Save to localStorage
-            saveGameState();
+            savePlayerData();
             
             // Show welcome message with Lucky 4D number
             const welcomeMessage = `
@@ -2386,6 +2605,12 @@
             // Apply customizations immediately
             applyCustomizations();
             
+            // Save to MASTER storage (this is what other players will load)
+            saveMasterSettings();
+            
+            // Mark that we've updated settings
+            localStorage.setItem('myLastSettingsUpdate', Date.now());
+            
             // Regenerate cards if FREE cell settings changed
             if (gameState.players.length > 0) {
                 const totalCardsNeeded = gameState.settings.maxPlayers * gameState.settings.cardsPerPlayer;
@@ -2399,15 +2624,15 @@
                 if (gameState.currentPlayer) {
                     updateCardDisplay();
                 }
+                
+                // Save updated player data
+                savePlayerData();
             }
             
             // If cards per player changed, update all players
             if (cardsChanged) {
                 updatePlayerCardsForAllPlayers(cardsPerPlayer);
             }
-            
-            // Save to localStorage
-            saveGameState();
             
             // Update players count display
             updatePlayersCount();
@@ -2418,7 +2643,9 @@
                 • Maximum players: ${maxPlayers}<br>
                 • Cards per player: ${cardsPerPlayer}<br>
                 • Player password updated<br>
-                • Customization settings saved
+                • Customization settings saved<br><br>
+                <strong>Settings have been saved to master storage.</strong><br>
+                Other players will see changes when they refresh or when you click "Force Sync".
             `;
             
             if (cardsChanged) {
@@ -2584,42 +2811,11 @@
             }
         }
         
-        // ==================== DATA PERSISTENCE ====================
-        
-        function saveGameState() {
-            try {
-                localStorage.setItem('bingoGameState', JSON.stringify(gameState));
-            } catch (error) {
-                console.error('Failed to save game state:', error);
-            }
-        }
-        
-        function loadGameState() {
-            try {
-                const saved = localStorage.getItem('bingoGameState');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    gameState.players = parsed.players || [];
-                    gameState.settings = { 
-                        ...gameState.settings, 
-                        ...(parsed.settings || {}),
-                        // Ensure customization exists with new properties
-                        customization: {
-                            ...gameState.settings.customization,
-                            ...(parsed.settings && parsed.settings.customization ? parsed.settings.customization : {})
-                        }
-                    };
-                }
-            } catch (error) {
-                console.error('Failed to load game state:', error);
-            }
-        }
-        
         // ==================== INITIALIZATION ====================
         
         function initGame() {
-            // Load saved game state
-            loadGameState();
+            // Load settings from centralized storage
+            loadMasterSettings();
             
             // Update UI
             updatePlayersCount();
@@ -2632,6 +2828,12 @@
             
             // Show login screen
             showScreen('loginScreen');
+            
+            // Start checking for settings updates every 5 seconds
+            setInterval(checkForSettingsUpdates, 5000);
+            
+            // Check immediately
+            setTimeout(checkForSettingsUpdates, 1000);
         }
         
         // Start the game when page loads
