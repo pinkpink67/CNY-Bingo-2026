@@ -52,6 +52,7 @@
         
         .content {
             padding: 25px 20px;
+            position: relative;
         }
         
         /* Login Screen */
@@ -218,6 +219,20 @@
             color: #777;
         }
         
+        /* Password Display */
+        .password-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #6a11cb;
+            display: none;
+        }
+        
         /* Confirmation Dialog */
         .confirmation-dialog {
             position: fixed;
@@ -251,6 +266,43 @@
         
         .confirmation-buttons .btn {
             flex: 1;
+        }
+        
+        /* Admin Screen */
+        #adminScreen {
+            display: none;
+        }
+        
+        .admin-controls {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .textarea-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .textarea-group label {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .textarea-group textarea {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .textarea-group textarea:focus {
+            border-color: #6a11cb;
+            outline: none;
         }
         
         @media (max-width: 480px) {
@@ -301,12 +353,17 @@
             <!-- Login Screen -->
             <div id="loginScreen">
                 <h2>Welcome to Bingo!</h2>
-                <p>Enter your name to join the game. Maximum <span id="maxPlayersDisplay">30</span> players.</p>
+                <p>Enter your name and password to join the game.</p>
                 
                 <form class="login-form" id="loginForm">
                     <div class="input-group">
                         <label for="playerName">Your Name</label>
                         <input type="text" id="playerName" placeholder="Enter your name" required autocomplete="off">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="playerPassword">Password</label>
+                        <input type="password" id="playerPassword" placeholder="Enter password" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -354,9 +411,26 @@
             <div id="adminScreen">
                 <h2><i class="fas fa-cogs"></i> Admin Controls</h2>
                 <p>For admin access, use ID: <strong>admin</strong> and Password: <strong>1234</strong></p>
-                <button class="btn btn-primary" id="adminLogoutBtn" style="margin-top: 20px;">
-                    <i class="fas fa-sign-out-alt"></i> Exit Admin
-                </button>
+                
+                <div class="admin-controls">
+                    <div class="textarea-group">
+                        <label for="playerList">Authorized Player Names (comma-separated)</label>
+                        <textarea id="playerList" placeholder="Enter player names, e.g., Calvin, JF, Cindy, PIG">Calvin, JF, Cindy, PIG</textarea>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="savePlayerListBtn">
+                        <i class="fas fa-save"></i> Save Player List
+                    </button>
+                    
+                    <button class="btn btn-secondary" id="adminLogoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Exit Admin
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Password Display -->
+            <div class="password-display" id="passwordDisplay">
+                Lucky 4D Number: <span id="luckyNumber">XXXX</span>
             </div>
         </div>
     </div>
@@ -374,7 +448,8 @@
             currentCardIndex: 0,
             settings: {
                 maxPlayers: 30,
-                cardsPerPlayer: 3
+                cardsPerPlayer: 3,
+                authorizedPlayers: ["Calvin", "JF", "Cindy", "PIG"]
             }
         };
         
@@ -382,6 +457,9 @@
             id: "admin",
             password: "1234"
         };
+        
+        // Default password for first-time login
+        const DEFAULT_PASSWORD = "8888";
         
         // Variables to track login attempts
         let pendingLoginName = '';
@@ -423,6 +501,11 @@
             }
             
             return cards;
+        }
+        
+        function generate4DPassword() {
+            // Generate a random 4-digit number (0000-9999)
+            return Math.floor(1000 + Math.random() * 9000).toString();
         }
         
         function assignCardsToPlayer(player, cardsPool) {
@@ -489,6 +572,18 @@
             }
         }
         
+        function updatePasswordDisplay() {
+            const passwordDisplay = document.getElementById('passwordDisplay');
+            const luckyNumberSpan = document.getElementById('luckyNumber');
+            
+            if (gameState.currentPlayer && gameState.currentPlayer.password) {
+                passwordDisplay.style.display = 'block';
+                luckyNumberSpan.textContent = gameState.currentPlayer.password;
+            } else {
+                passwordDisplay.style.display = 'none';
+            }
+        }
+        
         // ==================== UI FUNCTIONS ====================
         
         function showScreen(screenId) {
@@ -523,6 +618,52 @@
             document.getElementById('confirmationDialog').style.display = 'none';
         }
         
+        function showCustomAlert(message, isFirstTime = false) {
+            // Create custom dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            dialog.style.display = 'flex';
+            
+            const content = document.createElement('div');
+            content.className = 'confirmation-content';
+            
+            let icon = '<i class="fas fa-info-circle"></i>';
+            let title = 'Information';
+            let buttons = `
+                <div class="confirmation-buttons">
+                    <button class="btn btn-primary" id="customAlertOkBtn">
+                        OK
+                    </button>
+                </div>
+            `;
+            
+            if (isFirstTime) {
+                icon = '<i class="fas fa-gift"></i>';
+                title = 'Welcome!';
+                buttons = `
+                    <div class="confirmation-buttons">
+                        <button class="btn btn-primary" id="customAlertOkBtn">
+                            <i class="fas fa-thumbs-up"></i> Got it!
+                        </button>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <h3>${icon} ${title}</h3>
+                <p>${message}</p>
+                ${buttons}
+            `;
+            
+            dialog.appendChild(content);
+            document.body.appendChild(dialog);
+            
+            // Add event listener to close button
+            document.getElementById('customAlertOkBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+            });
+        }
+        
         // ==================== EVENT HANDLERS ====================
         
         function setupEventListeners() {
@@ -548,7 +689,14 @@
             const logoutBtn = document.getElementById('logoutBtn');
             const adminLogoutBtn = document.getElementById('adminLogoutBtn');
             if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-            if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => showScreen('loginScreen'));
+            if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => {
+                showScreen('loginScreen');
+                // Clear admin fields
+                const playerNameInput = document.getElementById('playerName');
+                const playerPasswordInput = document.getElementById('playerPassword');
+                if (playerNameInput) playerNameInput.value = '';
+                if (playerPasswordInput) playerPasswordInput.value = '';
+            });
             
             // Confirmation dialog buttons
             document.getElementById('confirmReturningPlayerBtn').addEventListener('click', function() {
@@ -560,34 +708,65 @@
                 hideConfirmationDialog();
                 // Go back to login page for user to choose different name
                 const playerNameInput = document.getElementById('playerName');
+                const playerPasswordInput = document.getElementById('playerPassword');
                 if (playerNameInput) {
                     playerNameInput.value = '';
                     playerNameInput.focus();
                 }
-                alert('Please choose a different name.');
+                if (playerPasswordInput) {
+                    playerPasswordInput.value = '';
+                }
             });
+            
+            // Admin controls
+            const savePlayerListBtn = document.getElementById('savePlayerListBtn');
+            if (savePlayerListBtn) {
+                savePlayerListBtn.addEventListener('click', savePlayerList);
+            }
         }
         
         function handleLogin(e) {
             e.preventDefault();
             
             const playerNameInput = document.getElementById('playerName');
+            const playerPasswordInput = document.getElementById('playerPassword');
             const playerName = playerNameInput ? playerNameInput.value.trim() : '';
+            const password = playerPasswordInput ? playerPasswordInput.value.trim() : '';
             
             if (!playerName) {
-                alert('Please enter your name');
+                showCustomAlert('Please enter your name');
+                return;
+            }
+            
+            if (!password) {
+                showCustomAlert('Please enter your password');
                 return;
             }
             
             // Check for admin login
             if (playerName.toLowerCase() === ADMIN_CREDENTIALS.id) {
-                const password = prompt('Enter Admin Password:');
                 if (password === ADMIN_CREDENTIALS.password) {
                     showScreen('adminScreen');
+                    // Load current player list into textarea
+                    const playerListTextarea = document.getElementById('playerList');
+                    if (playerListTextarea) {
+                        playerListTextarea.value = gameState.settings.authorizedPlayers.join(', ');
+                    }
                     if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
                 } else {
-                    alert('Invalid password');
+                    showCustomAlert('Invalid admin password');
                 }
+                return;
+            }
+            
+            // Check if player name is authorized (case-insensitive)
+            const isAuthorized = gameState.settings.authorizedPlayers.some(name => 
+                name.trim().toLowerCase() === playerName.toLowerCase()
+            );
+            
+            if (!isAuthorized) {
+                showCustomAlert(`Sorry, "${playerName}" is not on the authorized players list.`);
                 return;
             }
             
@@ -600,13 +779,28 @@
             );
             
             if (existingPlayerFound) {
-                // Show confirmation dialog instead of auto-creating
-                showConfirmationDialog(playerName);
+                // Player exists, check password
+                if (existingPlayerFound.password === password) {
+                    // Password matches, login
+                    loginAsReturningPlayer();
+                } else {
+                    // Wrong password
+                    showCustomAlert('Incorrect password for this player.');
+                }
             } else {
-                // Name is unique, create new player
-                createNewPlayer(playerName);
-                if (playerNameInput) playerNameInput.value = '';
+                // New player, check default password
+                if (password === DEFAULT_PASSWORD) {
+                    // Default password matches, create new player
+                    createNewPlayer(playerName);
+                } else {
+                    // Wrong default password
+                    showCustomAlert('Incorrect password. First-time players should use the default password.');
+                }
             }
+            
+            // Clear input fields
+            if (playerNameInput) playerNameInput.value = '';
+            if (playerPasswordInput) playerPasswordInput.value = '';
         }
         
         function loginAsReturningPlayer() {
@@ -618,11 +812,8 @@
             document.getElementById('displayPlayerName').textContent = existingPlayerFound.name;
             document.getElementById('totalCards').textContent = existingPlayerFound.cards.length;
             updateCardDisplay();
+            updatePasswordDisplay();
             showScreen('gameScreen');
-            
-            // Clear the input field
-            const playerNameInput = document.getElementById('playerName');
-            if (playerNameInput) playerNameInput.value = '';
             
             // Reset tracking variables
             pendingLoginName = '';
@@ -632,17 +823,21 @@
         function createNewPlayer(playerName) {
             // Check player limit
             if (gameState.players.length >= gameState.settings.maxPlayers) {
-                alert(`Sorry, the game is full! Maximum ${gameState.settings.maxPlayers} players allowed.`);
+                showCustomAlert(`Sorry, the game is full! Maximum ${gameState.settings.maxPlayers} players allowed.`);
                 return;
             }
             
             // Generate cards pool
             const cardsPool = generateBingoCards();
             
+            // Generate a 4-digit password
+            const newPassword = generate4DPassword();
+            
             // Create player
             const newPlayer = {
                 id: gameState.players.length + 1,
                 name: playerName,
+                password: newPassword,
                 cards: []
             };
             
@@ -658,13 +853,20 @@
             document.getElementById('displayPlayerName').textContent = newPlayer.name;
             document.getElementById('totalCards').textContent = newPlayer.cards.length;
             updateCardDisplay();
+            updatePasswordDisplay();
             updatePlayersCount();
             showScreen('gameScreen');
             
             // Save to localStorage
             saveGameState();
             
-            alert(`Welcome ${playerName}! You have received ${newPlayer.cards.length} bingo cards.`);
+            // Show welcome message with password
+            const welcomeMessage = `Welcome ${playerName}!<br><br>
+                You have received ${newPlayer.cards.length} BINGO cards.<br><br>
+                <strong>Your Lucky 4D number: ${newPassword}</strong><br>
+                This will be your login password for future sessions.`;
+            
+            showCustomAlert(welcomeMessage, true);
         }
         
         function showAdminLogin(e) {
@@ -687,6 +889,27 @@
             }
             
             showScreen('adminScreen');
+            
+            // Load current player list into textarea
+            const playerListTextarea = document.getElementById('playerList');
+            if (playerListTextarea) {
+                playerListTextarea.value = gameState.settings.authorizedPlayers.join(', ');
+            }
+        }
+        
+        function savePlayerList() {
+            const playerListTextarea = document.getElementById('playerList');
+            if (!playerListTextarea) return;
+            
+            const playerListText = playerListTextarea.value.trim();
+            const playerNames = playerListText.split(',')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            
+            gameState.settings.authorizedPlayers = playerNames;
+            saveGameState();
+            
+            showCustomAlert(`Player list saved successfully!<br>Authorized players: ${playerNames.length}`);
         }
         
         function showPrevCard() {
@@ -705,11 +928,17 @@
         }
         
         function handleLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                gameState.currentPlayer = null;
-                gameState.currentCardIndex = 0;
-                showScreen('loginScreen');
-            }
+            showCustomAlert('Are you sure you want to logout?');
+            // Simple logout without confirmation
+            gameState.currentPlayer = null;
+            gameState.currentCardIndex = 0;
+            showScreen('loginScreen');
+            
+            // Clear input fields
+            const playerNameInput = document.getElementById('playerName');
+            const playerPasswordInput = document.getElementById('playerPassword');
+            if (playerNameInput) playerNameInput.value = '';
+            if (playerPasswordInput) playerPasswordInput.value = '';
         }
         
         // ==================== DATA PERSISTENCE ====================
@@ -728,7 +957,14 @@
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     gameState.players = parsed.players || [];
-                    gameState.settings = { ...gameState.settings, ...(parsed.settings || {}) };
+                    gameState.settings = { 
+                        ...gameState.settings, 
+                        ...(parsed.settings || {}),
+                        // Ensure authorizedPlayers exists
+                        authorizedPlayers: parsed.settings && parsed.settings.authorizedPlayers 
+                            ? parsed.settings.authorizedPlayers 
+                            : gameState.settings.authorizedPlayers
+                    };
                 }
             } catch (error) {
                 console.error('Failed to load game state:', error);
