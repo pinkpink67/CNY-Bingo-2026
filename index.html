@@ -9,6 +9,9 @@
     <meta http-equiv="Expires" content="0">
     <title>Mobile Bingo Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Import Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -199,7 +202,6 @@
         .bingo-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
             min-height: 300px;
             background-size: cover;
             background-position: center;
@@ -213,12 +215,15 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.2rem;
             cursor: pointer;
             user-select: none;
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
             /* Default border - will be overridden by JavaScript */
             border: 2px solid transparent;
+            /* Default font size - will be overridden by JavaScript */
+            font-size: 1.2rem;
+            /* Default color - will be overridden by JavaScript */
+            color: #333;
         }
         
         .bingo-cell.free {
@@ -514,6 +519,25 @@
         }
         
         .sync-status.error {
+            background-color: #f8d7da;
+        }
+        
+        .firebase-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .firebase-status.connected {
+            background-color: #e9f7ef;
+        }
+        
+        .firebase-status.disconnected {
             background-color: #f8d7da;
         }
         
@@ -865,6 +889,43 @@
                         </div>
                     </div>
                     
+                    <!-- Cell Number Customization -->
+                    <div class="admin-customization">
+                        <h3><i class="fas fa-text-height"></i> Cell Number Customization</h3>
+                        
+                        <div class="color-picker-group">
+                            <label>Number Text Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="cellNumberColor" value="#333333">
+                                <input type="text" id="cellNumberColorText" value="#333333" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-group">
+                            <label for="cellFontSize">Number Font Size (px)</label>
+                            <input type="range" id="cellFontSize" min="10" max="30" value="18">
+                            <div class="range-value">
+                                <span>Small (10px)</span>
+                                <span id="cellFontSizeValue">18px</span>
+                                <span>Large (30px)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-group">
+                            <label for="cellSpacing">Cell Spacing (gap)</label>
+                            <input type="range" id="cellSpacing" min="1" max="20" value="8">
+                            <div class="range-value">
+                                <span>Tight (1px)</span>
+                                <span id="cellSpacingValue">8px</span>
+                                <span>Wide (20px)</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-secondary reset-btn" id="resetCellNumberBtn">
+                            <i class="fas fa-undo"></i> Reset to Default
+                        </button>
+                    </div>
+                    
                     <!-- Cell Border Customization -->
                     <div class="admin-customization">
                         <h3><i class="fas fa-border-style"></i> Cell Border Customization</h3>
@@ -981,6 +1042,43 @@
                         </div>
                     </div>
                     
+                    <!-- Firebase Configuration -->
+                    <div class="admin-customization">
+                        <h3><i class="fas fa-fire"></i> Firebase Configuration</h3>
+                        
+                        <div class="firebase-status" id="firebaseStatus">
+                            <i class="fas fa-circle" id="firebaseStatusIcon" style="color: #dc3545;"></i>
+                            <span id="firebaseStatusText">Firebase: Not Connected</span>
+                        </div>
+                        
+                        <div class="input-group-admin">
+                            <label for="firebaseConfig">Firebase Configuration JSON</label>
+                            <textarea id="firebaseConfig" placeholder='Paste your Firebase configuration here'>
+{
+  "apiKey": "AIzaSyCQY0pQq5q4q3q2q1q0q9q8q7q6q5q4q3q2q1q",
+  "authDomain": "your-project.firebaseapp.com",
+  "databaseURL": "https://your-project-default-rtdb.firebaseio.com",
+  "projectId": "your-project",
+  "storageBucket": "your-project.appspot.com",
+  "messagingSenderId": "123456789012",
+  "appId": "1:123456789012:web:abc123def456ghi789jkl"
+}</textarea>
+                        </div>
+                        
+                        <div class="input-group-admin">
+                            <label for="firebasePath">Firebase Path (e.g., "bingo/settings")</label>
+                            <input type="text" id="firebasePath" value="bingo/settings">
+                        </div>
+                        
+                        <button class="btn btn-success" id="connectFirebaseBtn">
+                            <i class="fas fa-plug"></i> Connect to Firebase
+                        </button>
+                        
+                        <button class="btn btn-secondary" id="testFirebaseBtn">
+                            <i class="fas fa-broadcast-tower"></i> Test Firebase Connection
+                        </button>
+                    </div>
+                    
                     <!-- Admin Actions -->
                     <div class="admin-actions">
                         <h3><i class="fas fa-exclamation-triangle"></i> Admin Actions</h3>
@@ -994,12 +1092,16 @@
                         </button>
                         
                         <button class="btn btn-success" id="forceSyncBtn">
-                            <i class="fas fa-broadcast-tower"></i> Force Sync to All Players
+                            <i class="fas fa-cloud-upload-alt"></i> Push to Firebase
+                        </button>
+                        
+                        <button class="btn btn-primary" id="pullFromFirebaseBtn">
+                            <i class="fas fa-cloud-download-alt"></i> Pull from Firebase
                         </button>
                         
                         <div class="sync-status" id="syncStatus" style="display: none;">
                             <i class="fas fa-sync fa-spin"></i>
-                            <span id="syncMessage">Syncing with players...</span>
+                            <span id="syncMessage">Syncing with Firebase...</span>
                         </div>
                         
                         <p style="font-size: 0.9rem; color: #666;">
@@ -1031,7 +1133,7 @@
     <script>
         // ==================== CACHE CONTROL ====================
         // Add version parameter to force cache refresh
-        const GAME_VERSION = '2.2';
+        const GAME_VERSION = '2.3';
         const lastVersion = localStorage.getItem('gameVersion');
         
         if (lastVersion !== GAME_VERSION) {
@@ -1043,6 +1145,26 @@
                 window.location.href = url.toString();
             }
         }
+        
+        // ==================== FIREBASE CONFIGURATION ====================
+        
+        let firebaseApp = null;
+        let firebaseDatabase = null;
+        let firebaseConnected = false;
+        let firebaseSettingsRef = null;
+        
+        // Default Firebase configuration (users should replace with their own)
+        const DEFAULT_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCQY0pQq5q4q3q2q1q0q9q8q7q6q5q4q3q2q1q",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abc123def456ghi789jkl"
+        };
+        
+        const DEFAULT_FIREBASE_PATH = "bingo/settings";
         
         // ==================== GAME STATE ====================
         
@@ -1087,6 +1209,11 @@
                     freeCellColor: "#ffd166",
                     markedCellColor: "#6a11cb",
                     
+                    // Cell number customization
+                    cellNumberColor: "#333333",
+                    cellFontSize: 18,
+                    cellSpacing: 8,
+                    
                     // Cell border customization
                     cellBorderEnabled: false,
                     cellBorderColor: "#cccccc",
@@ -1120,6 +1247,234 @@
         let pendingLoginName = '';
         let existingPlayerFound = null;
         
+        // ==================== FIREBASE FUNCTIONS ====================
+        
+        function initializeFirebase() {
+            try {
+                // Load Firebase config from localStorage
+                const savedConfig = localStorage.getItem('firebaseConfig');
+                const savedPath = localStorage.getItem('firebasePath') || DEFAULT_FIREBASE_PATH;
+                
+                let firebaseConfig;
+                if (savedConfig) {
+                    try {
+                        firebaseConfig = JSON.parse(savedConfig);
+                    } catch (e) {
+                        console.error('Invalid Firebase config in localStorage:', e);
+                        firebaseConfig = DEFAULT_FIREBASE_CONFIG;
+                    }
+                } else {
+                    firebaseConfig = DEFAULT_FIREBASE_CONFIG;
+                }
+                
+                // Initialize Firebase if not already initialized
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                    firebaseDatabase = firebase.database();
+                    console.log('Firebase initialized');
+                }
+                
+                // Set up the reference
+                firebaseSettingsRef = firebaseDatabase.ref(savedPath);
+                
+                // Listen for real-time updates
+                firebaseSettingsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        console.log('Firebase update received:', data);
+                        updateGameStateFromFirebase(data);
+                        updateFirebaseStatus(true, 'Connected & Receiving Updates');
+                    }
+                }, (error) => {
+                    console.error('Firebase error:', error);
+                    updateFirebaseStatus(false, 'Error: ' + error.message);
+                });
+                
+                firebaseConnected = true;
+                updateFirebaseStatus(true, 'Connected to Firebase');
+                return true;
+                
+            } catch (error) {
+                console.error('Failed to initialize Firebase:', error);
+                updateFirebaseStatus(false, 'Not Connected: ' + error.message);
+                return false;
+            }
+        }
+        
+        function updateFirebaseStatus(connected, message) {
+            const statusElement = document.getElementById('firebaseStatus');
+            const statusIcon = document.getElementById('firebaseStatusIcon');
+            const statusText = document.getElementById('firebaseStatusText');
+            
+            firebaseConnected = connected;
+            
+            if (connected) {
+                statusElement.className = 'firebase-status connected';
+                statusIcon.style.color = '#28a745';
+            } else {
+                statusElement.className = 'firebase-status disconnected';
+                statusIcon.style.color = '#dc3545';
+            }
+            
+            statusText.textContent = 'Firebase: ' + message;
+        }
+        
+        function pushSettingsToFirebase() {
+            if (!firebaseConnected || !firebaseSettingsRef) {
+                showCustomAlert('Firebase is not connected. Please configure and connect Firebase first.');
+                return false;
+            }
+            
+            const syncStatus = document.getElementById('syncStatus');
+            const syncMessage = document.getElementById('syncMessage');
+            
+            syncStatus.style.display = 'flex';
+            syncStatus.className = 'sync-status syncing';
+            syncMessage.textContent = 'Pushing settings to Firebase...';
+            
+            try {
+                // Prepare settings to push (exclude player data)
+                const settingsToPush = {
+                    settings: gameState.settings,
+                    lastUpdated: Date.now(),
+                    updatedBy: gameState.currentPlayer ? gameState.currentPlayer.name : 'admin'
+                };
+                
+                firebaseSettingsRef.set(settingsToPush)
+                    .then(() => {
+                        syncMessage.textContent = 'Settings pushed to Firebase successfully!';
+                        syncStatus.className = 'sync-status';
+                        
+                        setTimeout(() => {
+                            syncStatus.style.display = 'none';
+                        }, 2000);
+                        
+                        showCustomAlert(`
+                            <strong>Settings pushed to Firebase successfully!</strong><br><br>
+                            • All connected players will receive updates automatically<br>
+                            • Changes will be applied in real-time<br>
+                            • Last updated: ${new Date().toLocaleTimeString()}
+                        `);
+                        return true;
+                    })
+                    .catch((error) => {
+                        syncMessage.textContent = 'Error: ' + error.message;
+                        syncStatus.className = 'sync-status error';
+                        console.error('Firebase push error:', error);
+                        showCustomAlert('Error pushing to Firebase: ' + error.message);
+                        return false;
+                    });
+                    
+            } catch (error) {
+                syncMessage.textContent = 'Error: ' + error.message;
+                syncStatus.className = 'sync-status error';
+                console.error('Firebase push error:', error);
+                showCustomAlert('Error pushing to Firebase: ' + error.message);
+                return false;
+            }
+        }
+        
+        function pullSettingsFromFirebase() {
+            if (!firebaseConnected || !firebaseSettingsRef) {
+                showCustomAlert('Firebase is not connected. Please configure and connect Firebase first.');
+                return false;
+            }
+            
+            const syncStatus = document.getElementById('syncStatus');
+            const syncMessage = document.getElementById('syncMessage');
+            
+            syncStatus.style.display = 'flex';
+            syncStatus.className = 'sync-status syncing';
+            syncMessage.textContent = 'Pulling settings from Firebase...';
+            
+            firebaseSettingsRef.once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        updateGameStateFromFirebase(data);
+                        syncMessage.textContent = 'Settings pulled from Firebase successfully!';
+                        syncStatus.className = 'sync-status';
+                        
+                        // Update admin panel
+                        if (document.getElementById('adminScreen').style.display === 'block') {
+                            loadCustomizationSettings();
+                        }
+                        
+                        setTimeout(() => {
+                            syncStatus.style.display = 'none';
+                        }, 2000);
+                        
+                        showCustomAlert(`
+                            <strong>Settings pulled from Firebase successfully!</strong><br><br>
+                            • All settings have been updated<br>
+                            • Customizations applied immediately<br>
+                            • Last updated: ${new Date(data.lastUpdated).toLocaleString()}
+                        `);
+                        return true;
+                    } else {
+                        syncMessage.textContent = 'No data found in Firebase';
+                        syncStatus.className = 'sync-status error';
+                        showCustomAlert('No settings found in Firebase.');
+                        return false;
+                    }
+                })
+                .catch((error) => {
+                    syncMessage.textContent = 'Error: ' + error.message;
+                    syncStatus.className = 'sync-status error';
+                    console.error('Firebase pull error:', error);
+                    showCustomAlert('Error pulling from Firebase: ' + error.message);
+                    return false;
+                });
+        }
+        
+        function updateGameStateFromFirebase(firebaseData) {
+            try {
+                if (firebaseData.settings) {
+                    // Update gameState with Firebase settings
+                    gameState.settings = { 
+                        ...gameState.settings,
+                        ...firebaseData.settings,
+                        customization: {
+                            ...gameState.settings.customization,
+                            ...firebaseData.settings.customization
+                        }
+                    };
+                    
+                    // Save to localStorage for offline use
+                    saveMasterSettings();
+                    
+                    // Apply customizations immediately
+                    applyCustomizations();
+                    
+                    // Update card display if player is logged in
+                    if (gameState.currentPlayer) {
+                        updateCardDisplay();
+                    }
+                    
+                    console.log('Game state updated from Firebase');
+                    return true;
+                }
+            } catch (error) {
+                console.error('Error updating from Firebase:', error);
+                return false;
+            }
+        }
+        
+        function saveFirebaseConfig() {
+            const configText = document.getElementById('firebaseConfig').value;
+            const path = document.getElementById('firebasePath').value;
+            
+            try {
+                const config = JSON.parse(configText);
+                localStorage.setItem('firebaseConfig', JSON.stringify(config));
+                localStorage.setItem('firebasePath', path);
+                return true;
+            } catch (error) {
+                showCustomAlert('Invalid JSON configuration. Please check your Firebase config.');
+                return false;
+            }
+        }
+        
         // ==================== CENTRALIZED STORAGE SYSTEM ====================
         
         // Master key for admin settings
@@ -1140,8 +1495,10 @@
                 localStorage.setItem('bingoGameState', JSON.stringify(gameState));
                 
                 console.log('Master settings saved');
+                return true;
             } catch (error) {
                 console.error('Failed to save master settings:', error);
+                return false;
             }
         }
         
@@ -1189,8 +1546,11 @@
                     gameState.currentCardIndex = parsed.currentCardIndex || 0;
                 }
                 
+                return true;
+                
             } catch (error) {
                 console.error('Failed to load settings:', error);
+                return false;
             }
         }
         
@@ -1207,74 +1567,11 @@
                 
                 // Also save to combined for backward compatibility
                 localStorage.setItem('bingoGameState', JSON.stringify(gameState));
+                return true;
             } catch (error) {
                 console.error('Failed to save player data:', error);
+                return false;
             }
-        }
-        
-        // Check for settings updates
-        function checkForSettingsUpdates() {
-            const lastUpdateCheck = localStorage.getItem('lastSettingsCheck') || 0;
-            const now = Date.now();
-            
-            // Check every 5 seconds
-            if (now - lastUpdateCheck > 5000) {
-                localStorage.setItem('lastSettingsCheck', now);
-                
-                const savedMaster = localStorage.getItem(MASTER_SETTINGS_KEY);
-                if (savedMaster) {
-                    const parsed = JSON.parse(savedMaster);
-                    const lastSaved = parsed.lastUpdated || 0;
-                    const myLastUpdate = localStorage.getItem('myLastSettingsUpdate') || 0;
-                    
-                    if (lastSaved > myLastUpdate) {
-                        // Settings have been updated by admin
-                        console.log('Settings updated by admin, reloading...');
-                        loadMasterSettings();
-                        applyCustomizations();
-                        
-                        // Update card display if player is logged in
-                        if (gameState.currentPlayer) {
-                            updateCardDisplay();
-                        }
-                        
-                        // Show notification to user
-                        if (gameState.currentPlayer && !document.getElementById('settingsUpdatedAlert')) {
-                            showSettingsUpdatedAlert();
-                        }
-                    }
-                }
-            }
-        }
-        
-        function showSettingsUpdatedAlert() {
-            const dialog = document.createElement('div');
-            dialog.className = 'confirmation-dialog';
-            dialog.style.display = 'flex';
-            dialog.id = 'settingsUpdatedAlert';
-            
-            const content = document.createElement('div');
-            content.className = 'confirmation-content';
-            
-            content.innerHTML = `
-                <h3><i class="fas fa-sync-alt" style="color: #28a745;"></i> Settings Updated</h3>
-                <div style="text-align: left; line-height: 1.6;">
-                    The game settings have been updated by the admin.<br><br>
-                    Your display has been refreshed with the new settings.
-                </div>
-                <div class="confirmation-buttons">
-                    <button class="btn btn-primary" id="settingsUpdatedOkBtn">
-                        OK
-                    </button>
-                </div>
-            `;
-            
-            dialog.appendChild(content);
-            document.body.appendChild(dialog);
-            
-            document.getElementById('settingsUpdatedOkBtn').addEventListener('click', function() {
-                document.body.removeChild(dialog);
-            });
         }
         
         // ==================== GAME FUNCTIONS ====================
@@ -1440,6 +1737,9 @@
             const letters = ['B', 'I', 'N', 'G', 'O'];
             const customization = gameState.settings.customization;
             
+            // Apply cell spacing
+            bingoGrid.style.gap = customization.cellSpacing + 'px';
+            
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     const cell = document.createElement('div');
@@ -1448,6 +1748,12 @@
                     
                     cell.className = 'bingo-cell';
                     cell.textContent = number;
+                    
+                    // Apply cell number color
+                    cell.style.color = customization.cellNumberColor;
+                    
+                    // Apply cell font size
+                    cell.style.fontSize = customization.cellFontSize + 'px';
                     
                     // Apply cell background color with transparency
                     let bgColor = customization.cellBackgroundColor;
@@ -1473,6 +1779,7 @@
                         cell.classList.add('free');
                         cell.style.backgroundColor = customization.freeCellColor;
                         cell.textContent = customization.freeCellText;
+                        cell.style.color = '#333'; // FREE text always dark for visibility
                         
                         // Apply border to FREE cell too
                         if (customization.cellBorderEnabled) {
@@ -1498,7 +1805,7 @@
                                 bgColor = hexToRgba(bgColor, alpha);
                             }
                             this.style.backgroundColor = bgColor;
-                            this.style.color = '#333';
+                            this.style.color = customization.cellNumberColor;
                         }
                     });
                     
@@ -1663,6 +1970,11 @@
                 bingoGrid.style.backgroundImage = 'none';
             }
             
+            // Apply cell spacing
+            if (bingoGrid) {
+                bingoGrid.style.gap = customization.cellSpacing + 'px';
+            }
+            
             // Apply button colors
             const primaryButtons = document.querySelectorAll('.btn-primary');
             primaryButtons.forEach(btn => {
@@ -1769,6 +2081,13 @@
             document.getElementById('cellTransparency').value = customization.cellTransparency;
             document.getElementById('cellTransparencyValue').textContent = customization.cellTransparency + '%';
             
+            document.getElementById('cellNumberColor').value = customization.cellNumberColor;
+            document.getElementById('cellNumberColorText').value = customization.cellNumberColor;
+            document.getElementById('cellFontSize').value = customization.cellFontSize;
+            document.getElementById('cellFontSizeValue').textContent = customization.cellFontSize + 'px';
+            document.getElementById('cellSpacing').value = customization.cellSpacing;
+            document.getElementById('cellSpacingValue').textContent = customization.cellSpacing + 'px';
+            
             document.getElementById('freeCellEnabled').checked = customization.freeCellEnabled;
             document.getElementById('freeCellColor').value = customization.freeCellColor;
             document.getElementById('freeCellColorText').value = customization.freeCellColor;
@@ -1791,6 +2110,17 @@
             document.getElementById('dangerButtonColorText').value = customization.dangerButtonColor;
             document.getElementById('buttonTextColor').value = customization.buttonTextColor;
             document.getElementById('buttonTextColorText').value = customization.buttonTextColor;
+            
+            // Load Firebase config
+            const savedConfig = localStorage.getItem('firebaseConfig');
+            const savedPath = localStorage.getItem('firebasePath') || DEFAULT_FIREBASE_PATH;
+            
+            if (savedConfig) {
+                document.getElementById('firebaseConfig').value = savedConfig;
+            } else {
+                document.getElementById('firebaseConfig').value = JSON.stringify(DEFAULT_FIREBASE_CONFIG, null, 2);
+            }
+            document.getElementById('firebasePath').value = savedPath;
             
             // Show/hide dependent fields
             toggleCellTransparencyGroup();
@@ -1943,34 +2273,39 @@
                 saveSettingsBtn.addEventListener('click', saveAdminSettings);
             }
             
-            // Force sync button
-            const forceSyncBtn = document.getElementById('forceSyncBtn');
-            if (forceSyncBtn) {
-                forceSyncBtn.addEventListener('click', function() {
-                    const syncStatus = document.getElementById('syncStatus');
-                    const syncMessage = document.getElementById('syncMessage');
-                    
-                    syncStatus.style.display = 'flex';
-                    syncStatus.className = 'sync-status syncing';
-                    syncMessage.textContent = 'Broadcasting settings to all players...';
-                    
-                    // Save settings to master storage
-                    saveMasterSettings();
-                    
-                    // Mark that settings have been updated
-                    localStorage.setItem('myLastSettingsUpdate', Date.now());
-                    
-                    // Show success message
-                    setTimeout(function() {
-                        syncMessage.textContent = 'Settings broadcasted successfully!';
-                        syncStatus.className = 'sync-status';
-                        
-                        setTimeout(function() {
-                            syncStatus.style.display = 'none';
-                        }, 2000);
-                    }, 1500);
-                });
-            }
+            // Firebase buttons
+            document.getElementById('connectFirebaseBtn').addEventListener('click', function() {
+                if (saveFirebaseConfig()) {
+                    if (initializeFirebase()) {
+                        showCustomAlert('Firebase connected successfully! Real-time updates are now active.');
+                    }
+                }
+            });
+            
+            document.getElementById('testFirebaseBtn').addEventListener('click', function() {
+                if (saveFirebaseConfig()) {
+                    if (initializeFirebase()) {
+                        // Test by pushing a small test object
+                        const testRef = firebaseDatabase.ref('bingo/test');
+                        testRef.set({
+                            test: true,
+                            timestamp: Date.now()
+                        }).then(() => {
+                            showCustomAlert('Firebase connection test successful! Data written and read successfully.');
+                        }).catch((error) => {
+                            showCustomAlert('Firebase test failed: ' + error.message);
+                        });
+                    }
+                }
+            });
+            
+            document.getElementById('forceSyncBtn').addEventListener('click', function() {
+                pushSettingsToFirebase();
+            });
+            
+            document.getElementById('pullFromFirebaseBtn').addEventListener('click', function() {
+                pullSettingsFromFirebase();
+            });
             
             // Clear player data button
             const clearPlayerDataBtn = document.getElementById('clearPlayerDataBtn');
@@ -2075,6 +2410,7 @@
             updateColorInputFromPicker('containerBackgroundColor', 'containerBackgroundColorText');
             updateColorInputFromPicker('cardBackgroundColor', 'cardBackgroundColorText');
             updateColorInputFromPicker('cellBackgroundColor', 'cellBackgroundColorText');
+            updateColorInputFromPicker('cellNumberColor', 'cellNumberColorText');
             updateColorInputFromPicker('markedCellColor', 'markedCellColorText');
             updateColorInputFromPicker('freeCellColor', 'freeCellColorText');
             updateColorInputFromPicker('cellBorderColor', 'cellBorderColorText');
@@ -2082,6 +2418,23 @@
             updateColorInputFromPicker('secondaryButtonColor', 'secondaryButtonColorText');
             updateColorInputFromPicker('dangerButtonColor', 'dangerButtonColorText');
             updateColorInputFromPicker('buttonTextColor', 'buttonTextColorText');
+            
+            // Cell number customization handlers
+            document.getElementById('cellNumberColor').addEventListener('change', function() {
+                gameState.settings.customization.cellNumberColor = this.value;
+            });
+            
+            document.getElementById('cellFontSize').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellFontSize = parseInt(value);
+                document.getElementById('cellFontSizeValue').textContent = value + 'px';
+            });
+            
+            document.getElementById('cellSpacing').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellSpacing = parseInt(value);
+                document.getElementById('cellSpacingValue').textContent = value + 'px';
+            });
             
             // Cell transparency handlers
             document.getElementById('cellTransparentEnabled').addEventListener('change', function() {
@@ -2305,6 +2658,19 @@
                 document.getElementById('cardBackgroundTransparent').checked = false;
                 
                 updatePreview('cardBackgroundPreview', "#f8f9fa", true);
+            });
+            
+            document.getElementById('resetCellNumberBtn').addEventListener('click', function() {
+                gameState.settings.customization.cellNumberColor = "#333333";
+                gameState.settings.customization.cellFontSize = 18;
+                gameState.settings.customization.cellSpacing = 8;
+                
+                document.getElementById('cellNumberColor').value = "#333333";
+                document.getElementById('cellNumberColorText').value = "#333333";
+                document.getElementById('cellFontSize').value = 18;
+                document.getElementById('cellFontSizeValue').textContent = "18px";
+                document.getElementById('cellSpacing').value = 8;
+                document.getElementById('cellSpacingValue').textContent = "8px";
             });
             
             document.getElementById('resetCellBorderBtn').addEventListener('click', function() {
@@ -2563,6 +2929,11 @@
             gameState.settings.customization.cellBorderThickness = parseInt(document.getElementById('cellBorderThickness').value);
             gameState.settings.customization.cellBorderTransparency = parseInt(document.getElementById('cellBorderTransparency').value);
             
+            // Update cell number settings
+            gameState.settings.customization.cellNumberColor = document.getElementById('cellNumberColor').value;
+            gameState.settings.customization.cellFontSize = parseInt(document.getElementById('cellFontSize').value);
+            gameState.settings.customization.cellSpacing = parseInt(document.getElementById('cellSpacing').value);
+            
             // Update color settings from text inputs (validate first)
             const colorsToValidate = [
                 { picker: 'headerBackgroundColorText', setting: 'headerBackgroundColor' },
@@ -2571,6 +2942,7 @@
                 { picker: 'containerBackgroundColorText', setting: 'containerBackgroundColor' },
                 { picker: 'cardBackgroundColorText', setting: 'cardBackgroundColor' },
                 { picker: 'cellBackgroundColorText', setting: 'cellBackgroundColor' },
+                { picker: 'cellNumberColorText', setting: 'cellNumberColor' },
                 { picker: 'markedCellColorText', setting: 'markedCellColor' },
                 { picker: 'freeCellColorText', setting: 'freeCellColor' },
                 { picker: 'cellBorderColorText', setting: 'cellBorderColor' },
@@ -2608,9 +2980,6 @@
             // Save to MASTER storage (this is what other players will load)
             saveMasterSettings();
             
-            // Mark that we've updated settings
-            localStorage.setItem('myLastSettingsUpdate', Date.now());
-            
             // Regenerate cards if FREE cell settings changed
             if (gameState.players.length > 0) {
                 const totalCardsNeeded = gameState.settings.maxPlayers * gameState.settings.cardsPerPlayer;
@@ -2644,8 +3013,8 @@
                 • Cards per player: ${cardsPerPlayer}<br>
                 • Player password updated<br>
                 • Customization settings saved<br><br>
-                <strong>Settings have been saved to master storage.</strong><br>
-                Other players will see changes when they refresh or when you click "Force Sync".
+                <strong>Settings have been saved locally.</strong><br>
+                Click "Push to Firebase" to update all connected players.
             `;
             
             if (cardsChanged) {
@@ -2826,14 +3195,19 @@
             // Apply customizations
             applyCustomizations();
             
+            // Initialize Firebase (if config exists)
+            const savedConfig = localStorage.getItem('firebaseConfig');
+            if (savedConfig) {
+                try {
+                    JSON.parse(savedConfig);
+                    initializeFirebase();
+                } catch (e) {
+                    console.error('Invalid Firebase config, skipping initialization');
+                }
+            }
+            
             // Show login screen
             showScreen('loginScreen');
-            
-            // Start checking for settings updates every 5 seconds
-            setInterval(checkForSettingsUpdates, 5000);
-            
-            // Check immediately
-            setTimeout(checkForSettingsUpdates, 1000);
         }
         
         // Start the game when page loads
