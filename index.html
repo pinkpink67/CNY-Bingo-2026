@@ -590,14 +590,19 @@
             
             const cardsToUse = availableCards.length >= cardsToAssign ? availableCards : cardsPool;
             
-            // If player already has cards, keep them
+            // Start with existing cards if player has them
             if (player.cards && player.cards.length > 0) {
-                assignedCards.push(...player.cards);
+                assignedCards.push(...player.cards.slice(0, Math.min(cardsToAssign, player.cards.length)));
             }
             
-            // Add new cards if needed
+            // Add new cards if needed (up to the required count)
             for (let i = assignedCards.length; i < cardsToAssign; i++) {
-                if (cardsToUse.length === 0) break;
+                if (cardsToUse.length === 0) {
+                    // Generate new card if pool is empty
+                    const newCard = generateNewBingoCard();
+                    assignedCards.push(newCard);
+                    continue;
+                }
                 
                 const randomIndex = Math.floor(Math.random() * cardsToUse.length);
                 const selectedCard = cardsToUse[randomIndex];
@@ -609,6 +614,36 @@
             return assignedCards;
         }
         
+        function generateNewBingoCard() {
+            const ranges = {
+                B: [1, 15],
+                I: [16, 30],
+                N: [31, 45],
+                G: [46, 60],
+                O: [61, 75]
+            };
+            
+            const card = { id: Date.now(), numbers: {} }; // Use timestamp as unique ID
+            
+            for (let col = 0; col < 5; col++) {
+                const letter = Object.keys(ranges)[col];
+                const [min, max] = ranges[letter];
+                const columnNumbers = [];
+                
+                while (columnNumbers.length < 5) {
+                    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    if (!columnNumbers.includes(num)) {
+                        columnNumbers.push(num);
+                    }
+                }
+                
+                card.numbers[letter] = columnNumbers;
+            }
+            
+            card.numbers.N[2] = "FREE";
+            return card;
+        }
+        
         function updatePlayerCardsForAllPlayers(newCardsPerPlayer) {
             // Generate enough cards for all players
             const totalCardsNeeded = gameState.settings.maxPlayers * newCardsPerPlayer;
@@ -616,22 +651,35 @@
             
             // Update cards for each player
             gameState.players.forEach(player => {
-                assignCardsToPlayer(player, cardsPool, newCardsPerPlayer);
+                // First, ensure player has a lucky number
+                if (!player.luckyNumber) {
+                    player.luckyNumber = generate4DPassword();
+                }
                 
-                // If current player is active, update their display
-                if (gameState.currentPlayer && gameState.currentPlayer.id === player.id) {
-                    gameState.currentPlayer = player;
-                    document.getElementById('totalCards').textContent = player.cards.length;
+                // Update cards based on new count
+                assignCardsToPlayer(player, cardsPool, newCardsPerPlayer);
+            });
+            
+            // If current player is logged in, update their display
+            if (gameState.currentPlayer) {
+                const currentPlayerUpdated = gameState.players.find(p => 
+                    p.name.toLowerCase() === gameState.currentPlayer.name.toLowerCase()
+                );
+                
+                if (currentPlayerUpdated) {
+                    gameState.currentPlayer = currentPlayerUpdated;
+                    document.getElementById('displayPlayerName').textContent = currentPlayerUpdated.name;
+                    document.getElementById('totalCards').textContent = currentPlayerUpdated.cards.length;
                     
                     // Adjust current card index if necessary
-                    if (gameState.currentCardIndex >= player.cards.length) {
-                        gameState.currentCardIndex = player.cards.length - 1;
+                    if (gameState.currentCardIndex >= currentPlayerUpdated.cards.length) {
+                        gameState.currentCardIndex = Math.max(0, currentPlayerUpdated.cards.length - 1);
                     }
                     
                     updateCardDisplay();
                     updatePasswordDisplay();
                 }
-            });
+            }
             
             // Save updated state
             saveGameState();
@@ -811,14 +859,7 @@
             
             // Admin logout button
             const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-            if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => {
-                showScreen('loginScreen');
-                // Clear admin fields
-                const playerNameInput = document.getElementById('playerName');
-                const playerPasswordInput = document.getElementById('playerPassword');
-                if (playerNameInput) playerNameInput.value = '';
-                if (playerPasswordInput) playerPasswordInput.value = '';
-            });
+            if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', handleAdminLogout);
             
             // Confirmation dialog buttons
             document.getElementById('confirmReturningPlayerBtn').addEventListener('click', function() {
@@ -1099,6 +1140,103 @@
             }
             
             showCustomAlert(message);
+        }
+        
+        function handleAdminLogout() {
+            // Check if any settings were changed but not saved
+            const playerListTextarea = document.getElementById('playerList');
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
+            
+            if (!playerListTextarea || !maxPlayersInput || !cardsPerPlayerInput || !playerPasswordSettingInput) {
+                showScreen('loginScreen');
+                return;
+            }
+            
+            // Check if settings were changed
+            const playerListText = playerListTextarea.value.trim();
+            const playerNames = playerListText.split(',')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            const playerNamesChanged = JSON.stringify(playerNames) !== JSON.stringify(gameState.settings.authorizedPlayers);
+            
+            const maxPlayers = parseInt(maxPlayersInput.value);
+            const maxPlayersChanged = maxPlayers !== gameState.settings.maxPlayers;
+            
+            const cardsPerPlayer = parseInt(cardsPerPlayerInput.value);
+            const cardsPerPlayerChanged = cardsPerPlayer !== gameState.settings.cardsPerPlayer;
+            
+            const defaultPassword = playerPasswordSettingInput.value.trim();
+            const passwordChanged = defaultPassword !== gameState.settings.defaultPassword;
+            
+            const settingsChanged = playerNamesChanged || maxPlayersChanged || cardsPerPlayerChanged || passwordChanged;
+            
+            if (settingsChanged) {
+                // Show confirmation dialog for unsaved changes
+                const dialog = document.createElement('div');
+                dialog.className = 'confirmation-dialog';
+                dialog.style.display = 'flex';
+                
+                const content = document.createElement('div');
+                content.className = 'confirmation-content';
+                
+                content.innerHTML = `
+                    <h3><i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> Unsaved Changes</h3>
+                    <div style="text-align: left; line-height: 1.6;">
+                        You have unsaved changes in the admin settings.<br><br>
+                        <strong>Do you want to save changes before exiting?</strong><br><br>
+                        Changes detected:<br>
+                        ${playerNamesChanged ? '• Player list<br>' : ''}
+                        ${maxPlayersChanged ? '• Maximum players<br>' : ''}
+                        ${cardsPerPlayerChanged ? '• Cards per player<br>' : ''}
+                        ${passwordChanged ? '• Player password<br>' : ''}
+                    </div>
+                    <div class="confirmation-buttons">
+                        <button class="btn btn-secondary" id="exitWithoutSaveBtn">
+                            <i class="fas fa-times"></i> Exit Without Saving
+                        </button>
+                        <button class="btn btn-primary" id="saveAndExitBtn">
+                            <i class="fas fa-save"></i> Save & Exit
+                        </button>
+                    </div>
+                `;
+                
+                dialog.appendChild(content);
+                document.body.appendChild(dialog);
+                
+                // Add event listeners
+                document.getElementById('exitWithoutSaveBtn').addEventListener('click', function() {
+                    document.body.removeChild(dialog);
+                    showScreen('loginScreen');
+                    // Clear admin fields
+                    const playerNameInput = document.getElementById('playerName');
+                    const playerPasswordInput = document.getElementById('playerPassword');
+                    if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
+                });
+                
+                document.getElementById('saveAndExitBtn').addEventListener('click', function() {
+                    document.body.removeChild(dialog);
+                    // Save settings first
+                    saveAdminSettings();
+                    // Then exit
+                    showScreen('loginScreen');
+                    // Clear admin fields
+                    const playerNameInput = document.getElementById('playerName');
+                    const playerPasswordInput = document.getElementById('playerPassword');
+                    if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
+                });
+            } else {
+                // No changes, just exit
+                showScreen('loginScreen');
+                // Clear admin fields
+                const playerNameInput = document.getElementById('playerName');
+                const playerPasswordInput = document.getElementById('playerPassword');
+                if (playerNameInput) playerNameInput.value = '';
+                if (playerPasswordInput) playerPasswordInput.value = '';
+            }
         }
         
         function confirmClearPlayerData() {
