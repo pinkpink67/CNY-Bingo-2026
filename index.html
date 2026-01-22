@@ -53,6 +53,7 @@
         .content {
             padding: 25px 20px;
             position: relative;
+            min-height: 500px;
         }
         
         /* Login Screen */
@@ -221,16 +222,21 @@
         
         /* Password Display */
         .password-display {
-            position: absolute;
+            position: fixed;
             bottom: 20px;
-            left: 20px;
-            background-color: #f0f0f0;
-            padding: 10px 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 12px 25px;
             border-radius: 10px;
-            font-size: 0.9rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #6a11cb;
+            color: white;
             display: none;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+            min-width: 250px;
+            text-align: center;
         }
         
         /* Confirmation Dialog */
@@ -280,29 +286,42 @@
             gap: 20px;
         }
         
-        .textarea-group {
+        .textarea-group, .input-group-admin {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
         
-        .textarea-group label {
+        .textarea-group label, .input-group-admin label {
             font-weight: 600;
             font-size: 1rem;
         }
         
-        .textarea-group textarea {
+        .textarea-group textarea, .input-group-admin input {
             padding: 15px;
             border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 1rem;
+        }
+        
+        .textarea-group textarea {
             min-height: 150px;
             resize: vertical;
         }
         
-        .textarea-group textarea:focus {
+        .textarea-group textarea:focus, .input-group-admin input:focus {
             border-color: #6a11cb;
             outline: none;
+        }
+        
+        .admin-settings {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
         }
         
         @media (max-width: 480px) {
@@ -320,6 +339,12 @@
             
             .bingo-cell {
                 font-size: 1rem;
+            }
+            
+            .password-display {
+                min-width: 200px;
+                font-size: 1rem;
+                padding: 10px 20px;
             }
         }
     </style>
@@ -363,7 +388,7 @@
                     
                     <div class="input-group">
                         <label for="playerPassword">Password</label>
-                        <input type="password" id="playerPassword" placeholder="Enter password" required>
+                        <input type="password" id="playerPassword" placeholder="Enter password (default: 8888)" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -401,10 +426,6 @@
                         Next <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
-                
-                <button class="btn btn-primary" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
             </div>
             
             <!-- Admin Screen -->
@@ -418,8 +439,27 @@
                         <textarea id="playerList" placeholder="Enter player names, e.g., Calvin, JF, Cindy, PIG">Calvin, JF, Cindy, PIG</textarea>
                     </div>
                     
-                    <button class="btn btn-primary" id="savePlayerListBtn">
-                        <i class="fas fa-save"></i> Save Player List
+                    <div class="admin-settings">
+                        <h3><i class="fas fa-sliders-h"></i> Game Settings</h3>
+                        
+                        <div class="input-group-admin">
+                            <label for="maxPlayers">Maximum Players (1-100)</label>
+                            <input type="number" id="maxPlayers" min="1" max="100" value="30">
+                        </div>
+                        
+                        <div class="input-group-admin">
+                            <label for="cardsPerPlayer">Cards per Player (1-10)</label>
+                            <input type="number" id="cardsPerPlayer" min="1" max="10" value="3">
+                        </div>
+                        
+                        <div class="input-group-admin">
+                            <label for="playerPasswordSetting">Default Player Password (alphanumeric)</label>
+                            <input type="text" id="playerPasswordSetting" value="8888">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" id="saveSettingsBtn">
+                        <i class="fas fa-save"></i> Save All Settings
                     </button>
                     
                     <button class="btn btn-secondary" id="adminLogoutBtn">
@@ -427,12 +467,12 @@
                     </button>
                 </div>
             </div>
-            
-            <!-- Password Display -->
-            <div class="password-display" id="passwordDisplay">
-                Lucky 4D Number: <span id="luckyNumber">XXXX</span>
-            </div>
         </div>
+    </div>
+    
+    <!-- Lucky 4D Number Display (Fixed at bottom center) -->
+    <div class="password-display" id="passwordDisplay">
+        Lucky 4D Number: <span id="luckyNumber">XXXX</span>
     </div>
     
     <div class="footer">
@@ -449,6 +489,7 @@
             settings: {
                 maxPlayers: 30,
                 cardsPerPlayer: 3,
+                defaultPassword: "8888",
                 authorizedPlayers: ["Calvin", "JF", "Cindy", "PIG"]
             }
         };
@@ -458,16 +499,13 @@
             password: "1234"
         };
         
-        // Default password for first-time login
-        const DEFAULT_PASSWORD = "8888";
-        
         // Variables to track login attempts
         let pendingLoginName = '';
         let existingPlayerFound = null;
         
         // ==================== GAME FUNCTIONS ====================
         
-        function generateBingoCards() {
+        function generateBingoCards(count) {
             const cards = [];
             const ranges = {
                 B: [1, 15],
@@ -477,8 +515,8 @@
                 O: [61, 75]
             };
             
-            // Generate 30 cards
-            for (let cardId = 1; cardId <= 30; cardId++) {
+            // Generate cards based on count parameter
+            for (let cardId = 1; cardId <= count; cardId++) {
                 const card = { id: cardId, numbers: {} };
                 
                 for (let col = 0; col < 5; col++) {
@@ -508,9 +546,9 @@
             return Math.floor(1000 + Math.random() * 9000).toString();
         }
         
-        function assignCardsToPlayer(player, cardsPool) {
+        function assignCardsToPlayer(player, cardsPool, count) {
             const assignedCards = [];
-            const cardsToAssign = gameState.settings.cardsPerPlayer;
+            const cardsToAssign = count || gameState.settings.cardsPerPlayer;
             
             // Get available cards (not issued yet)
             const availableCards = cardsPool.filter(card => 
@@ -576,9 +614,9 @@
             const passwordDisplay = document.getElementById('passwordDisplay');
             const luckyNumberSpan = document.getElementById('luckyNumber');
             
-            if (gameState.currentPlayer && gameState.currentPlayer.password) {
+            if (gameState.currentPlayer && gameState.currentPlayer.luckyNumber) {
                 passwordDisplay.style.display = 'block';
-                luckyNumberSpan.textContent = gameState.currentPlayer.password;
+                luckyNumberSpan.textContent = gameState.currentPlayer.luckyNumber;
             } else {
                 passwordDisplay.style.display = 'none';
             }
@@ -598,14 +636,12 @@
         function updatePlayersCount() {
             const currentPlayersElement = document.getElementById('currentPlayers');
             const maxPlayersElement = document.getElementById('maxPlayers');
-            const maxPlayersDisplay = document.getElementById('maxPlayersDisplay');
             
             if (currentPlayersElement) {
                 currentPlayersElement.textContent = gameState.players.length;
             }
-            if (maxPlayersElement && maxPlayersDisplay) {
+            if (maxPlayersElement) {
                 maxPlayersElement.textContent = gameState.settings.maxPlayers;
-                maxPlayersDisplay.textContent = gameState.settings.maxPlayers;
             }
         }
         
@@ -651,7 +687,9 @@
             
             content.innerHTML = `
                 <h3>${icon} ${title}</h3>
-                <p>${message}</p>
+                <div style="text-align: left; line-height: 1.6;">
+                    ${message}
+                </div>
                 ${buttons}
             `;
             
@@ -685,10 +723,8 @@
             if (prevBtn) prevBtn.addEventListener('click', showPrevCard);
             if (nextBtn) nextBtn.addEventListener('click', showNextCard);
             
-            // Logout buttons
-            const logoutBtn = document.getElementById('logoutBtn');
+            // Admin logout button
             const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
             if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => {
                 showScreen('loginScreen');
                 // Clear admin fields
@@ -719,9 +755,9 @@
             });
             
             // Admin controls
-            const savePlayerListBtn = document.getElementById('savePlayerListBtn');
-            if (savePlayerListBtn) {
-                savePlayerListBtn.addEventListener('click', savePlayerList);
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            if (saveSettingsBtn) {
+                saveSettingsBtn.addEventListener('click', saveAdminSettings);
             }
         }
         
@@ -747,11 +783,8 @@
             if (playerName.toLowerCase() === ADMIN_CREDENTIALS.id) {
                 if (password === ADMIN_CREDENTIALS.password) {
                     showScreen('adminScreen');
-                    // Load current player list into textarea
-                    const playerListTextarea = document.getElementById('playerList');
-                    if (playerListTextarea) {
-                        playerListTextarea.value = gameState.settings.authorizedPlayers.join(', ');
-                    }
+                    // Load current settings into admin panel
+                    loadAdminSettings();
                     if (playerNameInput) playerNameInput.value = '';
                     if (playerPasswordInput) playerPasswordInput.value = '';
                 } else {
@@ -770,6 +803,12 @@
                 return;
             }
             
+            // Check password against default password
+            if (password !== gameState.settings.defaultPassword) {
+                showCustomAlert('Incorrect password. Please use the default password: ' + gameState.settings.defaultPassword);
+                return;
+            }
+            
             // Store the name being attempted
             pendingLoginName = playerName;
             
@@ -779,23 +818,11 @@
             );
             
             if (existingPlayerFound) {
-                // Player exists, check password
-                if (existingPlayerFound.password === password) {
-                    // Password matches, login
-                    loginAsReturningPlayer();
-                } else {
-                    // Wrong password
-                    showCustomAlert('Incorrect password for this player.');
-                }
+                // Player exists, show confirmation dialog
+                showConfirmationDialog(playerName);
             } else {
-                // New player, check default password
-                if (password === DEFAULT_PASSWORD) {
-                    // Default password matches, create new player
-                    createNewPlayer(playerName);
-                } else {
-                    // Wrong default password
-                    showCustomAlert('Incorrect password. First-time players should use the default password.');
-                }
+                // New player, create account
+                createNewPlayer(playerName);
             }
             
             // Clear input fields
@@ -827,22 +854,23 @@
                 return;
             }
             
-            // Generate cards pool
-            const cardsPool = generateBingoCards();
+            // Generate cards pool (enough for all potential players)
+            const totalCardsNeeded = gameState.settings.maxPlayers * gameState.settings.cardsPerPlayer;
+            const cardsPool = generateBingoCards(totalCardsNeeded);
             
-            // Generate a 4-digit password
-            const newPassword = generate4DPassword();
+            // Generate a Lucky 4D number
+            const luckyNumber = generate4DPassword();
             
             // Create player
             const newPlayer = {
                 id: gameState.players.length + 1,
                 name: playerName,
-                password: newPassword,
+                luckyNumber: luckyNumber,
                 cards: []
             };
             
             // Assign cards
-            assignCardsToPlayer(newPlayer, cardsPool);
+            assignCardsToPlayer(newPlayer, cardsPool, gameState.settings.cardsPerPlayer);
             
             // Add to game state
             gameState.players.push(newPlayer);
@@ -860,11 +888,14 @@
             // Save to localStorage
             saveGameState();
             
-            // Show welcome message with password
-            const welcomeMessage = `Welcome ${playerName}!<br><br>
+            // Show welcome message with Lucky 4D number
+            const welcomeMessage = `
+                <strong>Welcome ${playerName}!</strong><br><br>
                 You have received ${newPlayer.cards.length} BINGO cards.<br><br>
-                <strong>Your Lucky 4D number: ${newPassword}</strong><br>
-                This will be your login password for future sessions.`;
+                <strong>Your Lucky 4D number: ${luckyNumber}</strong><br><br>
+                Remember this number for future reference!<br>
+                (Your login password remains: ${gameState.settings.defaultPassword})
+            `;
             
             showCustomAlert(welcomeMessage, true);
         }
@@ -889,27 +920,80 @@
             }
             
             showScreen('adminScreen');
-            
-            // Load current player list into textarea
+            loadAdminSettings();
+        }
+        
+        function loadAdminSettings() {
+            // Load current settings into admin panel
             const playerListTextarea = document.getElementById('playerList');
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
+            
             if (playerListTextarea) {
                 playerListTextarea.value = gameState.settings.authorizedPlayers.join(', ');
             }
+            if (maxPlayersInput) {
+                maxPlayersInput.value = gameState.settings.maxPlayers;
+            }
+            if (cardsPerPlayerInput) {
+                cardsPerPlayerInput.value = gameState.settings.cardsPerPlayer;
+            }
+            if (playerPasswordSettingInput) {
+                playerPasswordSettingInput.value = gameState.settings.defaultPassword;
+            }
         }
         
-        function savePlayerList() {
+        function saveAdminSettings() {
             const playerListTextarea = document.getElementById('playerList');
-            if (!playerListTextarea) return;
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
             
+            if (!playerListTextarea || !maxPlayersInput || !cardsPerPlayerInput || !playerPasswordSettingInput) return;
+            
+            // Get player list
             const playerListText = playerListTextarea.value.trim();
             const playerNames = playerListText.split(',')
                 .map(name => name.trim())
                 .filter(name => name.length > 0);
             
+            // Get max players (1-100)
+            let maxPlayers = parseInt(maxPlayersInput.value);
+            if (isNaN(maxPlayers) || maxPlayers < 1) maxPlayers = 1;
+            if (maxPlayers > 100) maxPlayers = 100;
+            
+            // Get cards per player (1-10)
+            let cardsPerPlayer = parseInt(cardsPerPlayerInput.value);
+            if (isNaN(cardsPerPlayer) || cardsPerPlayer < 1) cardsPerPlayer = 1;
+            if (cardsPerPlayer > 10) cardsPerPlayer = 10;
+            
+            // Get default password
+            const defaultPassword = playerPasswordSettingInput.value.trim();
+            if (defaultPassword.length === 0) {
+                showCustomAlert('Default password cannot be empty');
+                return;
+            }
+            
+            // Update settings
             gameState.settings.authorizedPlayers = playerNames;
+            gameState.settings.maxPlayers = maxPlayers;
+            gameState.settings.cardsPerPlayer = cardsPerPlayer;
+            gameState.settings.defaultPassword = defaultPassword;
+            
+            // Save to localStorage
             saveGameState();
             
-            showCustomAlert(`Player list saved successfully!<br>Authorized players: ${playerNames.length}`);
+            // Update players count display
+            updatePlayersCount();
+            
+            showCustomAlert(`
+                <strong>Settings saved successfully!</strong><br><br>
+                • Authorized players: ${playerNames.length}<br>
+                • Maximum players: ${maxPlayers}<br>
+                • Cards per player: ${cardsPerPlayer}<br>
+                • Default password: ${defaultPassword}
+            `);
         }
         
         function showPrevCard() {
@@ -925,20 +1009,6 @@
                 gameState.currentCardIndex++;
                 updateCardDisplay();
             }
-        }
-        
-        function handleLogout() {
-            showCustomAlert('Are you sure you want to logout?');
-            // Simple logout without confirmation
-            gameState.currentPlayer = null;
-            gameState.currentCardIndex = 0;
-            showScreen('loginScreen');
-            
-            // Clear input fields
-            const playerNameInput = document.getElementById('playerName');
-            const playerPasswordInput = document.getElementById('playerPassword');
-            if (playerNameInput) playerNameInput.value = '';
-            if (playerPasswordInput) playerPasswordInput.value = '';
         }
         
         // ==================== DATA PERSISTENCE ====================
@@ -960,10 +1030,19 @@
                     gameState.settings = { 
                         ...gameState.settings, 
                         ...(parsed.settings || {}),
-                        // Ensure authorizedPlayers exists
+                        // Ensure all settings exist
                         authorizedPlayers: parsed.settings && parsed.settings.authorizedPlayers 
                             ? parsed.settings.authorizedPlayers 
-                            : gameState.settings.authorizedPlayers
+                            : gameState.settings.authorizedPlayers,
+                        maxPlayers: parsed.settings && parsed.settings.maxPlayers 
+                            ? parsed.settings.maxPlayers 
+                            : gameState.settings.maxPlayers,
+                        cardsPerPlayer: parsed.settings && parsed.settings.cardsPerPlayer 
+                            ? parsed.settings.cardsPerPlayer 
+                            : gameState.settings.cardsPerPlayer,
+                        defaultPassword: parsed.settings && parsed.settings.defaultPassword 
+                            ? parsed.settings.defaultPassword 
+                            : gameState.settings.defaultPassword
                     };
                 }
             } catch (error) {
