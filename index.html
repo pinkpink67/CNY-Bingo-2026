@@ -1421,18 +1421,425 @@
             });
         }
         
-        // ==================== INITIALIZATION ====================
+        // ==================== GAME LOGIC FUNCTIONS ====================
         
-        function initGame() {
-            loadGameState();
-            updatePlayersCount();
-            setupEventListeners();
-            applyCustomizations();
-            showScreen('loginScreen');
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const playerNameInput = document.getElementById('playerName');
+            const playerPasswordInput = document.getElementById('playerPassword');
+            const playerName = playerNameInput ? playerNameInput.value.trim() : '';
+            const password = playerPasswordInput ? playerPasswordInput.value.trim() : '';
+            
+            if (!playerName) {
+                showCustomAlert('Please enter your name');
+                return;
+            }
+            
+            if (!password) {
+                showCustomAlert('Please enter your password');
+                return;
+            }
+            
+            // Check for admin login
+            if (playerName.toLowerCase() === ADMIN_CREDENTIALS.id) {
+                if (password === ADMIN_CREDENTIALS.password) {
+                    showScreen('adminScreen');
+                    // Load current settings into admin panel
+                    loadAdminSettings();
+                    if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
+                } else {
+                    showCustomAlert('Invalid admin password');
+                }
+                return;
+            }
+            
+            // Check if player name is authorized (case-insensitive)
+            const isAuthorized = gameState.settings.authorizedPlayers.some(name => 
+                name.trim().toLowerCase() === playerName.toLowerCase()
+            );
+            
+            if (!isAuthorized) {
+                showCustomAlert(`Sorry, "${playerName}" is not on the authorized players list.`);
+                return;
+            }
+            
+            // Check password
+            if (password !== gameState.settings.defaultPassword) {
+                showCustomAlert('Incorrect password. Please try again.');
+                return;
+            }
+            
+            // Store the name being attempted
+            pendingLoginName = playerName;
+            
+            // Check if name already exists (case-insensitive)
+            existingPlayerFound = gameState.players.find(p => 
+                p.name.toLowerCase() === playerName.toLowerCase()
+            );
+            
+            if (existingPlayerFound) {
+                // Player exists, show confirmation dialog
+                showConfirmationDialog(playerName);
+            } else {
+                // New player, create account
+                createNewPlayer(playerName);
+            }
+            
+            // Clear input fields
+            if (playerNameInput) playerNameInput.value = '';
+            if (playerPasswordInput) playerPasswordInput.value = '';
         }
         
-        // Start the game when page loads
-        window.addEventListener('DOMContentLoaded', initGame);
+        function loginAsReturningPlayer() {
+            if (!existingPlayerFound) return;
+            
+            gameState.currentPlayer = existingPlayerFound;
+            gameState.currentCardIndex = 0;
+            
+            document.getElementById('displayPlayerName').textContent = existingPlayerFound.name;
+            document.getElementById('totalCards').textContent = existingPlayerFound.cards.length;
+            updateCardDisplay();
+            updatePasswordDisplay();
+            showScreen('gameScreen');
+            
+            // Reset tracking variables
+            pendingLoginName = '';
+            existingPlayerFound = null;
+        }
+        
+        function createNewPlayer(playerName) {
+            // Check player limit
+            if (gameState.players.length >= gameState.settings.maxPlayers) {
+                showCustomAlert(`Sorry, the game is full! Maximum ${gameState.settings.maxPlayers} players allowed.`);
+                return;
+            }
+            
+            // Generate cards pool (enough for all potential players)
+            const totalCardsNeeded = gameState.settings.maxPlayers * gameState.settings.cardsPerPlayer;
+            const cardsPool = generateBingoCards(totalCardsNeeded);
+            
+            // Generate a Lucky 4D number
+            const luckyNumber = generate4DPassword();
+            
+            // Create player
+            const newPlayer = {
+                id: gameState.players.length + 1,
+                name: playerName,
+                luckyNumber: luckyNumber,
+                cards: []
+            };
+            
+            // Assign cards
+            assignCardsToPlayer(newPlayer, cardsPool, gameState.settings.cardsPerPlayer);
+            
+            // Add to game state
+            gameState.players.push(newPlayer);
+            gameState.currentPlayer = newPlayer;
+            gameState.currentCardIndex = 0;
+            
+            // Update UI
+            document.getElementById('displayPlayerName').textContent = newPlayer.name;
+            document.getElementById('totalCards').textContent = newPlayer.cards.length;
+            updateCardDisplay();
+            updatePasswordDisplay();
+            updatePlayersCount();
+            showScreen('gameScreen');
+            
+            // Save to localStorage
+            saveGameState();
+            
+            // Show welcome message with Lucky 4D number
+            const welcomeMessage = `
+                <strong>Welcome ${playerName}!</strong><br><br>
+                You have received ${newPlayer.cards.length} BINGO cards.<br><br>
+                <strong>Your Lucky 4D number: ${luckyNumber}</strong><br><br>
+                Good luck and have fun!
+            `;
+            
+            showCustomAlert(welcomeMessage, true);
+        }
+        
+        function showAdminLogin(e) {
+            if (e) e.preventDefault();
+            
+            const adminId = prompt('Enter Admin ID:');
+            if (!adminId) return;
+            
+            if (adminId !== ADMIN_CREDENTIALS.id) {
+                alert('Invalid Admin ID');
+                return;
+            }
+            
+            const password = prompt('Enter Admin Password:');
+            if (!password) return;
+            
+            if (password !== ADMIN_CREDENTIALS.password) {
+                alert('Invalid Password');
+                return;
+            }
+            
+            showScreen('adminScreen');
+            loadAdminSettings();
+        }
+        
+        function loadAdminSettings() {
+            // Load current settings into admin panel
+            const playerListTextarea = document.getElementById('playerList');
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
+            
+            if (playerListTextarea) {
+                playerListTextarea.value = gameState.settings.authorizedPlayers.join(', ');
+            }
+            if (maxPlayersInput) {
+                maxPlayersInput.value = gameState.settings.maxPlayers;
+            }
+            if (cardsPerPlayerInput) {
+                cardsPerPlayerInput.value = gameState.settings.cardsPerPlayer;
+            }
+            if (playerPasswordSettingInput) {
+                playerPasswordSettingInput.value = gameState.settings.defaultPassword;
+            }
+            
+            // Load customization settings
+            loadCustomizationSettings();
+        }
+        
+        function saveAdminSettings() {
+            const playerListTextarea = document.getElementById('playerList');
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
+            
+            if (!playerListTextarea || !maxPlayersInput || !cardsPerPlayerInput || !playerPasswordSettingInput) return;
+            
+            // Get player list
+            const playerListText = playerListTextarea.value.trim();
+            const playerNames = playerListText.split(',')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            
+            // Get max players (1-100)
+            let maxPlayers = parseInt(maxPlayersInput.value);
+            if (isNaN(maxPlayers) || maxPlayers < 1) maxPlayers = 1;
+            if (maxPlayers > 100) maxPlayers = 100;
+            
+            // Get cards per player (1-10)
+            let cardsPerPlayer = parseInt(cardsPerPlayerInput.value);
+            if (isNaN(cardsPerPlayer) || cardsPerPlayer < 1) cardsPerPlayer = 1;
+            if (cardsPerPlayer > 10) cardsPerPlayer = 10;
+            
+            // Get default password
+            const defaultPassword = playerPasswordSettingInput.value.trim();
+            if (defaultPassword.length === 0) {
+                showCustomAlert('Player password cannot be empty');
+                return;
+            }
+            
+            // Check if cards per player changed
+            const cardsChanged = cardsPerPlayer !== gameState.settings.cardsPerPlayer;
+            
+            // Update settings
+            gameState.settings.authorizedPlayers = playerNames;
+            gameState.settings.maxPlayers = maxPlayers;
+            gameState.settings.cardsPerPlayer = cardsPerPlayer;
+            gameState.settings.defaultPassword = defaultPassword;
+            
+            // Update customization settings from form fields
+            gameState.settings.customization.gameTitle = document.getElementById('gameTitleText').value;
+            gameState.settings.customization.gameSubtitle = document.getElementById('gameSubtitleText').value;
+            gameState.settings.customization.welcomeTitle = document.getElementById('welcomeTitleText').value;
+            gameState.settings.customization.welcomeMessage = document.getElementById('welcomeMessageText').value;
+            gameState.settings.customization.loginButtonText = document.getElementById('loginButtonText').value;
+            
+            // Apply customizations immediately
+            applyCustomizations();
+            
+            // If cards per player changed, update all players
+            if (cardsChanged) {
+                updatePlayerCardsForAllPlayers(cardsPerPlayer);
+            }
+            
+            // Save to localStorage
+            saveGameState();
+            
+            // Update players count display
+            updatePlayersCount();
+            
+            let message = `
+                <strong>Settings saved successfully!</strong><br><br>
+                • Authorized players: ${playerNames.length}<br>
+                • Maximum players: ${maxPlayers}<br>
+                • Cards per player: ${cardsPerPlayer}<br>
+                • Player password updated<br>
+                • Customization settings saved
+            `;
+            
+            if (cardsChanged) {
+                message += `<br><br><strong>All player cards have been updated to ${cardsPerPlayer} cards per player.</strong>`;
+            }
+            
+            showCustomAlert(message);
+        }
+        
+        function handleAdminLogout() {
+            // Check if any settings were changed
+            const playerListTextarea = document.getElementById('playerList');
+            const maxPlayersInput = document.getElementById('maxPlayers');
+            const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+            const playerPasswordSettingInput = document.getElementById('playerPasswordSetting');
+            
+            if (!playerListTextarea || !maxPlayersInput || !cardsPerPlayerInput || !playerPasswordSettingInput) {
+                showScreen('loginScreen');
+                return;
+            }
+            
+            // Check if settings were changed
+            const playerListText = playerListTextarea.value.trim();
+            const playerNames = playerListText.split(',')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            const playerNamesChanged = JSON.stringify(playerNames) !== JSON.stringify(gameState.settings.authorizedPlayers);
+            
+            const maxPlayers = parseInt(maxPlayersInput.value);
+            const maxPlayersChanged = maxPlayers !== gameState.settings.maxPlayers;
+            
+            const cardsPerPlayer = parseInt(cardsPerPlayerInput.value);
+            const cardsPerPlayerChanged = cardsPerPlayer !== gameState.settings.cardsPerPlayer;
+            
+            const defaultPassword = playerPasswordSettingInput.value.trim();
+            const passwordChanged = defaultPassword !== gameState.settings.defaultPassword;
+            
+            const settingsChanged = playerNamesChanged || maxPlayersChanged || cardsPerPlayerChanged || passwordChanged;
+            
+            if (settingsChanged) {
+                // Show confirmation dialog for unsaved changes
+                const dialog = document.createElement('div');
+                dialog.className = 'confirmation-dialog';
+                dialog.style.display = 'flex';
+                
+                const content = document.createElement('div');
+                content.className = 'confirmation-content';
+                
+                content.innerHTML = `
+                    <h3><i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i> Unsaved Changes</h3>
+                    <div style="text-align: left; line-height: 1.6;">
+                        You have unsaved changes in the admin settings.<br><br>
+                        <strong>Do you want to save changes before exiting?</strong><br><br>
+                        Changes detected:<br>
+                        ${playerNamesChanged ? '• Player list<br>' : ''}
+                        ${maxPlayersChanged ? '• Maximum players<br>' : ''}
+                        ${cardsPerPlayerChanged ? '• Cards per player<br>' : ''}
+                        ${passwordChanged ? '• Player password<br>' : ''}
+                    </div>
+                    <div class="confirmation-buttons">
+                        <button class="btn btn-secondary" id="exitWithoutSaveBtn">
+                            <i class="fas fa-times"></i> Exit Without Saving
+                        </button>
+                        <button class="btn btn-primary" id="saveAndExitBtn">
+                            <i class="fas fa-save"></i> Save & Exit
+                        </button>
+                    </div>
+                `;
+                
+                dialog.appendChild(content);
+                document.body.appendChild(dialog);
+                
+                // Add event listeners
+                document.getElementById('exitWithoutSaveBtn').addEventListener('click', function() {
+                    document.body.removeChild(dialog);
+                    showScreen('loginScreen');
+                    // Clear admin fields
+                    const playerNameInput = document.getElementById('playerName');
+                    const playerPasswordInput = document.getElementById('playerPassword');
+                    if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
+                });
+                
+                document.getElementById('saveAndExitBtn').addEventListener('click', function() {
+                    document.body.removeChild(dialog);
+                    // Save settings first
+                    saveAdminSettings();
+                    // Then exit
+                    showScreen('loginScreen');
+                    // Clear admin fields
+                    const playerNameInput = document.getElementById('playerName');
+                    const playerPasswordInput = document.getElementById('playerPassword');
+                    if (playerNameInput) playerNameInput.value = '';
+                    if (playerPasswordInput) playerPasswordInput.value = '';
+                });
+            } else {
+                // No changes, just exit
+                showScreen('loginScreen');
+                // Clear admin fields
+                const playerNameInput = document.getElementById('playerName');
+                const playerPasswordInput = document.getElementById('playerPassword');
+                if (playerNameInput) playerNameInput.value = '';
+                if (playerPasswordInput) playerPasswordInput.value = '';
+            }
+        }
+        
+        function confirmClearPlayerData() {
+            // Create confirmation dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            dialog.style.display = 'flex';
+            
+            const content = document.createElement('div');
+            content.className = 'confirmation-content';
+            
+            content.innerHTML = `
+                <h3><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Confirm Action</h3>
+                <div style="text-align: left; line-height: 1.6;">
+                    <strong>Warning: This action cannot be undone!</strong><br><br>
+                    This will:<br>
+                    • Clear all player cards<br>
+                    • Remove all Lucky 4D numbers<br>
+                    • Reset all player progress<br><br>
+                    Authorized player list will be preserved.<br>
+                    Are you sure you want to continue?
+                </div>
+                <div class="confirmation-buttons">
+                    <button class="btn btn-secondary" id="cancelClearBtn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-danger" id="confirmClearBtn">
+                        <i class="fas fa-trash-alt"></i> Clear All Data
+                    </button>
+                </div>
+            `;
+            
+            dialog.appendChild(content);
+            document.body.appendChild(dialog);
+            
+            // Add event listeners
+            document.getElementById('cancelClearBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+            });
+            
+            document.getElementById('confirmClearBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+                clearAllPlayerData();
+            });
+        }
+        
+        function showPrevCard() {
+            if (gameState.currentCardIndex > 0) {
+                gameState.currentCardIndex--;
+                updateCardDisplay();
+            }
+        }
+        
+        function showNextCard() {
+            if (gameState.currentPlayer && 
+                gameState.currentCardIndex < gameState.currentPlayer.cards.length - 1) {
+                gameState.currentCardIndex++;
+                updateCardDisplay();
+            }
+        }
         
         // ==================== DATA PERSISTENCE ====================
         
@@ -1464,12 +1871,27 @@
             }
         }
         
-        // ==================== GAME LOGIC FUNCTIONS ====================
+        // ==================== INITIALIZATION ====================
         
-        // Note: The remaining game logic functions (handleLogin, createNewPlayer, etc.) 
-        // are the same as in the previous implementation but would need to be included.
-        // Due to length constraints, I've focused on the customization features.
-        // The complete code would include all the previous game logic functions.
+        function initGame() {
+            // Load saved game state
+            loadGameState();
+            
+            // Update UI
+            updatePlayersCount();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Apply customizations
+            applyCustomizations();
+            
+            // Show login screen
+            showScreen('loginScreen');
+        }
+        
+        // Start the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
         
     </script>
 </body>
