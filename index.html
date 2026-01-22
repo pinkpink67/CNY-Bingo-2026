@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cache Control Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Mobile Bingo Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -133,6 +137,11 @@
             color: white;
         }
         
+        .btn-warning {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
         .players-count {
             margin-top: 20px;
             padding: 15px;
@@ -203,6 +212,8 @@
             cursor: pointer;
             user-select: none;
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+            /* Default border - will be overridden by JavaScript */
+            border: 2px solid transparent;
         }
         
         .bingo-cell.free {
@@ -456,6 +467,31 @@
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
+        }
+        
+        .range-slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .range-slider-group label {
+            font-weight: 600;
+        }
+        
+        .range-slider-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        .range-value {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
         }
         
         @media (max-width: 480px) {
@@ -747,6 +783,15 @@
                             </div>
                         </div>
                         
+                        <button class="btn btn-secondary reset-btn" id="resetCardBackgroundBtn">
+                            <i class="fas fa-undo"></i> Reset to Default
+                        </button>
+                    </div>
+                    
+                    <!-- Cell Customization -->
+                    <div class="admin-customization">
+                        <h3><i class="fas fa-square"></i> Cell Customization</h3>
+                        
                         <div class="color-picker-group">
                             <label>Number Cell Color:</label>
                             <div class="color-input-group">
@@ -755,12 +800,29 @@
                             </div>
                         </div>
                         
-                        <div class="color-picker-group">
-                            <label>Marked Cell Color:</label>
-                            <div class="color-input-group">
-                                <input type="color" id="markedCellColor" value="#6a11cb">
-                                <input type="text" id="markedCellColorText" value="#6a11cb" placeholder="#RRGGBB">
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="cellTransparentEnabled">
+                            <label for="cellTransparentEnabled">Enable Cell Transparency</label>
+                        </div>
+                        
+                        <div class="range-slider-group" id="cellTransparencyGroup" style="display: none;">
+                            <label for="cellTransparency">Cell Transparency Level</label>
+                            <input type="range" id="cellTransparency" min="0" max="100" value="100">
+                            <div class="range-value">
+                                <span>Opaque (0%)</span>
+                                <span id="cellTransparencyValue">100%</span>
+                                <span>Transparent (100%)</span>
                             </div>
+                        </div>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="freeCellEnabled">
+                            <label for="freeCellEnabled">Enable Center "FREE" Cell</label>
+                        </div>
+                        
+                        <div class="input-group-admin" id="freeCellTextGroup" style="display: none;">
+                            <label for="freeCellText">"FREE" Cell Text</label>
+                            <input type="text" id="freeCellText" value="FREE">
                         </div>
                         
                         <div class="color-picker-group">
@@ -771,8 +833,54 @@
                             </div>
                         </div>
                         
-                        <button class="btn btn-secondary reset-btn" id="resetCardBackgroundBtn">
-                            <i class="fas fa-undo"></i> Reset to Default
+                        <div class="color-picker-group">
+                            <label>Marked Cell Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="markedCellColor" value="#6a11cb">
+                                <input type="text" id="markedCellColorText" value="#6a11cb" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cell Border Customization -->
+                    <div class="admin-customization">
+                        <h3><i class="fas fa-border-style"></i> Cell Border Customization</h3>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="cellBorderEnabled">
+                            <label for="cellBorderEnabled">Enable Cell Borders</label>
+                        </div>
+                        
+                        <div class="color-picker-group" id="cellBorderColorGroup" style="display: none;">
+                            <label>Border Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="cellBorderColor" value="#cccccc">
+                                <input type="text" id="cellBorderColorText" value="#cccccc" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-group" id="cellBorderThicknessGroup" style="display: none;">
+                            <label for="cellBorderThickness">Border Thickness (px)</label>
+                            <input type="range" id="cellBorderThickness" min="1" max="10" value="2">
+                            <div class="range-value">
+                                <span>Thin (1px)</span>
+                                <span id="cellBorderThicknessValue">2px</span>
+                                <span>Thick (10px)</span>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-group" id="cellBorderTransparencyGroup" style="display: none;">
+                            <label for="cellBorderTransparency">Border Transparency</label>
+                            <input type="range" id="cellBorderTransparency" min="0" max="100" value="0">
+                            <div class="range-value">
+                                <span>Opaque (0%)</span>
+                                <span id="cellBorderTransparencyValue">0%</span>
+                                <span>Transparent (100%)</span>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-secondary reset-btn" id="resetCellBorderBtn">
+                            <i class="fas fa-undo"></i> Reset Borders to Default
                         </button>
                     </div>
                     
@@ -858,6 +966,10 @@
                             <i class="fas fa-trash-alt"></i> Clear All Player Data
                         </button>
                         
+                        <button class="btn btn-warning" id="clearCacheBtn">
+                            <i class="fas fa-sync-alt"></i> Clear Cache & Refresh
+                        </button>
+                        
                         <p style="font-size: 0.9rem; color: #666;">
                             This will remove all player cards and Lucky 4D numbers. Authorized player list will be preserved.
                         </p>
@@ -885,6 +997,21 @@
     </div>
 
     <script>
+        // ==================== CACHE CONTROL ====================
+        // Add version parameter to force cache refresh
+        const GAME_VERSION = '2.1';
+        const lastVersion = localStorage.getItem('gameVersion');
+        
+        if (lastVersion !== GAME_VERSION) {
+            localStorage.setItem('gameVersion', GAME_VERSION);
+            // Add cache busting parameter to URL
+            if (!window.location.search.includes('nocache')) {
+                const url = new URL(window.location);
+                url.searchParams.set('nocache', Date.now());
+                window.location.href = url.toString();
+            }
+        }
+        
         // ==================== GAME STATE ====================
         
         let gameState = {
@@ -918,9 +1045,21 @@
                     cardBackgroundColor: "#f8f9fa",
                     cardBackgroundEnabled: true,
                     cardBackgroundTransparent: false,
+                    
+                    // Cell customization
                     cellBackgroundColor: "#ffffff",
-                    markedCellColor: "#6a11cb",
+                    cellTransparentEnabled: false,
+                    cellTransparency: 100,
+                    freeCellEnabled: true,
+                    freeCellText: "FREE",
                     freeCellColor: "#ffd166",
+                    markedCellColor: "#6a11cb",
+                    
+                    // Cell border customization
+                    cellBorderEnabled: false,
+                    cellBorderColor: "#cccccc",
+                    cellBorderThickness: 2,
+                    cellBorderTransparency: 0,
                     
                     // Buttons
                     primaryButtonColor: "#6a11cb",
@@ -979,7 +1118,12 @@
                     card.numbers[letter] = columnNumbers;
                 }
                 
-                card.numbers.N[2] = "FREE";
+                // Set center cell based on FREE cell setting
+                const freeText = gameState.settings.customization.freeCellEnabled ? 
+                    gameState.settings.customization.freeCellText : 
+                    card.numbers.N[2]; // Keep the number if FREE is disabled
+                card.numbers.N[2] = freeText;
+                
                 cards.push(card);
             }
             
@@ -1049,7 +1193,12 @@
                 card.numbers[letter] = columnNumbers;
             }
             
-            card.numbers.N[2] = "FREE";
+            // Set center cell based on FREE cell setting
+            const freeText = gameState.settings.customization.freeCellEnabled ? 
+                gameState.settings.customization.freeCellText : 
+                card.numbers.N[2];
+            card.numbers.N[2] = freeText;
+            
             return card;
         }
         
@@ -1100,40 +1249,94 @@
             bingoGrid.innerHTML = '';
             
             const letters = ['B', 'I', 'N', 'G', 'O'];
+            const customization = gameState.settings.customization;
             
             for (let row = 0; row < 5; row++) {
                 for (let col = 0; col < 5; col++) {
                     const cell = document.createElement('div');
                     const letter = letters[col];
-                    const number = card.numbers[letter][row];
+                    let number = card.numbers[letter][row];
                     
                     cell.className = 'bingo-cell';
                     cell.textContent = number;
                     
-                    // Apply cell background color
-                    cell.style.backgroundColor = gameState.settings.customization.cellBackgroundColor;
+                    // Apply cell background color with transparency
+                    let bgColor = customization.cellBackgroundColor;
+                    if (customization.cellTransparentEnabled) {
+                        const alpha = (100 - customization.cellTransparency) / 100;
+                        bgColor = hexToRgba(bgColor, alpha);
+                    }
+                    cell.style.backgroundColor = bgColor;
                     
-                    if (col === 2 && row === 2) {
+                    // Apply cell border
+                    if (customization.cellBorderEnabled) {
+                        const borderAlpha = (100 - customization.cellBorderTransparency) / 100;
+                        const borderColor = hexToRgba(customization.cellBorderColor, borderAlpha);
+                        cell.style.border = `${customization.cellBorderThickness}px solid ${borderColor}`;
+                    } else {
+                        cell.style.border = 'none';
+                    }
+                    
+                    // Check if this is the center cell
+                    const isCenterCell = (col === 2 && row === 2);
+                    
+                    if (isCenterCell && customization.freeCellEnabled) {
                         cell.classList.add('free');
-                        cell.style.backgroundColor = gameState.settings.customization.freeCellColor;
+                        cell.style.backgroundColor = customization.freeCellColor;
+                        cell.textContent = customization.freeCellText;
+                        
+                        // Apply border to FREE cell too
+                        if (customization.cellBorderEnabled) {
+                            const borderAlpha = (100 - customization.cellBorderTransparency) / 100;
+                            const borderColor = hexToRgba(customization.cellBorderColor, borderAlpha);
+                            cell.style.border = `${customization.cellBorderThickness}px solid ${borderColor}`;
+                        }
                     }
                     
                     cell.addEventListener('click', function() {
-                        if (!this.classList.contains('free')) {
-                            this.classList.toggle('marked');
-                            if (this.classList.contains('marked')) {
-                                this.style.backgroundColor = gameState.settings.customization.markedCellColor;
-                                this.style.color = gameState.settings.customization.buttonTextColor;
-                            } else {
-                                this.style.backgroundColor = gameState.settings.customization.cellBackgroundColor;
-                                this.style.color = '#333';
+                        // Don't allow clicking on FREE cell if it's enabled
+                        if (isCenterCell && customization.freeCellEnabled) return;
+                        
+                        this.classList.toggle('marked');
+                        if (this.classList.contains('marked')) {
+                            this.style.backgroundColor = customization.markedCellColor;
+                            this.style.color = customization.buttonTextColor;
+                        } else {
+                            // Reapply transparency to unmarked cell
+                            let bgColor = customization.cellBackgroundColor;
+                            if (customization.cellTransparentEnabled) {
+                                const alpha = (100 - customization.cellTransparency) / 100;
+                                bgColor = hexToRgba(bgColor, alpha);
                             }
+                            this.style.backgroundColor = bgColor;
+                            this.style.color = '#333';
                         }
                     });
                     
                     bingoGrid.appendChild(cell);
                 }
             }
+        }
+        
+        function hexToRgba(hex, alpha = 1) {
+            // Remove # if present
+            hex = hex.replace('#', '');
+            
+            // Parse r, g, b values
+            let r, g, b;
+            if (hex.length === 3) {
+                r = parseInt(hex[0] + hex[0], 16);
+                g = parseInt(hex[1] + hex[1], 16);
+                b = parseInt(hex[2] + hex[2], 16);
+            } else if (hex.length === 6) {
+                r = parseInt(hex.substring(0, 2), 16);
+                g = parseInt(hex.substring(2, 4), 16);
+                b = parseInt(hex.substring(4, 6), 16);
+            } else {
+                return `rgba(255, 255, 255, ${alpha})`;
+            }
+            
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
         
         function updatePasswordDisplay() {
@@ -1349,6 +1552,7 @@
             document.getElementById('welcomeMessageText').value = customization.welcomeMessage;
             document.getElementById('loginButtonText').value = customization.loginButtonText;
             document.getElementById('footerText').value = customization.footerText;
+            document.getElementById('freeCellText').value = customization.freeCellText;
             
             // Load color pickers and text inputs
             document.getElementById('headerBackgroundColor').value = customization.headerBackgroundColor;
@@ -1369,12 +1573,26 @@
             document.getElementById('cardBackgroundColorText').value = customization.cardBackgroundColor;
             document.getElementById('cardBackgroundEnabled').checked = customization.cardBackgroundEnabled;
             document.getElementById('cardBackgroundTransparent').checked = customization.cardBackgroundTransparent;
+            
             document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor;
             document.getElementById('cellBackgroundColorText').value = customization.cellBackgroundColor;
-            document.getElementById('markedCellColor').value = customization.markedCellColor;
-            document.getElementById('markedCellColorText').value = customization.markedCellColor;
+            document.getElementById('cellTransparentEnabled').checked = customization.cellTransparentEnabled;
+            document.getElementById('cellTransparency').value = customization.cellTransparency;
+            document.getElementById('cellTransparencyValue').textContent = customization.cellTransparency + '%';
+            
+            document.getElementById('freeCellEnabled').checked = customization.freeCellEnabled;
             document.getElementById('freeCellColor').value = customization.freeCellColor;
             document.getElementById('freeCellColorText').value = customization.freeCellColor;
+            document.getElementById('markedCellColor').value = customization.markedCellColor;
+            document.getElementById('markedCellColorText').value = customization.markedCellColor;
+            
+            document.getElementById('cellBorderEnabled').checked = customization.cellBorderEnabled;
+            document.getElementById('cellBorderColor').value = customization.cellBorderColor;
+            document.getElementById('cellBorderColorText').value = customization.cellBorderColor;
+            document.getElementById('cellBorderThickness').value = customization.cellBorderThickness;
+            document.getElementById('cellBorderThicknessValue').textContent = customization.cellBorderThickness + 'px';
+            document.getElementById('cellBorderTransparency').value = customization.cellBorderTransparency;
+            document.getElementById('cellBorderTransparencyValue').textContent = customization.cellBorderTransparency + '%';
             
             document.getElementById('primaryButtonColor').value = customization.primaryButtonColor;
             document.getElementById('primaryButtonColorText').value = customization.primaryButtonColor;
@@ -1385,11 +1603,33 @@
             document.getElementById('buttonTextColor').value = customization.buttonTextColor;
             document.getElementById('buttonTextColorText').value = customization.buttonTextColor;
             
+            // Show/hide dependent fields
+            toggleCellTransparencyGroup();
+            toggleFreeCellTextGroup();
+            toggleCellBorderGroups();
+            
             // Update previews
             updatePreview('headerBackgroundPreview', customization.headerBackgroundImage);
             updatePreview('mainBackgroundPreview', customization.mainBackgroundImage);
             updatePreview('containerBackgroundPreview', customization.containerBackgroundImage);
             updatePreview('cardBackgroundPreview', customization.cardBackgroundImage);
+        }
+        
+        function toggleCellTransparencyGroup() {
+            const enabled = document.getElementById('cellTransparentEnabled').checked;
+            document.getElementById('cellTransparencyGroup').style.display = enabled ? 'block' : 'none';
+        }
+        
+        function toggleFreeCellTextGroup() {
+            const enabled = document.getElementById('freeCellEnabled').checked;
+            document.getElementById('freeCellTextGroup').style.display = enabled ? 'block' : 'none';
+        }
+        
+        function toggleCellBorderGroups() {
+            const enabled = document.getElementById('cellBorderEnabled').checked;
+            document.getElementById('cellBorderColorGroup').style.display = enabled ? 'flex' : 'none';
+            document.getElementById('cellBorderThicknessGroup').style.display = enabled ? 'block' : 'none';
+            document.getElementById('cellBorderTransparencyGroup').style.display = enabled ? 'block' : 'none';
         }
         
         // ==================== UI FUNCTIONS ====================
@@ -1520,6 +1760,58 @@
                 clearPlayerDataBtn.addEventListener('click', confirmClearPlayerData);
             }
             
+            // Clear cache button
+            const clearCacheBtn = document.getElementById('clearCacheBtn');
+            if (clearCacheBtn) {
+                clearCacheBtn.addEventListener('click', function() {
+                    const dialog = document.createElement('div');
+                    dialog.className = 'confirmation-dialog';
+                    dialog.style.display = 'flex';
+                    
+                    const content = document.createElement('div');
+                    content.className = 'confirmation-content';
+                    
+                    content.innerHTML = `
+                        <h3><i class="fas fa-sync-alt" style="color: #ffc107;"></i> Clear Cache & Refresh</h3>
+                        <div style="text-align: left; line-height: 1.6;">
+                            <strong>This will:</strong><br>
+                            1. Clear browser cache for this page<br>
+                            2. Force a fresh reload from server<br>
+                            3. Preserve your game data (players, cards, settings)<br><br>
+                            Use this if you see old versions of the game.<br>
+                            Continue?
+                        </div>
+                        <div class="confirmation-buttons">
+                            <button class="btn btn-secondary" id="cancelCacheBtn">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button class="btn btn-warning" id="confirmCacheBtn">
+                                <i class="fas fa-sync-alt"></i> Clear & Refresh
+                            </button>
+                        </div>
+                    `;
+                    
+                    dialog.appendChild(content);
+                    document.body.appendChild(dialog);
+                    
+                    document.getElementById('cancelCacheBtn').addEventListener('click', function() {
+                        document.body.removeChild(dialog);
+                    });
+                    
+                    document.getElementById('confirmCacheBtn').addEventListener('click', function() {
+                        // Add a cache-busting parameter to force fresh load
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('nocache', Date.now());
+                        
+                        // Save current game state
+                        saveGameState();
+                        
+                        // Redirect with cache-busting parameter
+                        window.location.href = url.toString();
+                    });
+                });
+            }
+            
             // File upload handlers
             document.getElementById('headerBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
@@ -1566,10 +1858,55 @@
             updateColorInputFromPicker('cellBackgroundColor', 'cellBackgroundColorText');
             updateColorInputFromPicker('markedCellColor', 'markedCellColorText');
             updateColorInputFromPicker('freeCellColor', 'freeCellColorText');
+            updateColorInputFromPicker('cellBorderColor', 'cellBorderColorText');
             updateColorInputFromPicker('primaryButtonColor', 'primaryButtonColorText');
             updateColorInputFromPicker('secondaryButtonColor', 'secondaryButtonColorText');
             updateColorInputFromPicker('dangerButtonColor', 'dangerButtonColorText');
             updateColorInputFromPicker('buttonTextColor', 'buttonTextColorText');
+            
+            // Cell transparency handlers
+            document.getElementById('cellTransparentEnabled').addEventListener('change', function() {
+                gameState.settings.customization.cellTransparentEnabled = this.checked;
+                toggleCellTransparencyGroup();
+            });
+            
+            document.getElementById('cellTransparency').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellTransparency = parseInt(value);
+                document.getElementById('cellTransparencyValue').textContent = value + '%';
+            });
+            
+            // FREE cell handlers
+            document.getElementById('freeCellEnabled').addEventListener('change', function() {
+                gameState.settings.customization.freeCellEnabled = this.checked;
+                toggleFreeCellTextGroup();
+            });
+            
+            document.getElementById('freeCellText').addEventListener('change', function() {
+                gameState.settings.customization.freeCellText = this.value;
+            });
+            
+            // Cell border handlers
+            document.getElementById('cellBorderEnabled').addEventListener('change', function() {
+                gameState.settings.customization.cellBorderEnabled = this.checked;
+                toggleCellBorderGroups();
+            });
+            
+            document.getElementById('cellBorderColor').addEventListener('change', function() {
+                gameState.settings.customization.cellBorderColor = this.value;
+            });
+            
+            document.getElementById('cellBorderThickness').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellBorderThickness = parseInt(value);
+                document.getElementById('cellBorderThicknessValue').textContent = value + 'px';
+            });
+            
+            document.getElementById('cellBorderTransparency').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellBorderTransparency = parseInt(value);
+                document.getElementById('cellBorderTransparencyValue').textContent = value + '%';
+            });
             
             // Color picker handlers
             document.getElementById('headerBackgroundColor').addEventListener('change', function() {
@@ -1742,22 +2079,30 @@
                 gameState.settings.customization.cardBackgroundColor = "#f8f9fa";
                 gameState.settings.customization.cardBackgroundEnabled = true;
                 gameState.settings.customization.cardBackgroundTransparent = false;
-                gameState.settings.customization.cellBackgroundColor = "#ffffff";
-                gameState.settings.customization.markedCellColor = "#6a11cb";
-                gameState.settings.customization.freeCellColor = "#ffd166";
                 
                 document.getElementById('cardBackgroundColor').value = "#f8f9fa";
                 document.getElementById('cardBackgroundColorText').value = "#f8f9fa";
                 document.getElementById('cardBackgroundEnabled').checked = true;
                 document.getElementById('cardBackgroundTransparent').checked = false;
-                document.getElementById('cellBackgroundColor').value = "#ffffff";
-                document.getElementById('cellBackgroundColorText').value = "#ffffff";
-                document.getElementById('markedCellColor').value = "#6a11cb";
-                document.getElementById('markedCellColorText').value = "#6a11cb";
-                document.getElementById('freeCellColor').value = "#ffd166";
-                document.getElementById('freeCellColorText').value = "#ffd166";
                 
                 updatePreview('cardBackgroundPreview', "#f8f9fa", true);
+            });
+            
+            document.getElementById('resetCellBorderBtn').addEventListener('click', function() {
+                gameState.settings.customization.cellBorderEnabled = false;
+                gameState.settings.customization.cellBorderColor = "#cccccc";
+                gameState.settings.customization.cellBorderThickness = 2;
+                gameState.settings.customization.cellBorderTransparency = 0;
+                
+                document.getElementById('cellBorderEnabled').checked = false;
+                document.getElementById('cellBorderColor').value = "#cccccc";
+                document.getElementById('cellBorderColorText').value = "#cccccc";
+                document.getElementById('cellBorderThickness').value = 2;
+                document.getElementById('cellBorderThicknessValue').textContent = "2px";
+                document.getElementById('cellBorderTransparency').value = 0;
+                document.getElementById('cellBorderTransparencyValue').textContent = "0%";
+                
+                toggleCellBorderGroups();
             });
             
             document.getElementById('resetButtonsBtn').addEventListener('click', function() {
@@ -1989,6 +2334,15 @@
             gameState.settings.customization.welcomeMessage = document.getElementById('welcomeMessageText').value;
             gameState.settings.customization.loginButtonText = document.getElementById('loginButtonText').value;
             gameState.settings.customization.footerText = document.getElementById('footerText').value;
+            gameState.settings.customization.freeCellText = document.getElementById('freeCellText').value;
+            
+            // Update toggle settings
+            gameState.settings.customization.cellTransparentEnabled = document.getElementById('cellTransparentEnabled').checked;
+            gameState.settings.customization.cellTransparency = parseInt(document.getElementById('cellTransparency').value);
+            gameState.settings.customization.freeCellEnabled = document.getElementById('freeCellEnabled').checked;
+            gameState.settings.customization.cellBorderEnabled = document.getElementById('cellBorderEnabled').checked;
+            gameState.settings.customization.cellBorderThickness = parseInt(document.getElementById('cellBorderThickness').value);
+            gameState.settings.customization.cellBorderTransparency = parseInt(document.getElementById('cellBorderTransparency').value);
             
             // Update color settings from text inputs (validate first)
             const colorsToValidate = [
@@ -2000,6 +2354,7 @@
                 { picker: 'cellBackgroundColorText', setting: 'cellBackgroundColor' },
                 { picker: 'markedCellColorText', setting: 'markedCellColor' },
                 { picker: 'freeCellColorText', setting: 'freeCellColor' },
+                { picker: 'cellBorderColorText', setting: 'cellBorderColor' },
                 { picker: 'primaryButtonColorText', setting: 'primaryButtonColor' },
                 { picker: 'secondaryButtonColorText', setting: 'secondaryButtonColor' },
                 { picker: 'dangerButtonColorText', setting: 'dangerButtonColor' },
@@ -2021,7 +2376,7 @@
             
             if (hasInvalidColor) return;
             
-            // Update transparency and toggle settings
+            // Update transparency settings
             gameState.settings.customization.headerTransparent = document.getElementById('headerTransparent').checked;
             gameState.settings.customization.mainTransparent = document.getElementById('mainTransparent').checked;
             gameState.settings.customization.containerTransparent = document.getElementById('containerTransparent').checked;
@@ -2030,6 +2385,21 @@
             
             // Apply customizations immediately
             applyCustomizations();
+            
+            // Regenerate cards if FREE cell settings changed
+            if (gameState.players.length > 0) {
+                const totalCardsNeeded = gameState.settings.maxPlayers * gameState.settings.cardsPerPlayer;
+                const cardsPool = generateBingoCards(totalCardsNeeded);
+                
+                gameState.players.forEach(player => {
+                    assignCardsToPlayer(player, cardsPool, gameState.settings.cardsPerPlayer);
+                });
+                
+                // Update current player display if logged in
+                if (gameState.currentPlayer) {
+                    updateCardDisplay();
+                }
+            }
             
             // If cards per player changed, update all players
             if (cardsChanged) {
@@ -2233,10 +2603,11 @@
                     gameState.settings = { 
                         ...gameState.settings, 
                         ...(parsed.settings || {}),
-                        // Ensure customization exists
-                        customization: parsed.settings && parsed.settings.customization 
-                            ? { ...gameState.settings.customization, ...parsed.settings.customization }
-                            : gameState.settings.customization
+                        // Ensure customization exists with new properties
+                        customization: {
+                            ...gameState.settings.customization,
+                            ...(parsed.settings && parsed.settings.customization ? parsed.settings.customization : {})
+                        }
                     };
                 }
             } catch (error) {
