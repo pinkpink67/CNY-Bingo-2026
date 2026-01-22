@@ -11,6 +11,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
         }
         
         body {
@@ -21,16 +22,20 @@
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         
         .container {
             width: 100%;
             max-width: 500px;
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             margin: 20px 0;
+            backdrop-filter: blur(5px);
         }
         
         .header {
@@ -38,6 +43,8 @@
             color: white;
             text-align: center;
             padding: 25px 20px;
+            background-size: cover;
+            background-position: center;
         }
         
         .header h1 {
@@ -111,8 +118,8 @@
         }
         
         .btn-primary:hover {
-            background-color: #5a0cb0;
             transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         
         .btn-secondary {
@@ -129,6 +136,15 @@
             font-size: 0.9rem;
         }
         
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
         .players-count {
             margin-top: 20px;
             padding: 15px;
@@ -142,6 +158,21 @@
             color: #6a11cb;
         }
         
+        .admin-login-link {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .admin-login-link a {
+            color: #6a11cb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .admin-login-link a:hover {
+            text-decoration: underline;
+        }
+        
         /* Game Screen */
         #gameScreen {
             display: none;
@@ -153,13 +184,12 @@
             align-items: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
         
         .player-name {
             font-size: 1.3rem;
             font-weight: 700;
-            color: #6a11cb;
         }
         
         .card-counter {
@@ -170,21 +200,23 @@
         }
         
         .bingo-card-container {
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 25px;
             position: relative;
+            backdrop-filter: blur(3px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
         
-        .bingo-header {
+        .card-header {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-bottom: 15px;
         }
         
-        .bingo-letter {
+        .card-letter {
             width: 40px;
             height: 40px;
             display: flex;
@@ -193,7 +225,6 @@
             font-weight: 800;
             font-size: 1.4rem;
             color: white;
-            background-color: #6a11cb;
             border-radius: 8px;
         }
         
@@ -216,24 +247,22 @@
             user-select: none;
             box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
             position: relative;
+            transition: all 0.2s;
+        }
+        
+        .bingo-cell:hover {
+            transform: scale(1.03);
         }
         
         .bingo-cell.free {
-            background-color: #ffd166;
             color: #333;
         }
         
         .bingo-cell.marked {
-            background-color: #6a11cb;
             color: white;
         }
         
-        .bingo-cell.marked::after {
-            content: "✓";
-            position: absolute;
-            font-size: 1.5rem;
-            color: white;
-        }
+        /* Removed the checkmark from marked cells */
         
         .controls {
             display: flex;
@@ -245,29 +274,139 @@
             flex: 1;
         }
         
-        .drawing-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #777;
         }
         
-        .drawing-controls .btn {
-            flex: 1;
-            min-width: calc(50% - 5px);
+        /* Decorative frames for random pictures */
+        .random-picture-frame {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            opacity: 0.7;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .random-picture-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+        
+        /* Admin Screen */
+        #adminScreen {
+            display: none;
+            text-align: center;
+        }
+        
+        .admin-controls {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .admin-section {
+            background: rgba(248, 249, 250, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .admin-action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        .admin-action-label {
+            font-weight: 600;
+            min-width: 120px;
+            text-align: left;
+        }
+        
+        .admin-action-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .admin-input {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            width: 80px;
+            text-align: center;
+        }
+        
+        .admin-select {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 100px;
+        }
+        
+        .current-settings {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+        
+        .current-settings span {
+            font-weight: 600;
+            color: #6a11cb;
         }
         
         .color-picker {
             display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 15px;
         }
         
         .color-option {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
             cursor: pointer;
             border: 3px solid transparent;
             transition: transform 0.2s;
@@ -278,28 +417,131 @@
             transform: scale(1.1);
         }
         
-        .drawing-canvas-container {
+        .custom-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .upload-area {
             width: 100%;
-            height: 300px;
-            border: 2px dashed #ddd;
+            padding: 20px;
+            border: 2px dashed #6a11cb;
             border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            touch-action: none;
-        }
-        
-        #drawingCanvas {
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            cursor: crosshair;
-        }
-        
-        .footer {
-            margin-top: 20px;
             text-align: center;
-            font-size: 0.85rem;
-            color: #777;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .upload-area:hover {
+            background: rgba(106, 17, 203, 0.1);
+        }
+        
+        .upload-area i {
+            font-size: 2rem;
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+        
+        .upload-preview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .color-input {
+            width: 60px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .preset-btn {
+            flex: 1;
+            min-width: calc(50% - 5px);
+        }
+        
+        .admin-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #6a11cb;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
         }
         
         /* Responsive adjustments */
@@ -320,13 +562,34 @@
                 font-size: 1rem;
             }
             
-            .drawing-canvas-container {
-                height: 250px;
+            .color-option {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .admin-section {
+                padding: 15px;
+            }
+            
+            .admin-action-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .admin-action-controls {
+                width: 100%;
+                justify-content: flex-start;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Random Picture Frames -->
+    <div class="random-picture-frame" id="frame1" style="top: 10%; left: 5%;"></div>
+    <div class="random-picture-frame" id="frame2" style="top: 15%; right: 5%;"></div>
+    <div class="random-picture-frame" id="frame3" style="bottom: 20%; left: 10%;"></div>
+    <div class="random-picture-frame" id="frame4" style="bottom: 15%; right: 10%;"></div>
+    
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-dice"></i> Mobile Bingo</h1>
@@ -337,7 +600,7 @@
             <!-- Login Screen -->
             <div id="loginScreen">
                 <h2>Welcome to Bingo!</h2>
-                <p>Enter your name to join the game. Maximum 30 players.</p>
+                <p>Enter your name to join the game. Maximum <span id="maxPlayersDisplay">30</span> players.</p>
                 
                 <form class="login-form" id="loginForm">
                     <div class="input-group">
@@ -351,11 +614,11 @@
                 </form>
                 
                 <div class="players-count">
-                    Players joined: <span id="currentPlayers">0</span> / 30
+                    Players joined: <span id="currentPlayers">0</span> / <span id="maxPlayers">30</span>
                 </div>
                 
-                <div class="footer">
-                    <p>Each player receives 3 unique bingo cards from a pool of 150 cards.</p>
+                <div class="admin-login-link">
+                    <a href="#" id="adminLoginLink">Admin Login</a>
                 </div>
             </div>
             
@@ -363,16 +626,16 @@
             <div id="gameScreen">
                 <div class="player-info">
                     <div class="player-name" id="displayPlayerName">Player</div>
-                    <div class="card-counter">Card <span id="currentCard">1</span> of 3</div>
+                    <div class="card-counter">Card <span id="currentCard">1</span> of <span id="totalCards">3</span></div>
                 </div>
                 
                 <div class="bingo-card-container">
-                    <div class="bingo-header">
-                        <div class="bingo-letter">B</div>
-                        <div class="bingo-letter">I</div>
-                        <div class="bingo-letter">N</div>
-                        <div class="bingo-letter">G</div>
-                        <div class="bingo-letter">O</div>
+                    <div class="card-header">
+                        <div class="card-letter">B</div>
+                        <div class="card-letter">I</div>
+                        <div class="card-letter">N</div>
+                        <div class="card-letter">G</div>
+                        <div class="card-letter">O</div>
                     </div>
                     
                     <div class="bingo-grid" id="bingoGrid">
@@ -389,34 +652,172 @@
                     </button>
                 </div>
                 
-                <h3>Draw on Your Card</h3>
-                <div class="drawing-controls">
-                    <button class="btn btn-secondary btn-small" id="drawBtn">
-                        <i class="fas fa-pencil-alt"></i> Draw
-                    </button>
-                    <button class="btn btn-secondary btn-small" id="eraseBtn">
-                        <i class="fas fa-eraser"></i> Eraser
-                    </button>
-                    <button class="btn btn-secondary btn-small" id="clearBtn">
-                        <i class="fas fa-trash-alt"></i> Clear
-                    </button>
-                </div>
-                
-                <div class="color-picker">
-                    <div class="color-option selected" style="background-color: #6a11cb;" data-color="#6a11cb"></div>
-                    <div class="color-option" style="background-color: #2575fc;" data-color="#2575fc"></div>
-                    <div class="color-option" style="background-color: #ff416c;" data-color="#ff416c"></div>
-                    <div class="color-option" style="background-color: #ff9966;" data-color="#ff9966"></div>
-                    <div class="color-option" style="background-color: #00b09b;" data-color="#00b09b"></div>
-                    <div class="color-option" style="background-color: #333;" data-color="#333"></div>
-                </div>
-                
-                <div class="drawing-canvas-container">
-                    <canvas id="drawingCanvas"></canvas>
-                </div>
-                
                 <button class="btn btn-primary" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <!-- Admin Screen -->
+            <div id="adminScreen">
+                <h2><i class="fas fa-cogs"></i> Admin Controls</h2>
+                <p>Customize the game appearance and settings</p>
+                
+                <div class="admin-controls">
+                    <!-- Player Management -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-users"></i> Player Management</h3>
+                        
+                        <div class="admin-actions">
+                            <div class="admin-action-row">
+                                <div class="admin-action-label">Clear All Players:</div>
+                                <div class="admin-action-controls">
+                                    <button class="btn btn-danger btn-small" id="clearPlayersBtn">
+                                        <i class="fas fa-trash"></i> Clear All Players
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="admin-action-row">
+                                <div class="admin-action-label">Max Players:</div>
+                                <div class="admin-action-controls">
+                                    <input type="number" id="maxPlayersInput" class="admin-input" min="1" max="100" value="30">
+                                    <button class="btn btn-primary btn-small" id="updateMaxPlayersBtn">
+                                        <i class="fas fa-check"></i> Update
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="admin-action-row">
+                                <div class="admin-action-label">Cards Per Player:</div>
+                                <div class="admin-action-controls">
+                                    <select id="cardsPerPlayerSelect" class="admin-select">
+                                        <option value="1">1 Card</option>
+                                        <option value="2">2 Cards</option>
+                                        <option value="3" selected>3 Cards</option>
+                                        <option value="4">4 Cards</option>
+                                        <option value="5">5 Cards</option>
+                                        <option value="6">6 Cards</option>
+                                        <option value="7">7 Cards</option>
+                                        <option value="8">8 Cards</option>
+                                        <option value="9">9 Cards</option>
+                                        <option value="10">10 Cards</option>
+                                    </select>
+                                    <button class="btn btn-primary btn-small" id="updateCardsPerPlayerBtn">
+                                        <i class="fas fa-check"></i> Update
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="current-settings">
+                                <p>Current Settings:</p>
+                                <p>• Max Players: <span id="currentMaxPlayers">30</span></p>
+                                <p>• Cards Per Player: <span id="currentCardsPerPlayer">3</span></p>
+                                <p>• Active Players: <span id="currentActivePlayers">0</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Background Customization -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-image"></i> Background Customization</h3>
+                        
+                        <div class="custom-upload">
+                            <label>Upload Custom Background:</label>
+                            <div class="upload-area" id="backgroundUpload">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to upload background image</p>
+                                <input type="file" id="backgroundFile" accept="image/*" style="display: none;">
+                            </div>
+                            <img id="backgroundPreview" class="upload-preview" alt="Background Preview">
+                            
+                            <div class="toggle-switch">
+                                <span>Enable Random Pictures:</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="randomPicturesToggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="color-picker" id="loginBgColors">
+                                <div class="color-option selected" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);" data-bg="linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)"></div>
+                                <div class="color-option" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);" data-bg="linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%)"></div>
+                                <div class="color-option" style="background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);" data-bg="linear-gradient(135deg, #00b09b 0%, #96c93d 100%)"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Button Customization -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-palette"></i> Button Customization</h3>
+                        
+                        <div class="color-input-group">
+                            <label>Primary Button:</label>
+                            <input type="color" id="primaryBtnColor" class="color-input" value="#6a11cb">
+                            <label>Text Color:</label>
+                            <input type="color" id="primaryBtnTextColor" class="color-input" value="#ffffff">
+                        </div>
+                        
+                        <div class="color-input-group">
+                            <label>Secondary Button:</label>
+                            <input type="color" id="secondaryBtnColor" class="color-input" value="#f0f0f0">
+                            <label>Text Color:</label>
+                            <input type="color" id="secondaryBtnTextColor" class="color-input" value="#333333">
+                        </div>
+                    </div>
+                    
+                    <!-- Font & Card Customization -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-font"></i> Font & Card Colors</h3>
+                        
+                        <div class="color-input-group">
+                            <label>Card Header Color:</label>
+                            <input type="color" id="cardHeaderColor" class="color-input" value="#6a11cb">
+                        </div>
+                        
+                        <div class="color-input-group">
+                            <label>Marked Cell Color:</label>
+                            <input type="color" id="markedCellColor" class="color-input" value="#6a11cb">
+                        </div>
+                        
+                        <div class="color-input-group">
+                            <label>Free Cell Color:</label>
+                            <input type="color" id="freeCellColor" class="color-input" value="#ffd166">
+                        </div>
+                        
+                        <div class="color-input-group">
+                            <label>Player Name Color:</label>
+                            <input type="color" id="playerNameColor" class="color-input" value="#6a11cb">
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Presets -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-bolt"></i> Quick Presets</h3>
+                        <div class="preset-buttons">
+                            <button class="btn btn-small preset-btn" data-preset="default">
+                                <i class="fas fa-star"></i> Default
+                            </button>
+                            <button class="btn btn-small preset-btn" data-preset="ocean">
+                                <i class="fas fa-water"></i> Ocean
+                            </button>
+                            <button class="btn btn-small preset-btn" data-preset="sunset">
+                                <i class="fas fa-sun"></i> Sunset
+                            </button>
+                            <button class="btn btn-small preset-btn" data-preset="forest">
+                                <i class="fas fa-tree"></i> Forest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="admin-info">
+                    <p><strong>Admin ID:</strong> admin</p>
+                    <p><strong>Password:</strong> 1234</p>
+                    <p>To change password, edit the ADMIN_CREDENTIALS in JavaScript.</p>
+                </div>
+                
+                <button class="btn btn-primary" id="adminLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Exit Admin
                 </button>
             </div>
         </div>
@@ -433,6 +834,47 @@
             cardsPool: [],
             issuedCards: new Set(), // Track issued card IDs
             playerCards: {} // Store which cards each player has
+        };
+
+        // Admin credentials (you can change these)
+        const ADMIN_CREDENTIALS = {
+            id: "admin",
+            password: "1234"
+        };
+
+        // Game settings with defaults
+        let gameSettings = {
+            maxPlayers: 30,
+            cardsPerPlayer: 3
+        };
+
+        // Default background pictures for random frames
+        const DEFAULT_PICTURES = [
+            'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w-150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=150&h=150&fit=crop'
+        ];
+
+        // UI Customization settings with defaults
+        let uiSettings = {
+            // Backgrounds
+            loginBg: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+            gameBg: "#f5f5f5",
+            customBackground: null,
+            randomPictures: true,
+            
+            // Button colors
+            primaryBtnColor: "#6a11cb",
+            primaryBtnTextColor: "#ffffff",
+            secondaryBtnColor: "#f0f0f0",
+            secondaryBtnTextColor: "#333333",
+            
+            // Card colors
+            cardHeaderColor: "#6a11cb",
+            markedCellColor: "#6a11cb",
+            freeCellColor: "#ffd166",
+            playerNameColor: "#6a11cb"
         };
 
         // Generate 150 unique bingo cards
@@ -481,43 +923,33 @@
         // Initialize the game
         function initGame() {
             generateBingoCards();
+            
+            // Load settings
+            loadGameSettings();
+            loadUISettings();
+            
+            // Update displays
             updatePlayersCount();
+            updateSettingsDisplay();
             
             // Setup event listeners
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('prevCardBtn').addEventListener('click', showPrevCard);
             document.getElementById('nextCardBtn').addEventListener('click', showNextCard);
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('adminLoginLink').addEventListener('click', showAdminLogin);
+            document.getElementById('adminLogoutBtn').addEventListener('click', exitAdmin);
             
-            // Drawing functionality setup
-            setupDrawingCanvas();
+            // Admin player management controls
+            setupAdminPlayerControls();
             
-            // Color picker
-            document.querySelectorAll('.color-option').forEach(colorOption => {
-                colorOption.addEventListener('click', function() {
-                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
-                    this.classList.add('selected');
-                    currentColor = this.dataset.color;
-                    isErasing = false;
-                    document.getElementById('drawBtn').classList.add('btn-primary');
-                    document.getElementById('eraseBtn').classList.remove('btn-primary');
-                });
-            });
+            // Admin UI controls
+            setupAdminUIControls();
             
-            // Drawing control buttons
-            document.getElementById('drawBtn').addEventListener('click', function() {
-                isErasing = false;
-                this.classList.add('btn-primary');
-                document.getElementById('eraseBtn').classList.remove('btn-primary');
-            });
-            
-            document.getElementById('eraseBtn').addEventListener('click', function() {
-                isErasing = true;
-                this.classList.add('btn-primary');
-                document.getElementById('drawBtn').classList.remove('btn-primary');
-            });
-            
-            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            // Load random pictures if enabled
+            if (uiSettings.randomPictures) {
+                loadRandomPictures();
+            }
         }
 
         // Handle player login
@@ -532,6 +964,13 @@
                 return;
             }
             
+            // Check for admin login
+            if (playerName.toLowerCase() === ADMIN_CREDENTIALS.id) {
+                showAdminLogin();
+                playerNameInput.value = '';
+                return;
+            }
+            
             // Check if player already exists
             const existingPlayer = simulatedDB.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
             
@@ -541,8 +980,8 @@
                 alert(`Welcome back, ${playerName}!`);
             } else {
                 // Check if we've reached the player limit
-                if (simulatedDB.players.length >= 30) {
-                    alert('Sorry, the game is full! Maximum 30 players allowed.');
+                if (simulatedDB.players.length >= gameSettings.maxPlayers) {
+                    alert(`Sorry, the game is full! Maximum ${gameSettings.maxPlayers} players allowed.`);
                     return;
                 }
                 
@@ -554,7 +993,7 @@
                     cards: []
                 };
                 
-                // Assign 3 unique cards to the player
+                // Assign cards to the player based on current settings
                 assignCardsToPlayer(currentPlayer);
                 
                 // Add player to database
@@ -564,15 +1003,18 @@
             
             // Update UI
             document.getElementById('displayPlayerName').textContent = currentPlayer.name;
+            document.getElementById('totalCards').textContent = currentPlayer.cards.length;
             currentCardIndex = 0;
             updateCardDisplay();
             
             // Switch to game screen
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
+            document.getElementById('adminScreen').style.display = 'none';
             
             // Update player count
             updatePlayersCount();
+            updateSettingsDisplay();
             
             // Clear the input
             playerNameInput.value = '';
@@ -581,17 +1023,462 @@
             saveToLocalStorage();
         }
 
-        // Assign 3 unique cards to a player
+        // Show admin login prompt
+        function showAdminLogin() {
+            const adminId = prompt("Enter Admin ID:");
+            if (!adminId) return;
+            
+            if (adminId !== ADMIN_CREDENTIALS.id) {
+                alert("Invalid Admin ID");
+                return;
+            }
+            
+            const password = prompt("Enter Admin Password:");
+            if (!password) return;
+            
+            if (password !== ADMIN_CREDENTIALS.password) {
+                alert("Invalid Password");
+                return;
+            }
+            
+            // Show admin screen
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('adminScreen').style.display = 'block';
+            
+            // Update admin controls to show current settings
+            updateAdminControls();
+        }
+
+        // Setup admin player management controls
+        function setupAdminPlayerControls() {
+            // Clear all players button
+            document.getElementById('clearPlayersBtn').addEventListener('click', function() {
+                if (confirm("Are you sure you want to clear ALL players? This action cannot be undone.")) {
+                    clearAllPlayers();
+                }
+            });
+            
+            // Update max players button
+            document.getElementById('updateMaxPlayersBtn').addEventListener('click', function() {
+                const maxPlayersInput = document.getElementById('maxPlayersInput');
+                const maxPlayers = parseInt(maxPlayersInput.value);
+                
+                if (isNaN(maxPlayers) || maxPlayers < 1 || maxPlayers > 100) {
+                    alert("Please enter a valid number between 1 and 100");
+                    return;
+                }
+                
+                gameSettings.maxPlayers = maxPlayers;
+                updateSettingsDisplay();
+                saveGameSettings();
+                alert(`Maximum players updated to ${maxPlayers}`);
+            });
+            
+            // Update cards per player button
+            document.getElementById('updateCardsPerPlayerBtn').addEventListener('click', function() {
+                const cardsPerPlayer = parseInt(document.getElementById('cardsPerPlayerSelect').value);
+                
+                gameSettings.cardsPerPlayer = cardsPerPlayer;
+                updateSettingsDisplay();
+                saveGameSettings();
+                alert(`Cards per player updated to ${cardsPerPlayer}. New players will receive this many cards.`);
+            });
+        }
+
+        // Clear all players
+        function clearAllPlayers() {
+            simulatedDB.players = [];
+            simulatedDB.issuedCards.clear();
+            simulatedDB.playerCards = {};
+            
+            // Update UI
+            updatePlayersCount();
+            updateSettingsDisplay();
+            
+            // Save changes
+            saveToLocalStorage();
+            
+            // Show confirmation
+            alert("All players have been cleared!");
+        }
+
+        // Setup admin UI controls
+        function setupAdminUIControls() {
+            // Background upload
+            const backgroundUpload = document.getElementById('backgroundUpload');
+            const backgroundFile = document.getElementById('backgroundFile');
+            
+            backgroundUpload.addEventListener('click', () => backgroundFile.click());
+            backgroundFile.addEventListener('change', handleBackgroundUpload);
+            
+            // Random pictures toggle
+            document.getElementById('randomPicturesToggle').addEventListener('change', function() {
+                uiSettings.randomPictures = this.checked;
+                if (this.checked) {
+                    loadRandomPictures();
+                } else {
+                    clearRandomPictures();
+                }
+                saveUISettings();
+            });
+            
+            // Color pickers for backgrounds
+            document.querySelectorAll('#loginBgColors .color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('#loginBgColors .color-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    uiSettings.loginBg = this.dataset.bg;
+                    uiSettings.customBackground = null; // Clear custom background
+                    applyUISettings();
+                    saveUISettings();
+                });
+            });
+            
+            // Button color pickers
+            document.getElementById('primaryBtnColor').addEventListener('input', function() {
+                uiSettings.primaryBtnColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('primaryBtnTextColor').addEventListener('input', function() {
+                uiSettings.primaryBtnTextColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('secondaryBtnColor').addEventListener('input', function() {
+                uiSettings.secondaryBtnColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('secondaryBtnTextColor').addEventListener('input', function() {
+                uiSettings.secondaryBtnTextColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            // Card color pickers
+            document.getElementById('cardHeaderColor').addEventListener('input', function() {
+                uiSettings.cardHeaderColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('markedCellColor').addEventListener('input', function() {
+                uiSettings.markedCellColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('freeCellColor').addEventListener('input', function() {
+                uiSettings.freeCellColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            document.getElementById('playerNameColor').addEventListener('input', function() {
+                uiSettings.playerNameColor = this.value;
+                applyUISettings();
+                saveUISettings();
+            });
+            
+            // Preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const preset = this.dataset.preset;
+                    applyPreset(preset);
+                });
+            });
+        }
+
+        // Update admin controls to reflect current settings
+        function updateAdminControls() {
+            // Update player management controls
+            document.getElementById('maxPlayersInput').value = gameSettings.maxPlayers;
+            document.getElementById('cardsPerPlayerSelect').value = gameSettings.cardsPerPlayer;
+            
+            // Update UI color pickers
+            document.getElementById('primaryBtnColor').value = uiSettings.primaryBtnColor;
+            document.getElementById('primaryBtnTextColor').value = uiSettings.primaryBtnTextColor;
+            document.getElementById('secondaryBtnColor').value = uiSettings.secondaryBtnColor;
+            document.getElementById('secondaryBtnTextColor').value = uiSettings.secondaryBtnTextColor;
+            document.getElementById('cardHeaderColor').value = uiSettings.cardHeaderColor;
+            document.getElementById('markedCellColor').value = uiSettings.markedCellColor;
+            document.getElementById('freeCellColor').value = uiSettings.freeCellColor;
+            document.getElementById('playerNameColor').value = uiSettings.playerNameColor;
+            
+            // Update toggle
+            document.getElementById('randomPicturesToggle').checked = uiSettings.randomPictures;
+            
+            // Update background preview
+            if (uiSettings.customBackground) {
+                document.getElementById('backgroundPreview').src = uiSettings.customBackground;
+                document.getElementById('backgroundPreview').style.display = 'block';
+            }
+            
+            // Update color picker selections
+            document.querySelectorAll('#loginBgColors .color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.bg === uiSettings.loginBg) {
+                    option.classList.add('selected');
+                }
+            });
+            
+            // Update current settings display
+            updateSettingsDisplay();
+        }
+
+        // Handle background image upload
+        function handleBackgroundUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                alert('Please upload an image file');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                uiSettings.customBackground = event.target.result;
+                uiSettings.loginBg = `url('${event.target.result}')`;
+                
+                // Show preview
+                const preview = document.getElementById('backgroundPreview');
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+                
+                // Apply settings
+                applyUISettings();
+                saveUISettings();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Load random pictures into frames
+        function loadRandomPictures() {
+            const frames = ['frame1', 'frame2', 'frame3', 'frame4'];
+            frames.forEach(frameId => {
+                const frame = document.getElementById(frameId);
+                if (frame) {
+                    // Use default pictures or try to load from localStorage
+                    const randomIndex = Math.floor(Math.random() * DEFAULT_PICTURES.length);
+                    const img = document.createElement('img');
+                    img.src = DEFAULT_PICTURES[randomIndex];
+                    img.onload = function() {
+                        frame.innerHTML = '';
+                        frame.appendChild(img);
+                        frame.style.display = 'block';
+                    };
+                    img.onerror = function() {
+                        frame.style.display = 'none';
+                    };
+                }
+            });
+        }
+
+        // Clear random pictures
+        function clearRandomPictures() {
+            const frames = ['frame1', 'frame2', 'frame3', 'frame4'];
+            frames.forEach(frameId => {
+                const frame = document.getElementById(frameId);
+                if (frame) {
+                    frame.style.display = 'none';
+                    frame.innerHTML = '';
+                }
+            });
+        }
+
+        // Apply preset theme
+        function applyPreset(preset) {
+            switch(preset) {
+                case 'default':
+                    uiSettings = {
+                        loginBg: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+                        gameBg: "#f5f5f5",
+                        customBackground: null,
+                        randomPictures: true,
+                        primaryBtnColor: "#6a11cb",
+                        primaryBtnTextColor: "#ffffff",
+                        secondaryBtnColor: "#f0f0f0",
+                        secondaryBtnTextColor: "#333333",
+                        cardHeaderColor: "#6a11cb",
+                        markedCellColor: "#6a11cb",
+                        freeCellColor: "#ffd166",
+                        playerNameColor: "#6a11cb"
+                    };
+                    break;
+                    
+                case 'ocean':
+                    uiSettings.loginBg = "linear-gradient(135deg, #1E90FF 0%, #00BFFF 100%)";
+                    uiSettings.gameBg = "#e8f4f8";
+                    uiSettings.primaryBtnColor = "#1E90FF";
+                    uiSettings.cardHeaderColor = "#1E90FF";
+                    uiSettings.markedCellColor = "#1E90FF";
+                    uiSettings.playerNameColor = "#1E90FF";
+                    break;
+                    
+                case 'sunset':
+                    uiSettings.loginBg = "linear-gradient(135deg, #ff9966 0%, #ff5e62 100%)";
+                    uiSettings.gameBg = "#fff0f5";
+                    uiSettings.primaryBtnColor = "#ff5e62";
+                    uiSettings.cardHeaderColor = "#ff5e62";
+                    uiSettings.markedCellColor = "#ff5e62";
+                    uiSettings.playerNameColor = "#ff5e62";
+                    break;
+                    
+                case 'forest':
+                    uiSettings.loginBg = "linear-gradient(135deg, #00b09b 0%, #96c93d 100%)";
+                    uiSettings.gameBg = "#f0fff0";
+                    uiSettings.primaryBtnColor = "#00b09b";
+                    uiSettings.cardHeaderColor = "#00b09b";
+                    uiSettings.markedCellColor = "#00b09b";
+                    uiSettings.playerNameColor = "#00b09b";
+                    break;
+            }
+            
+            applyUISettings();
+            updateAdminControls();
+            saveUISettings();
+            
+            if (uiSettings.randomPictures) {
+                loadRandomPictures();
+            } else {
+                clearRandomPictures();
+            }
+        }
+
+        // Update settings display
+        function updateSettingsDisplay() {
+            // Update login screen
+            document.getElementById('maxPlayersDisplay').textContent = gameSettings.maxPlayers;
+            document.getElementById('maxPlayers').textContent = gameSettings.maxPlayers;
+            
+            // Update admin screen
+            document.getElementById('currentMaxPlayers').textContent = gameSettings.maxPlayers;
+            document.getElementById('currentCardsPerPlayer').textContent = gameSettings.cardsPerPlayer;
+            document.getElementById('currentActivePlayers').textContent = simulatedDB.players.length;
+        }
+
+        // Apply all UI settings
+        function applyUISettings() {
+            // Apply background
+            document.querySelector('.header').style.background = uiSettings.loginBg;
+            document.body.style.backgroundColor = uiSettings.gameBg;
+            
+            if (uiSettings.customBackground) {
+                document.body.style.backgroundImage = `url('${uiSettings.customBackground}')`;
+                document.body.style.backgroundSize = 'cover';
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+            
+            // Apply button colors
+            const primaryBtns = document.querySelectorAll('.btn-primary');
+            primaryBtns.forEach(btn => {
+                btn.style.backgroundColor = uiSettings.primaryBtnColor;
+                btn.style.color = uiSettings.primaryBtnTextColor;
+            });
+            
+            const secondaryBtns = document.querySelectorAll('.btn-secondary');
+            secondaryBtns.forEach(btn => {
+                btn.style.backgroundColor = uiSettings.secondaryBtnColor;
+                btn.style.color = uiSettings.secondaryBtnTextColor;
+            });
+            
+            // Apply card header colors
+            const cardLetters = document.querySelectorAll('.card-letter');
+            cardLetters.forEach(letter => {
+                letter.style.backgroundColor = uiSettings.cardHeaderColor;
+            });
+            
+            // Apply marked cell colors
+            const markedCells = document.querySelectorAll('.bingo-cell.marked');
+            markedCells.forEach(cell => {
+                cell.style.backgroundColor = uiSettings.markedCellColor;
+            });
+            
+            // Apply free cell colors
+            const freeCells = document.querySelectorAll('.bingo-cell.free');
+            freeCells.forEach(cell => {
+                cell.style.backgroundColor = uiSettings.freeCellColor;
+            });
+            
+            // Apply player name color
+            const playerNames = document.querySelectorAll('.player-name');
+            playerNames.forEach(name => {
+                name.style.color = uiSettings.playerNameColor;
+            });
+            
+            // Update random pictures
+            if (uiSettings.randomPictures) {
+                loadRandomPictures();
+            } else {
+                clearRandomPictures();
+            }
+        }
+
+        // Save game settings to localStorage
+        function saveGameSettings() {
+            localStorage.setItem('bingoGameSettings', JSON.stringify(gameSettings));
+        }
+
+        // Load game settings from localStorage
+        function loadGameSettings() {
+            const savedSettings = localStorage.getItem('bingoGameSettings');
+            if (savedSettings) {
+                try {
+                    const settings = JSON.parse(savedSettings);
+                    gameSettings = { ...gameSettings, ...settings };
+                } catch (error) {
+                    console.error('Failed to load game settings:', error);
+                }
+            }
+        }
+
+        // Save UI settings to localStorage
+        function saveUISettings() {
+            localStorage.setItem('bingoUISettings', JSON.stringify(uiSettings));
+        }
+
+        // Load UI settings from localStorage
+        function loadUISettings() {
+            const savedSettings = localStorage.getItem('bingoUISettings');
+            if (savedSettings) {
+                try {
+                    uiSettings = JSON.parse(savedSettings);
+                    applyUISettings();
+                } catch (error) {
+                    console.error('Failed to load UI settings:', error);
+                }
+            }
+        }
+
+        // Exit admin mode
+        function exitAdmin() {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('adminScreen').style.display = 'none';
+            
+            // Clear any input
+            document.getElementById('playerName').value = '';
+        }
+
+        // Assign cards to a player based on current settings
         function assignCardsToPlayer(player) {
             const assignedCards = [];
+            const cardsToAssign = gameSettings.cardsPerPlayer;
             
-            // Try to assign 3 cards
-            while (assignedCards.length < 3) {
+            // Try to assign cards
+            while (assignedCards.length < cardsToAssign) {
                 // Find a card that hasn't been issued yet
                 const availableCards = simulatedDB.cardsPool.filter(card => !simulatedDB.issuedCards.has(card.id));
                 
                 if (availableCards.length === 0) {
-                    // If we run out of cards, recycle (shouldn't happen with 150 cards for 30 players)
+                    // If we run out of cards, recycle (shouldn't happen with 150 cards)
                     console.warn('Ran out of unique cards, recycling');
                     simulatedDB.issuedCards.clear();
                     continue;
@@ -630,7 +1517,7 @@
             }
         }
 
-        // Update the bingo card display
+        // Update the bingo card display (REMOVED CHECKMARK)
         function updateCardDisplay() {
             const card = currentPlayer.cards[currentCardIndex];
             const bingoGrid = document.getElementById('bingoGrid');
@@ -654,24 +1541,29 @@
                     cell.className = 'bingo-cell';
                     cell.textContent = number;
                     
-                    // Mark center as FREE
+                    // Apply current colors
                     if (col === 2 && row === 2) {
                         cell.classList.add('free');
+                        cell.style.backgroundColor = uiSettings.freeCellColor;
                     }
                     
-                    // Add click handler to mark/unmark cells
+                    // Add click handler to mark/unmark cells (NO CHECKMARK)
                     cell.addEventListener('click', function() {
                         if (!this.classList.contains('free')) {
                             this.classList.toggle('marked');
+                            if (this.classList.contains('marked')) {
+                                this.style.backgroundColor = uiSettings.markedCellColor;
+                                this.style.color = 'white';
+                            } else {
+                                this.style.backgroundColor = 'white';
+                                this.style.color = '#333';
+                            }
                         }
                     });
                     
                     bingoGrid.appendChild(cell);
                 }
             }
-            
-            // Clear the drawing canvas
-            clearCanvas();
         }
 
         // Handle logout
@@ -682,115 +1574,10 @@
             // Switch to login screen
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminScreen').style.display = 'none';
             
             // Save to localStorage
             saveToLocalStorage();
-        }
-
-        // Drawing functionality
-        let canvas, ctx;
-        let isDrawing = false;
-        let isErasing = false;
-        let currentColor = '#6a11cb';
-        let lastX = 0;
-        let lastY = 0;
-        
-        function setupDrawingCanvas() {
-            canvas = document.getElementById('drawingCanvas');
-            ctx = canvas.getContext('2d');
-            
-            // Set canvas dimensions
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-            
-            // Set initial drawing styles
-            ctx.strokeStyle = currentColor;
-            ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            // Drawing event listeners
-            canvas.addEventListener('mousedown', startDrawing);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stopDrawing);
-            canvas.addEventListener('mouseout', stopDrawing);
-            
-            // Touch events for mobile
-            canvas.addEventListener('touchstart', handleTouchStart);
-            canvas.addEventListener('touchmove', handleTouchMove);
-            canvas.addEventListener('touchend', stopDrawing);
-        }
-        
-        function startDrawing(e) {
-            isDrawing = true;
-            [lastX, lastY] = getCoordinates(e);
-        }
-        
-        function draw(e) {
-            if (!isDrawing) return;
-            
-            e.preventDefault();
-            
-            const [x, y] = getCoordinates(e);
-            
-            // Set drawing style based on mode
-            if (isErasing) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = 20;
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = currentColor;
-                ctx.lineWidth = 3;
-            }
-            
-            // Draw line
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            
-            [lastX, lastY] = [x, y];
-        }
-        
-        function stopDrawing() {
-            isDrawing = false;
-            ctx.beginPath(); // Reset the path
-        }
-        
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            startDrawing(touch);
-        }
-        
-        function handleTouchMove(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            draw(touch);
-        }
-        
-        function getCoordinates(e) {
-            const rect = canvas.getBoundingClientRect();
-            
-            let clientX, clientY;
-            
-            if (e.type.includes('touch')) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-            
-            return [
-                clientX - rect.left,
-                clientY - rect.top
-            ];
-        }
-        
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         // Save game state to localStorage
@@ -826,7 +1613,7 @@
                         const cardIds = simulatedDB.playerCards[player.id] || [];
                         player.cards = cardIds.map(id => 
                             simulatedDB.cardsPool.find(card => card.id === id)
-                        ).filter(card => card); // Filter out any undefined cards
+                        ).filter(card => card);
                     });
                     
                     console.log('Game state loaded from localStorage');
@@ -844,15 +1631,6 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
             initGame();
-        });
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (canvas) {
-                const container = canvas.parentElement;
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-            }
         });
     </script>
 </body>
