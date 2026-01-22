@@ -133,17 +133,6 @@
             color: #6a11cb;
         }
         
-        .admin-login-link {
-            margin-top: 15px;
-            font-size: 0.9rem;
-        }
-        
-        .admin-login-link a {
-            color: #6a11cb;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
         /* Game Screen */
         #gameScreen {
             display: none;
@@ -375,6 +364,32 @@
             cursor: pointer;
         }
         
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .color-input-group input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        
+        .transparency-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .transparency-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
         .preview-box {
             width: 100%;
             height: 100px;
@@ -417,6 +432,12 @@
         .reset-btn {
             width: 100%;
             margin-top: 10px;
+        }
+        
+        .color-format-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
         }
         
         @media (max-width: 480px) {
@@ -469,7 +490,7 @@
     
     <div class="container">
         <div class="header">
-            <h1 id="gameTitle"><i class="fas fa-dice"></i> Mobile Bingo</h1>
+            <h1 id="gameTitle">Mobile Bingo</h1>
             <p id="gameSubtitle">Login to play with your unique bingo cards</p>
         </div>
         
@@ -497,10 +518,6 @@
                 
                 <div class="players-count" id="playersCountBox">
                     Players joined: <span id="currentPlayers">0</span> / <span id="maxPlayers">30</span>
-                </div>
-                
-                <div class="admin-login-link">
-                    <a href="#" id="adminLoginLink">Admin Login</a>
                 </div>
             </div>
             
@@ -561,6 +578,11 @@
                             <label for="loginButtonText">Login Button Text</label>
                             <input type="text" id="loginButtonText" value="Join Game">
                         </div>
+                        
+                        <div class="input-group-admin">
+                            <label for="footerText">Footer Text</label>
+                            <input type="text" id="footerText" value="Mobile Bingo Game © 2023">
+                        </div>
                     </div>
                     
                     <!-- Header Background Customization -->
@@ -577,12 +599,23 @@
                         
                         <div class="color-picker-group">
                             <label>Or use solid color:</label>
-                            <input type="color" id="headerBackgroundColor" value="#6a11cb">
+                            <div class="color-input-group">
+                                <input type="color" id="headerBackgroundColor" value="#6a11cb">
+                                <input type="text" id="headerBackgroundColorText" value="#6a11cb" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="headerTransparent">
+                            <label for="headerTransparent">Make header background transparent</label>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Header Text Color:</label>
-                            <input type="color" id="headerTextColor" value="#ffffff">
+                            <div class="color-input-group">
+                                <input type="color" id="headerTextColor" value="#ffffff">
+                                <input type="text" id="headerTextColorText" value="#ffffff" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <button class="btn btn-secondary reset-btn" id="resetHeaderBtn">
@@ -604,7 +637,15 @@
                         
                         <div class="color-picker-group">
                             <label>Or use solid color:</label>
-                            <input type="color" id="mainBackgroundColor" value="#f5f5f5">
+                            <div class="color-input-group">
+                                <input type="color" id="mainBackgroundColor" value="#f5f5f5">
+                                <input type="text" id="mainBackgroundColorText" value="#f5f5f5" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="mainTransparent">
+                            <label for="mainTransparent">Make main background transparent</label>
                         </div>
                         
                         <button class="btn btn-secondary reset-btn" id="resetMainBackgroundBtn">
@@ -625,23 +666,35 @@
                         </div>
                         
                         <div class="color-picker-group">
-                            <label>Or use solid color:</label>
-                            <input type="color" id="cardBackgroundColor" value="#f8f9fa">
+                            <label>Card Container Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="cardBackgroundColor" value="#f8f9fa">
+                                <input type="text" id="cardBackgroundColorText" value="#f8f9fa" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Number Cell Color:</label>
-                            <input type="color" id="cellBackgroundColor" value="#ffffff">
+                            <div class="color-input-group">
+                                <input type="color" id="cellBackgroundColor" value="#ffffff">
+                                <input type="text" id="cellBackgroundColorText" value="#ffffff" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Marked Cell Color:</label>
-                            <input type="color" id="markedCellColor" value="#6a11cb">
+                            <div class="color-input-group">
+                                <input type="color" id="markedCellColor" value="#6a11cb">
+                                <input type="text" id="markedCellColorText" value="#6a11cb" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Free Cell Color:</label>
-                            <input type="color" id="freeCellColor" value="#ffd166">
+                            <div class="color-input-group">
+                                <input type="color" id="freeCellColor" value="#ffd166">
+                                <input type="text" id="freeCellColorText" value="#ffd166" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <button class="btn btn-secondary reset-btn" id="resetCardBackgroundBtn">
@@ -655,22 +708,34 @@
                         
                         <div class="color-picker-group">
                             <label>Primary Button Color:</label>
-                            <input type="color" id="primaryButtonColor" value="#6a11cb">
+                            <div class="color-input-group">
+                                <input type="color" id="primaryButtonColor" value="#6a11cb">
+                                <input type="text" id="primaryButtonColorText" value="#6a11cb" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Secondary Button Color:</label>
-                            <input type="color" id="secondaryButtonColor" value="#f0f0f0">
+                            <div class="color-input-group">
+                                <input type="color" id="secondaryButtonColor" value="#f0f0f0">
+                                <input type="text" id="secondaryButtonColorText" value="#f0f0f0" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Danger Button Color:</label>
-                            <input type="color" id="dangerButtonColor" value="#dc3545">
+                            <div class="color-input-group">
+                                <input type="color" id="dangerButtonColor" value="#dc3545">
+                                <input type="text" id="dangerButtonColorText" value="#dc3545" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="color-picker-group">
                             <label>Button Text Color:</label>
-                            <input type="color" id="buttonTextColor" value="#ffffff">
+                            <div class="color-input-group">
+                                <input type="color" id="buttonTextColor" value="#ffffff">
+                                <input type="text" id="buttonTextColorText" value="#ffffff" placeholder="#RRGGBB">
+                            </div>
                         </div>
                         
                         <div class="preview-box small" id="buttonPreview">
@@ -741,7 +806,7 @@
         Lucky 4D Number: <span id="luckyNumber">XXXX</span>
     </div>
     
-    <div class="footer">
+    <div class="footer" id="gameFooter">
         <p>Mobile Bingo Game &copy; 2023</p>
     </div>
 
@@ -762,10 +827,12 @@
                     headerBackgroundImage: null,
                     headerBackgroundColor: "#6a11cb",
                     headerTextColor: "#ffffff",
+                    headerTransparent: false,
                     
                     // Main background
                     mainBackgroundImage: null,
                     mainBackgroundColor: "#f5f5f5",
+                    mainTransparent: false,
                     
                     // Card background
                     cardBackgroundImage: null,
@@ -785,7 +852,8 @@
                     gameSubtitle: "Login to play with your unique bingo cards",
                     welcomeTitle: "Welcome to Bingo!",
                     welcomeMessage: "Enter your name and password to join the game.",
-                    loginButtonText: "Join Game"
+                    loginButtonText: "Join Game",
+                    footerText: "Mobile Bingo Game © 2023"
                 }
             }
         };
@@ -1015,6 +1083,36 @@
             `);
         }
         
+        // ==================== COLOR VALIDATION FUNCTIONS ====================
+        
+        function isValidHexColor(color) {
+            return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+        }
+        
+        function updateColorInputFromPicker(pickerId, textId) {
+            const picker = document.getElementById(pickerId);
+            const textInput = document.getElementById(textId);
+            
+            picker.addEventListener('input', function() {
+                textInput.value = this.value;
+            });
+            
+            textInput.addEventListener('input', function() {
+                const color = this.value.trim();
+                if (isValidHexColor(color)) {
+                    picker.value = color;
+                }
+            });
+            
+            textInput.addEventListener('blur', function() {
+                const color = this.value.trim();
+                if (!isValidHexColor(color) && color !== '') {
+                    showCustomAlert('Invalid color format. Please use #RRGGBB format (e.g., #FF0000 for red).');
+                    this.value = picker.value;
+                }
+            });
+        }
+        
         // ==================== CUSTOMIZATION FUNCTIONS ====================
         
         function applyCustomizations() {
@@ -1022,7 +1120,9 @@
             
             // Apply header background
             const header = document.querySelector('.header');
-            if (customization.headerBackgroundImage) {
+            if (customization.headerTransparent) {
+                header.style.background = 'transparent';
+            } else if (customization.headerBackgroundImage) {
                 header.style.background = `url('${customization.headerBackgroundImage}')`;
                 header.style.backgroundSize = 'cover';
                 header.style.backgroundPosition = 'center';
@@ -1034,12 +1134,18 @@
             header.style.color = customization.headerTextColor;
             
             // Apply main background
-            document.body.style.backgroundColor = customization.mainBackgroundColor;
-            if (customization.mainBackgroundImage) {
+            if (customization.mainTransparent) {
+                document.body.style.backgroundColor = 'transparent';
+                document.body.style.backgroundImage = 'none';
+            } else if (customization.mainBackgroundImage) {
+                document.body.style.backgroundColor = 'transparent';
                 document.body.style.backgroundImage = `url('${customization.mainBackgroundImage}')`;
                 document.body.style.backgroundSize = 'cover';
                 document.body.style.backgroundPosition = 'center';
                 document.body.style.backgroundAttachment = 'fixed';
+            } else {
+                document.body.style.backgroundImage = 'none';
+                document.body.style.backgroundColor = customization.mainBackgroundColor;
             }
             
             // Apply card container background
@@ -1072,10 +1178,11 @@
             });
             
             // Update text content
-            document.getElementById('gameTitle').innerHTML = `<i class="fas fa-dice"></i> ${customization.gameTitle}`;
+            document.getElementById('gameTitle').textContent = customization.gameTitle;
             document.getElementById('gameSubtitle').textContent = customization.gameSubtitle;
             document.getElementById('welcomeTitle').textContent = customization.welcomeTitle;
             document.getElementById('welcomeMessage').textContent = customization.welcomeMessage;
+            document.getElementById('gameFooter').innerHTML = `<p>${customization.footerText}</p>`;
             
             const loginButton = document.getElementById('loginButton');
             if (loginButton) {
@@ -1128,19 +1235,36 @@
             document.getElementById('welcomeTitleText').value = customization.welcomeTitle;
             document.getElementById('welcomeMessageText').value = customization.welcomeMessage;
             document.getElementById('loginButtonText').value = customization.loginButtonText;
+            document.getElementById('footerText').value = customization.footerText;
             
-            // Load color pickers
+            // Load color pickers and text inputs
             document.getElementById('headerBackgroundColor').value = customization.headerBackgroundColor;
+            document.getElementById('headerBackgroundColorText').value = customization.headerBackgroundColor;
             document.getElementById('headerTextColor').value = customization.headerTextColor;
+            document.getElementById('headerTextColorText').value = customization.headerTextColor;
+            document.getElementById('headerTransparent').checked = customization.headerTransparent;
+            
             document.getElementById('mainBackgroundColor').value = customization.mainBackgroundColor;
+            document.getElementById('mainBackgroundColorText').value = customization.mainBackgroundColor;
+            document.getElementById('mainTransparent').checked = customization.mainTransparent;
+            
             document.getElementById('cardBackgroundColor').value = customization.cardBackgroundColor;
+            document.getElementById('cardBackgroundColorText').value = customization.cardBackgroundColor;
             document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor;
+            document.getElementById('cellBackgroundColorText').value = customization.cellBackgroundColor;
             document.getElementById('markedCellColor').value = customization.markedCellColor;
+            document.getElementById('markedCellColorText').value = customization.markedCellColor;
             document.getElementById('freeCellColor').value = customization.freeCellColor;
+            document.getElementById('freeCellColorText').value = customization.freeCellColor;
+            
             document.getElementById('primaryButtonColor').value = customization.primaryButtonColor;
+            document.getElementById('primaryButtonColorText').value = customization.primaryButtonColor;
             document.getElementById('secondaryButtonColor').value = customization.secondaryButtonColor;
+            document.getElementById('secondaryButtonColorText').value = customization.secondaryButtonColor;
             document.getElementById('dangerButtonColor').value = customization.dangerButtonColor;
+            document.getElementById('dangerButtonColorText').value = customization.dangerButtonColor;
             document.getElementById('buttonTextColor').value = customization.buttonTextColor;
+            document.getElementById('buttonTextColorText').value = customization.buttonTextColor;
             
             // Update previews
             updatePreview('headerBackgroundPreview', customization.headerBackgroundImage);
@@ -1235,12 +1359,6 @@
                 loginForm.addEventListener('submit', handleLogin);
             }
             
-            // Admin login link
-            const adminLink = document.getElementById('adminLoginLink');
-            if (adminLink) {
-                adminLink.addEventListener('click', showAdminLogin);
-            }
-            
             // Navigation buttons
             const prevBtn = document.getElementById('prevCardBtn');
             const nextBtn = document.getElementById('nextCardBtn');
@@ -1286,6 +1404,8 @@
             document.getElementById('headerBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
                     gameState.settings.customization.headerBackgroundImage = base64;
+                    gameState.settings.customization.headerTransparent = false;
+                    document.getElementById('headerTransparent').checked = false;
                     updatePreview('headerBackgroundPreview', base64);
                 });
             });
@@ -1293,6 +1413,8 @@
             document.getElementById('mainBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
                     gameState.settings.customization.mainBackgroundImage = base64;
+                    gameState.settings.customization.mainTransparent = false;
+                    document.getElementById('mainTransparent').checked = false;
                     updatePreview('mainBackgroundPreview', base64);
                 });
             });
@@ -1304,10 +1426,25 @@
                 });
             });
             
+            // Setup color input synchronization
+            updateColorInputFromPicker('headerBackgroundColor', 'headerBackgroundColorText');
+            updateColorInputFromPicker('headerTextColor', 'headerTextColorText');
+            updateColorInputFromPicker('mainBackgroundColor', 'mainBackgroundColorText');
+            updateColorInputFromPicker('cardBackgroundColor', 'cardBackgroundColorText');
+            updateColorInputFromPicker('cellBackgroundColor', 'cellBackgroundColorText');
+            updateColorInputFromPicker('markedCellColor', 'markedCellColorText');
+            updateColorInputFromPicker('freeCellColor', 'freeCellColorText');
+            updateColorInputFromPicker('primaryButtonColor', 'primaryButtonColorText');
+            updateColorInputFromPicker('secondaryButtonColor', 'secondaryButtonColorText');
+            updateColorInputFromPicker('dangerButtonColor', 'dangerButtonColorText');
+            updateColorInputFromPicker('buttonTextColor', 'buttonTextColorText');
+            
             // Color picker handlers
             document.getElementById('headerBackgroundColor').addEventListener('change', function() {
                 gameState.settings.customization.headerBackgroundImage = null;
                 gameState.settings.customization.headerBackgroundColor = this.value;
+                gameState.settings.customization.headerTransparent = false;
+                document.getElementById('headerTransparent').checked = false;
                 updatePreview('headerBackgroundPreview', this.value, true);
             });
             
@@ -1315,10 +1452,26 @@
                 gameState.settings.customization.headerTextColor = this.value;
             });
             
+            document.getElementById('headerTransparent').addEventListener('change', function() {
+                gameState.settings.customization.headerTransparent = this.checked;
+                if (this.checked) {
+                    gameState.settings.customization.headerBackgroundImage = null;
+                }
+            });
+            
             document.getElementById('mainBackgroundColor').addEventListener('change', function() {
                 gameState.settings.customization.mainBackgroundImage = null;
                 gameState.settings.customization.mainBackgroundColor = this.value;
+                gameState.settings.customization.mainTransparent = false;
+                document.getElementById('mainTransparent').checked = false;
                 updatePreview('mainBackgroundPreview', this.value, true);
+            });
+            
+            document.getElementById('mainTransparent').addEventListener('change', function() {
+                gameState.settings.customization.mainTransparent = this.checked;
+                if (this.checked) {
+                    gameState.settings.customization.mainBackgroundImage = null;
+                }
             });
             
             document.getElementById('cardBackgroundColor').addEventListener('change', function() {
@@ -1376,20 +1529,35 @@
                 gameState.settings.customization.loginButtonText = this.value;
             });
             
+            document.getElementById('footerText').addEventListener('change', function() {
+                gameState.settings.customization.footerText = this.value;
+            });
+            
             // Reset buttons
             document.getElementById('resetHeaderBtn').addEventListener('click', function() {
                 gameState.settings.customization.headerBackgroundImage = null;
                 gameState.settings.customization.headerBackgroundColor = "#6a11cb";
                 gameState.settings.customization.headerTextColor = "#ffffff";
+                gameState.settings.customization.headerTransparent = false;
+                
                 document.getElementById('headerBackgroundColor').value = "#6a11cb";
+                document.getElementById('headerBackgroundColorText').value = "#6a11cb";
                 document.getElementById('headerTextColor').value = "#ffffff";
+                document.getElementById('headerTextColorText').value = "#ffffff";
+                document.getElementById('headerTransparent').checked = false;
+                
                 updatePreview('headerBackgroundPreview', "#6a11cb", true);
             });
             
             document.getElementById('resetMainBackgroundBtn').addEventListener('click', function() {
                 gameState.settings.customization.mainBackgroundImage = null;
                 gameState.settings.customization.mainBackgroundColor = "#f5f5f5";
+                gameState.settings.customization.mainTransparent = false;
+                
                 document.getElementById('mainBackgroundColor').value = "#f5f5f5";
+                document.getElementById('mainBackgroundColorText').value = "#f5f5f5";
+                document.getElementById('mainTransparent').checked = false;
+                
                 updatePreview('mainBackgroundPreview', "#f5f5f5", true);
             });
             
@@ -1401,9 +1569,13 @@
                 gameState.settings.customization.freeCellColor = "#ffd166";
                 
                 document.getElementById('cardBackgroundColor').value = "#f8f9fa";
+                document.getElementById('cardBackgroundColorText').value = "#f8f9fa";
                 document.getElementById('cellBackgroundColor').value = "#ffffff";
+                document.getElementById('cellBackgroundColorText').value = "#ffffff";
                 document.getElementById('markedCellColor').value = "#6a11cb";
+                document.getElementById('markedCellColorText').value = "#6a11cb";
                 document.getElementById('freeCellColor').value = "#ffd166";
+                document.getElementById('freeCellColorText').value = "#ffd166";
                 
                 updatePreview('cardBackgroundPreview', "#f8f9fa", true);
             });
@@ -1415,9 +1587,13 @@
                 gameState.settings.customization.buttonTextColor = "#ffffff";
                 
                 document.getElementById('primaryButtonColor').value = "#6a11cb";
+                document.getElementById('primaryButtonColorText').value = "#6a11cb";
                 document.getElementById('secondaryButtonColor').value = "#f0f0f0";
+                document.getElementById('secondaryButtonColorText').value = "#f0f0f0";
                 document.getElementById('dangerButtonColor').value = "#dc3545";
+                document.getElementById('dangerButtonColorText').value = "#dc3545";
                 document.getElementById('buttonTextColor').value = "#ffffff";
+                document.getElementById('buttonTextColorText').value = "#ffffff";
             });
         }
         
@@ -1561,29 +1737,6 @@
             showCustomAlert(welcomeMessage, true);
         }
         
-        function showAdminLogin(e) {
-            if (e) e.preventDefault();
-            
-            const adminId = prompt('Enter Admin ID:');
-            if (!adminId) return;
-            
-            if (adminId !== ADMIN_CREDENTIALS.id) {
-                alert('Invalid Admin ID');
-                return;
-            }
-            
-            const password = prompt('Enter Admin Password:');
-            if (!password) return;
-            
-            if (password !== ADMIN_CREDENTIALS.password) {
-                alert('Invalid Password');
-                return;
-            }
-            
-            showScreen('adminScreen');
-            loadAdminSettings();
-        }
-        
         function loadAdminSettings() {
             // Load current settings into admin panel
             const playerListTextarea = document.getElementById('playerList');
@@ -1654,6 +1807,41 @@
             gameState.settings.customization.welcomeTitle = document.getElementById('welcomeTitleText').value;
             gameState.settings.customization.welcomeMessage = document.getElementById('welcomeMessageText').value;
             gameState.settings.customization.loginButtonText = document.getElementById('loginButtonText').value;
+            gameState.settings.customization.footerText = document.getElementById('footerText').value;
+            
+            // Update color settings from text inputs (validate first)
+            const colorsToValidate = [
+                { picker: 'headerBackgroundColorText', setting: 'headerBackgroundColor' },
+                { picker: 'headerTextColorText', setting: 'headerTextColor' },
+                { picker: 'mainBackgroundColorText', setting: 'mainBackgroundColor' },
+                { picker: 'cardBackgroundColorText', setting: 'cardBackgroundColor' },
+                { picker: 'cellBackgroundColorText', setting: 'cellBackgroundColor' },
+                { picker: 'markedCellColorText', setting: 'markedCellColor' },
+                { picker: 'freeCellColorText', setting: 'freeCellColor' },
+                { picker: 'primaryButtonColorText', setting: 'primaryButtonColor' },
+                { picker: 'secondaryButtonColorText', setting: 'secondaryButtonColor' },
+                { picker: 'dangerButtonColorText', setting: 'dangerButtonColor' },
+                { picker: 'buttonTextColorText', setting: 'buttonTextColor' }
+            ];
+            
+            let hasInvalidColor = false;
+            colorsToValidate.forEach(color => {
+                const colorValue = document.getElementById(color.picker).value.trim();
+                if (colorValue && !isValidHexColor(colorValue)) {
+                    showCustomAlert(`Invalid color format for ${color.setting}. Please use #RRGGBB format.`);
+                    hasInvalidColor = true;
+                    return;
+                }
+                if (colorValue) {
+                    gameState.settings.customization[color.setting] = colorValue;
+                }
+            });
+            
+            if (hasInvalidColor) return;
+            
+            // Update transparency settings
+            gameState.settings.customization.headerTransparent = document.getElementById('headerTransparent').checked;
+            gameState.settings.customization.mainTransparent = document.getElementById('mainTransparent').checked;
             
             // Apply customizations immediately
             applyCustomizations();
