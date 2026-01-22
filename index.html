@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobile Bingo Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -261,8 +264,6 @@
         .bingo-cell.marked {
             color: white;
         }
-        
-        /* Removed the checkmark from marked cells */
         
         .controls {
             display: flex;
@@ -544,6 +545,47 @@
             transform: translateX(26px);
         }
         
+        /* Sync notifications */
+        .sync-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            z-index: 999;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        .connection-status.connected {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .connection-status.disconnected {
+            background: #f44336;
+            color: white;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 480px) {
             .container {
@@ -584,6 +626,14 @@
     </style>
 </head>
 <body>
+    <!-- Connection Status -->
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+    
+    <!-- Sync Notification -->
+    <div class="sync-notification" id="syncNotification">
+        <i class="fas fa-sync-alt"></i> Settings Updated
+    </div>
+    
     <!-- Random Picture Frames -->
     <div class="random-picture-frame" id="frame1" style="top: 10%; left: 5%;"></div>
     <div class="random-picture-frame" id="frame2" style="top: 15%; right: 5%;"></div>
@@ -606,6 +656,11 @@
                     <div class="input-group">
                         <label for="playerName">Your Name</label>
                         <input type="text" id="playerName" placeholder="Enter your name" required autocomplete="off">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="gameRoomCode">Game Room Code (Optional)</label>
+                        <input type="text" id="gameRoomCode" placeholder="Leave empty for default room">
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -652,6 +707,11 @@
                     </button>
                 </div>
                 
+                <div style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 10px; font-size: 0.9rem;">
+                    <p><strong>Game Room:</strong> <span id="currentGameRoom">Default</span></p>
+                    <p><i class="fas fa-info-circle"></i> Admin changes will automatically update for all players.</p>
+                </div>
+                
                 <button class="btn btn-primary" id="logoutBtn">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
@@ -662,7 +722,34 @@
                 <h2><i class="fas fa-cogs"></i> Admin Controls</h2>
                 <p>Customize the game appearance and settings</p>
                 
+                <div style="background: #e3f2fd; padding: 10px; border-radius: 10px; margin-bottom: 20px;">
+                    <p><i class="fas fa-broadcast-tower"></i> <strong>Real-time Sync Enabled</strong></p>
+                    <p>Your changes will automatically update for all players in the same game room.</p>
+                    <p><strong>Current Room:</strong> <span id="adminGameRoom">Default</span></p>
+                </div>
+                
                 <div class="admin-controls">
+                    <!-- Game Room Management -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-door-open"></i> Game Room Management</h3>
+                        
+                        <div class="admin-actions">
+                            <div class="admin-action-row">
+                                <div class="admin-action-label">Game Room:</div>
+                                <div class="admin-action-controls">
+                                    <input type="text" id="gameRoomInput" class="admin-input" value="Default" style="width: 120px;">
+                                    <button class="btn btn-primary btn-small" id="changeRoomBtn">
+                                        <i class="fas fa-sync-alt"></i> Change Room
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="current-settings">
+                                <p>Players will need to enter this room code to join.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Player Management -->
                     <div class="admin-section">
                         <h3><i class="fas fa-users"></i> Player Management</h3>
@@ -808,12 +895,30 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Sync Controls -->
+                    <div class="admin-section">
+                        <h3><i class="fas fa-sync-alt"></i> Sync Controls</h3>
+                        <div class="admin-actions">
+                            <div class="admin-action-row">
+                                <div class="admin-action-label">Force Sync:</div>
+                                <div class="admin-action-controls">
+                                    <button class="btn btn-primary btn-small" id="forceSyncBtn">
+                                        <i class="fas fa-broadcast-tower"></i> Push to All Players
+                                    </button>
+                                </div>
+                            </div>
+                            <p style="font-size: 0.8rem; margin-top: 10px; color: #666;">
+                                Click to immediately update all players with current settings.
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="admin-info">
                     <p><strong>Admin ID:</strong> admin</p>
                     <p><strong>Password:</strong> 1234</p>
-                    <p>To change password, edit the ADMIN_CREDENTIALS in JavaScript.</p>
+                    <p>All changes will sync automatically to players in the same game room.</p>
                 </div>
                 
                 <button class="btn btn-primary" id="adminLogoutBtn">
@@ -824,64 +929,242 @@
     </div>
     
     <div class="footer">
-        <p>Mobile Bingo Game &copy; 2023 | Touch-friendly interface for mobile devices</p>
+        <p>Mobile Bingo Game &copy; 2023 | Real-time synchronized for all players</p>
     </div>
 
     <script>
-        // Database simulation
+        // ==================== FIREBASE CONFIGURATION ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB01PdqxQOdevXQNcYJMGzuYmG1u-S77ec",
+            authDomain: "mx-bingo.firebaseapp.com",
+            databaseURL: "https://mx-bingo-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mx-bingo",
+            storageBucket: "mx-bingo.firebasestorage.app",
+            messagingSenderId: "480388469034",
+            appId: "1:480388469034:web:a6edab28faf37e3e0c4e53"
+        };
+        
+        // Initialize Firebase
+        let firebaseApp, database;
+        let useFirebase = true;
+        
+        try {
+            firebaseApp = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            console.log("Firebase initialized successfully with your config!");
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            useFirebase = false;
+        }
+        
+        // ==================== GAME VARIABLES ====================
         const simulatedDB = {
             players: [],
             cardsPool: [],
-            issuedCards: new Set(), // Track issued card IDs
-            playerCards: {} // Store which cards each player has
+            issuedCards: new Set(),
+            playerCards: {}
         };
 
-        // Admin credentials (you can change these)
         const ADMIN_CREDENTIALS = {
             id: "admin",
             password: "1234"
         };
 
+        const DEFAULT_PICTURES = [
+            'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop',
+            'https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=150&h=150&fit=crop'
+        ];
+
+        // Current game room (default)
+        let currentGameRoom = "Default";
+        
         // Game settings with defaults
         let gameSettings = {
             maxPlayers: 30,
             cardsPerPlayer: 3
         };
 
-        // Default background pictures for random frames
-        const DEFAULT_PICTURES = [
-            'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=150&h=150&fit=crop',
-            'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=150&h=150&fit=crop',
-            'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w-150&h=150&fit=crop',
-            'https://images.unsplash.com/photo-1579546929662-711aa81148cf?w=150&h=150&fit=crop'
-        ];
-
         // UI Customization settings with defaults
         let uiSettings = {
-            // Backgrounds
             loginBg: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
             gameBg: "#f5f5f5",
             customBackground: null,
             randomPictures: true,
-            
-            // Button colors
             primaryBtnColor: "#6a11cb",
             primaryBtnTextColor: "#ffffff",
             secondaryBtnColor: "#f0f0f0",
             secondaryBtnTextColor: "#333333",
-            
-            // Card colors
             cardHeaderColor: "#6a11cb",
             markedCellColor: "#6a11cb",
             freeCellColor: "#ffd166",
             playerNameColor: "#6a11cb"
         };
 
-        // Generate 150 unique bingo cards
+        // Track last update time to avoid loops
+        let lastFirebaseUpdate = 0;
+
+        // ==================== FIREBASE FUNCTIONS ====================
+        
+        function saveSettingsToFirebase() {
+            if (!useFirebase) {
+                saveGameSettings();
+                saveUISettings();
+                return;
+            }
+            
+            try {
+                const settingsRef = database.ref(`rooms/${currentGameRoom}/settings`);
+                const combinedSettings = {
+                    gameSettings: gameSettings,
+                    uiSettings: uiSettings,
+                    updatedAt: Date.now()
+                };
+                
+                lastFirebaseUpdate = Date.now();
+                
+                settingsRef.set(combinedSettings)
+                    .then(() => {
+                        console.log("Settings saved to Firebase");
+                        showNotification("Settings saved and synced to all players!");
+                    })
+                    .catch(error => {
+                        console.error("Error saving to Firebase:", error);
+                        // Fallback to localStorage
+                        saveGameSettings();
+                        saveUISettings();
+                    });
+            } catch (error) {
+                console.error("Firebase error:", error);
+                saveGameSettings();
+                saveUISettings();
+            }
+        }
+        
+        function loadSettingsFromFirebase() {
+            if (!useFirebase) {
+                loadGameSettings();
+                loadUISettings();
+                updateConnectionStatus(false);
+                return;
+            }
+            
+            try {
+                const settingsRef = database.ref(`rooms/${currentGameRoom}/settings`);
+                settingsRef.once('value')
+                    .then(snapshot => {
+                        const data = snapshot.val();
+                        if (data) {
+                            // Don't apply if this is our own recent update
+                            if (data.updatedAt && data.updatedAt <= lastFirebaseUpdate) {
+                                return;
+                            }
+                            
+                            if (data.gameSettings) {
+                                gameSettings = { ...gameSettings, ...data.gameSettings };
+                            }
+                            if (data.uiSettings) {
+                                uiSettings = { ...uiSettings, ...data.uiSettings };
+                            }
+                            
+                            applyUISettings();
+                            updateSettingsDisplay();
+                            updateAdminControls();
+                            
+                            console.log("Settings loaded from Firebase");
+                            updateConnectionStatus(true);
+                        } else {
+                            loadGameSettings();
+                            loadUISettings();
+                            updateConnectionStatus(true);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error loading from Firebase:", error);
+                        loadGameSettings();
+                        loadUISettings();
+                        updateConnectionStatus(false);
+                    });
+            } catch (error) {
+                console.error("Firebase error:", error);
+                loadGameSettings();
+                loadUISettings();
+                updateConnectionStatus(false);
+            }
+        }
+        
+        function listenForSettingsUpdates() {
+            if (!useFirebase) return;
+            
+            try {
+                const settingsRef = database.ref(`rooms/${currentGameRoom}/settings`);
+                settingsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        // Don't apply if this is our own recent update
+                        if (data.updatedAt && data.updatedAt <= lastFirebaseUpdate) {
+                            return;
+                        }
+                        
+                        lastFirebaseUpdate = data.updatedAt || 0;
+                        
+                        if (data.gameSettings) {
+                            gameSettings = { ...gameSettings, ...data.gameSettings };
+                        }
+                        if (data.uiSettings) {
+                            uiSettings = { ...uiSettings, ...data.uiSettings };
+                        }
+                        
+                        applyUISettings();
+                        updateSettingsDisplay();
+                        
+                        if (!document.getElementById('adminScreen').style.display !== 'none') {
+                            updateAdminControls();
+                        }
+                        
+                        showNotification("Settings updated from admin!");
+                        console.log("Settings updated in real-time from Firebase");
+                    }
+                });
+                
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error("Error listening to Firebase:", error);
+                updateConnectionStatus(false);
+            }
+        }
+        
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            if (useFirebase) {
+                if (connected) {
+                    statusElement.textContent = "Connected ✓";
+                    statusElement.className = "connection-status connected";
+                } else {
+                    statusElement.textContent = "Disconnected ✗";
+                    statusElement.className = "connection-status disconnected";
+                }
+            } else {
+                statusElement.textContent = "Offline Mode";
+                statusElement.className = "connection-status disconnected";
+            }
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('syncNotification');
+            notification.innerHTML = `<i class="fas fa-sync-alt"></i> ${message}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        // ==================== GAME FUNCTIONS ====================
+        
         function generateBingoCards() {
             const cards = [];
-            
-            // Standard Bingo ranges
             const ranges = {
                 B: [1, 15],
                 I: [16, 30],
@@ -890,17 +1173,14 @@
                 O: [61, 75]
             };
             
-            // Generate 150 unique cards
             for (let cardId = 1; cardId <= 150; cardId++) {
                 const card = { id: cardId, numbers: {} };
                 
-                // Generate numbers for each column
                 for (let col = 0; col < 5; col++) {
                     const letter = Object.keys(ranges)[col];
                     const [min, max] = ranges[letter];
                     const columnNumbers = [];
                     
-                    // Generate 5 unique numbers for this column
                     while (columnNumbers.length < 5) {
                         const num = Math.floor(Math.random() * (max - min + 1)) + min;
                         if (!columnNumbers.includes(num)) {
@@ -911,28 +1191,51 @@
                     card.numbers[letter] = columnNumbers;
                 }
                 
-                // Set the center as FREE
                 card.numbers.N[2] = "FREE";
-                
                 cards.push(card);
             }
             
             simulatedDB.cardsPool = cards;
         }
-
-        // Initialize the game
+        
         function initGame() {
             generateBingoCards();
             
+            // Get game room from URL or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomFromUrl = urlParams.get('room');
+            if (roomFromUrl) {
+                currentGameRoom = roomFromUrl;
+            } else {
+                const savedRoom = localStorage.getItem('bingoGameRoom');
+                if (savedRoom) currentGameRoom = savedRoom;
+            }
+            
+            // Update room displays
+            updateRoomDisplays();
+            
+            // Initialize Firebase connection
+            if (useFirebase) {
+                listenForSettingsUpdates();
+            }
+            
             // Load settings
-            loadGameSettings();
-            loadUISettings();
+            loadSettingsFromFirebase();
             
             // Update displays
             updatePlayersCount();
             updateSettingsDisplay();
             
             // Setup event listeners
+            setupEventListeners();
+            
+            // Load random pictures if enabled
+            if (uiSettings.randomPictures) {
+                loadRandomPictures();
+            }
+        }
+        
+        function setupEventListeners() {
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('prevCardBtn').addEventListener('click', showPrevCard);
             document.getElementById('nextCardBtn').addEventListener('click', showNextCard);
@@ -940,52 +1243,132 @@
             document.getElementById('adminLoginLink').addEventListener('click', showAdminLogin);
             document.getElementById('adminLogoutBtn').addEventListener('click', exitAdmin);
             
-            // Admin player management controls
-            setupAdminPlayerControls();
+            // Room management
+            document.getElementById('changeRoomBtn').addEventListener('click', changeGameRoom);
+            document.getElementById('gameRoomCode').addEventListener('change', function() {
+                currentGameRoom = this.value || "Default";
+                localStorage.setItem('bingoGameRoom', currentGameRoom);
+                updateRoomDisplays();
+                reloadSettingsForNewRoom();
+            });
             
-            // Admin UI controls
+            // Admin player management
+            document.getElementById('clearPlayersBtn').addEventListener('click', function() {
+                if (confirm("Are you sure you want to clear ALL players?")) {
+                    clearAllPlayers();
+                }
+            });
+            
+            document.getElementById('updateMaxPlayersBtn').addEventListener('click', function() {
+                const maxPlayersInput = document.getElementById('maxPlayersInput');
+                const maxPlayers = parseInt(maxPlayersInput.value);
+                
+                if (isNaN(maxPlayers) || maxPlayers < 1 || maxPlayers > 100) {
+                    alert("Please enter a valid number between 1 and 100");
+                    return;
+                }
+                
+                gameSettings.maxPlayers = maxPlayers;
+                updateSettingsDisplay();
+                saveSettingsToFirebase();
+                showNotification(`Max players updated to ${maxPlayers}`);
+            });
+            
+            document.getElementById('updateCardsPerPlayerBtn').addEventListener('click', function() {
+                const cardsPerPlayer = parseInt(document.getElementById('cardsPerPlayerSelect').value);
+                gameSettings.cardsPerPlayer = cardsPerPlayer;
+                updateSettingsDisplay();
+                saveSettingsToFirebase();
+                showNotification(`Cards per player updated to ${cardsPerPlayer}`);
+            });
+            
+            // Force sync button
+            document.getElementById('forceSyncBtn').addEventListener('click', function() {
+                saveSettingsToFirebase();
+                showNotification("Settings pushed to all players!");
+            });
+            
+            // Setup UI controls
             setupAdminUIControls();
+        }
+        
+        function updateRoomDisplays() {
+            document.getElementById('currentGameRoom').textContent = currentGameRoom;
+            document.getElementById('adminGameRoom').textContent = currentGameRoom;
+            document.getElementById('gameRoomInput').value = currentGameRoom;
+            document.getElementById('gameRoomCode').value = currentGameRoom;
+        }
+        
+        function changeGameRoom() {
+            const newRoom = document.getElementById('gameRoomInput').value.trim() || "Default";
+            currentGameRoom = newRoom;
+            localStorage.setItem('bingoGameRoom', currentGameRoom);
+            updateRoomDisplays();
             
-            // Load random pictures if enabled
-            if (uiSettings.randomPictures) {
-                loadRandomPictures();
+            // Stop listening to old room
+            if (useFirebase) {
+                try {
+                    database.ref(`rooms/${currentGameRoom}/settings`).off();
+                } catch (error) {
+                    console.error("Error stopping listener:", error);
+                }
+            }
+            
+            // Start listening to new room
+            reloadSettingsForNewRoom();
+            
+            showNotification(`Changed to room: ${currentGameRoom}`);
+        }
+        
+        function reloadSettingsForNewRoom() {
+            // Load settings for new room
+            loadSettingsFromFirebase();
+            
+            // Start listening for updates
+            if (useFirebase) {
+                listenForSettingsUpdates();
             }
         }
-
-        // Handle player login
+        
         function handleLogin(e) {
             e.preventDefault();
             
             const playerNameInput = document.getElementById('playerName');
             const playerName = playerNameInput.value.trim();
+            const roomCodeInput = document.getElementById('gameRoomCode');
+            
+            // Update game room if provided
+            if (roomCodeInput.value.trim()) {
+                currentGameRoom = roomCodeInput.value.trim();
+                localStorage.setItem('bingoGameRoom', currentGameRoom);
+                updateRoomDisplays();
+                
+                // Reload settings for new room
+                reloadSettingsForNewRoom();
+            }
             
             if (!playerName) {
                 alert('Please enter your name');
                 return;
             }
             
-            // Check for admin login
             if (playerName.toLowerCase() === ADMIN_CREDENTIALS.id) {
                 showAdminLogin();
                 playerNameInput.value = '';
                 return;
             }
             
-            // Check if player already exists
             const existingPlayer = simulatedDB.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
             
             if (existingPlayer) {
-                // Player exists, restore their cards
                 currentPlayer = existingPlayer;
                 alert(`Welcome back, ${playerName}!`);
             } else {
-                // Check if we've reached the player limit
                 if (simulatedDB.players.length >= gameSettings.maxPlayers) {
                     alert(`Sorry, the game is full! Maximum ${gameSettings.maxPlayers} players allowed.`);
                     return;
                 }
                 
-                // Create new player
                 const playerId = simulatedDB.players.length + 1;
                 currentPlayer = {
                     id: playerId,
@@ -993,37 +1376,27 @@
                     cards: []
                 };
                 
-                // Assign cards to the player based on current settings
                 assignCardsToPlayer(currentPlayer);
-                
-                // Add player to database
                 simulatedDB.players.push(currentPlayer);
                 simulatedDB.playerCards[playerId] = currentPlayer.cards.map(card => card.id);
             }
             
-            // Update UI
             document.getElementById('displayPlayerName').textContent = currentPlayer.name;
             document.getElementById('totalCards').textContent = currentPlayer.cards.length;
             currentCardIndex = 0;
             updateCardDisplay();
             
-            // Switch to game screen
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('gameScreen').style.display = 'block';
             document.getElementById('adminScreen').style.display = 'none';
             
-            // Update player count
             updatePlayersCount();
             updateSettingsDisplay();
             
-            // Clear the input
             playerNameInput.value = '';
-            
-            // Save to localStorage for persistence
             saveToLocalStorage();
         }
-
-        // Show admin login prompt
+        
         function showAdminLogin() {
             const adminId = prompt("Enter Admin ID:");
             if (!adminId) return;
@@ -1049,44 +1422,7 @@
             // Update admin controls to show current settings
             updateAdminControls();
         }
-
-        // Setup admin player management controls
-        function setupAdminPlayerControls() {
-            // Clear all players button
-            document.getElementById('clearPlayersBtn').addEventListener('click', function() {
-                if (confirm("Are you sure you want to clear ALL players? This action cannot be undone.")) {
-                    clearAllPlayers();
-                }
-            });
-            
-            // Update max players button
-            document.getElementById('updateMaxPlayersBtn').addEventListener('click', function() {
-                const maxPlayersInput = document.getElementById('maxPlayersInput');
-                const maxPlayers = parseInt(maxPlayersInput.value);
-                
-                if (isNaN(maxPlayers) || maxPlayers < 1 || maxPlayers > 100) {
-                    alert("Please enter a valid number between 1 and 100");
-                    return;
-                }
-                
-                gameSettings.maxPlayers = maxPlayers;
-                updateSettingsDisplay();
-                saveGameSettings();
-                alert(`Maximum players updated to ${maxPlayers}`);
-            });
-            
-            // Update cards per player button
-            document.getElementById('updateCardsPerPlayerBtn').addEventListener('click', function() {
-                const cardsPerPlayer = parseInt(document.getElementById('cardsPerPlayerSelect').value);
-                
-                gameSettings.cardsPerPlayer = cardsPerPlayer;
-                updateSettingsDisplay();
-                saveGameSettings();
-                alert(`Cards per player updated to ${cardsPerPlayer}. New players will receive this many cards.`);
-            });
-        }
-
-        // Clear all players
+        
         function clearAllPlayers() {
             simulatedDB.players = [];
             simulatedDB.issuedCards.clear();
@@ -1102,8 +1438,7 @@
             // Show confirmation
             alert("All players have been cleared!");
         }
-
-        // Setup admin UI controls
+        
         function setupAdminUIControls() {
             // Background upload
             const backgroundUpload = document.getElementById('backgroundUpload');
@@ -1120,7 +1455,7 @@
                 } else {
                     clearRandomPictures();
                 }
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             // Color pickers for backgrounds
@@ -1129,9 +1464,9 @@
                     document.querySelectorAll('#loginBgColors .color-option').forEach(opt => opt.classList.remove('selected'));
                     this.classList.add('selected');
                     uiSettings.loginBg = this.dataset.bg;
-                    uiSettings.customBackground = null; // Clear custom background
+                    uiSettings.customBackground = null;
                     applyUISettings();
-                    saveUISettings();
+                    saveSettingsToFirebase();
                 });
             });
             
@@ -1139,50 +1474,50 @@
             document.getElementById('primaryBtnColor').addEventListener('input', function() {
                 uiSettings.primaryBtnColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('primaryBtnTextColor').addEventListener('input', function() {
                 uiSettings.primaryBtnTextColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('secondaryBtnColor').addEventListener('input', function() {
                 uiSettings.secondaryBtnColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('secondaryBtnTextColor').addEventListener('input', function() {
                 uiSettings.secondaryBtnTextColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             // Card color pickers
             document.getElementById('cardHeaderColor').addEventListener('input', function() {
                 uiSettings.cardHeaderColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('markedCellColor').addEventListener('input', function() {
                 uiSettings.markedCellColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('freeCellColor').addEventListener('input', function() {
                 uiSettings.freeCellColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             document.getElementById('playerNameColor').addEventListener('input', function() {
                 uiSettings.playerNameColor = this.value;
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             });
             
             // Preset buttons
@@ -1190,11 +1525,11 @@
                 btn.addEventListener('click', function() {
                     const preset = this.dataset.preset;
                     applyPreset(preset);
+                    saveSettingsToFirebase();
                 });
             });
         }
-
-        // Update admin controls to reflect current settings
+        
         function updateAdminControls() {
             // Update player management controls
             document.getElementById('maxPlayersInput').value = gameSettings.maxPlayers;
@@ -1230,8 +1565,7 @@
             // Update current settings display
             updateSettingsDisplay();
         }
-
-        // Handle background image upload
+        
         function handleBackgroundUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1246,25 +1580,21 @@
                 uiSettings.customBackground = event.target.result;
                 uiSettings.loginBg = `url('${event.target.result}')`;
                 
-                // Show preview
                 const preview = document.getElementById('backgroundPreview');
                 preview.src = event.target.result;
                 preview.style.display = 'block';
                 
-                // Apply settings
                 applyUISettings();
-                saveUISettings();
+                saveSettingsToFirebase();
             };
             reader.readAsDataURL(file);
         }
-
-        // Load random pictures into frames
+        
         function loadRandomPictures() {
             const frames = ['frame1', 'frame2', 'frame3', 'frame4'];
             frames.forEach(frameId => {
                 const frame = document.getElementById(frameId);
                 if (frame) {
-                    // Use default pictures or try to load from localStorage
                     const randomIndex = Math.floor(Math.random() * DEFAULT_PICTURES.length);
                     const img = document.createElement('img');
                     img.src = DEFAULT_PICTURES[randomIndex];
@@ -1279,8 +1609,7 @@
                 }
             });
         }
-
-        // Clear random pictures
+        
         function clearRandomPictures() {
             const frames = ['frame1', 'frame2', 'frame3', 'frame4'];
             frames.forEach(frameId => {
@@ -1291,8 +1620,7 @@
                 }
             });
         }
-
-        // Apply preset theme
+        
         function applyPreset(preset) {
             switch(preset) {
                 case 'default':
@@ -1342,7 +1670,7 @@
             
             applyUISettings();
             updateAdminControls();
-            saveUISettings();
+            saveSettingsToFirebase();
             
             if (uiSettings.randomPictures) {
                 loadRandomPictures();
@@ -1350,20 +1678,16 @@
                 clearRandomPictures();
             }
         }
-
-        // Update settings display
+        
         function updateSettingsDisplay() {
-            // Update login screen
             document.getElementById('maxPlayersDisplay').textContent = gameSettings.maxPlayers;
             document.getElementById('maxPlayers').textContent = gameSettings.maxPlayers;
             
-            // Update admin screen
             document.getElementById('currentMaxPlayers').textContent = gameSettings.maxPlayers;
             document.getElementById('currentCardsPerPlayer').textContent = gameSettings.cardsPerPlayer;
             document.getElementById('currentActivePlayers').textContent = simulatedDB.players.length;
         }
-
-        // Apply all UI settings
+        
         function applyUISettings() {
             // Apply background
             document.querySelector('.header').style.background = uiSettings.loginBg;
@@ -1420,13 +1744,11 @@
                 clearRandomPictures();
             }
         }
-
-        // Save game settings to localStorage
+        
         function saveGameSettings() {
             localStorage.setItem('bingoGameSettings', JSON.stringify(gameSettings));
         }
-
-        // Load game settings from localStorage
+        
         function loadGameSettings() {
             const savedSettings = localStorage.getItem('bingoGameSettings');
             if (savedSettings) {
@@ -1438,13 +1760,11 @@
                 }
             }
         }
-
-        // Save UI settings to localStorage
+        
         function saveUISettings() {
             localStorage.setItem('bingoUISettings', JSON.stringify(uiSettings));
         }
-
-        // Load UI settings from localStorage
+        
         function loadUISettings() {
             const savedSettings = localStorage.getItem('bingoUISettings');
             if (savedSettings) {
@@ -1456,80 +1776,64 @@
                 }
             }
         }
-
-        // Exit admin mode
+        
         function exitAdmin() {
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('adminScreen').style.display = 'none';
             
-            // Clear any input
             document.getElementById('playerName').value = '';
         }
-
-        // Assign cards to a player based on current settings
+        
         function assignCardsToPlayer(player) {
             const assignedCards = [];
             const cardsToAssign = gameSettings.cardsPerPlayer;
             
-            // Try to assign cards
             while (assignedCards.length < cardsToAssign) {
-                // Find a card that hasn't been issued yet
                 const availableCards = simulatedDB.cardsPool.filter(card => !simulatedDB.issuedCards.has(card.id));
                 
                 if (availableCards.length === 0) {
-                    // If we run out of cards, recycle (shouldn't happen with 150 cards)
                     console.warn('Ran out of unique cards, recycling');
                     simulatedDB.issuedCards.clear();
                     continue;
                 }
                 
-                // Pick a random card
                 const randomIndex = Math.floor(Math.random() * availableCards.length);
                 const selectedCard = availableCards[randomIndex];
                 
-                // Mark as issued and assign to player
                 simulatedDB.issuedCards.add(selectedCard.id);
                 assignedCards.push(selectedCard);
             }
             
             player.cards = assignedCards;
         }
-
-        // Update the players count display
+        
         function updatePlayersCount() {
             document.getElementById('currentPlayers').textContent = simulatedDB.players.length;
         }
-
-        // Show the previous card
+        
         function showPrevCard() {
             if (currentCardIndex > 0) {
                 currentCardIndex--;
                 updateCardDisplay();
             }
         }
-
-        // Show the next card
+        
         function showNextCard() {
             if (currentCardIndex < currentPlayer.cards.length - 1) {
                 currentCardIndex++;
                 updateCardDisplay();
             }
         }
-
-        // Update the bingo card display (REMOVED CHECKMARK)
+        
         function updateCardDisplay() {
             const card = currentPlayer.cards[currentCardIndex];
             const bingoGrid = document.getElementById('bingoGrid');
             const currentCardSpan = document.getElementById('currentCard');
             
-            // Update card counter
             currentCardSpan.textContent = currentCardIndex + 1;
-            
-            // Clear the grid
             bingoGrid.innerHTML = '';
             
-            // Create cells for each number
             const letters = ['B', 'I', 'N', 'G', 'O'];
             
             for (let row = 0; row < 5; row++) {
@@ -1541,13 +1845,11 @@
                     cell.className = 'bingo-cell';
                     cell.textContent = number;
                     
-                    // Apply current colors
                     if (col === 2 && row === 2) {
                         cell.classList.add('free');
                         cell.style.backgroundColor = uiSettings.freeCellColor;
                     }
                     
-                    // Add click handler to mark/unmark cells (NO CHECKMARK)
                     cell.addEventListener('click', function() {
                         if (!this.classList.contains('free')) {
                             this.classList.toggle('marked');
@@ -1565,69 +1867,53 @@
                 }
             }
         }
-
-        // Handle logout
+        
         function handleLogout() {
             currentPlayer = null;
             currentCardIndex = 0;
             
-            // Switch to login screen
             document.getElementById('gameScreen').style.display = 'none';
             document.getElementById('loginScreen').style.display = 'block';
             document.getElementById('adminScreen').style.display = 'none';
             
-            // Save to localStorage
             saveToLocalStorage();
         }
-
-        // Save game state to localStorage
+        
         function saveToLocalStorage() {
             const gameState = {
                 players: simulatedDB.players,
                 issuedCards: Array.from(simulatedDB.issuedCards),
                 playerCards: simulatedDB.playerCards
             };
-            
-            localStorage.setItem('mobileBingoGame', JSON.stringify(gameState));
+            localStorage.setItem(`mobileBingoGame_${currentGameRoom}`, JSON.stringify(gameState));
         }
-
-        // Load game state from localStorage
+        
         function loadFromLocalStorage() {
-            const savedState = localStorage.getItem('mobileBingoGame');
-            
+            const savedState = localStorage.getItem(`mobileBingoGame_${currentGameRoom}`);
             if (savedState) {
                 try {
                     const gameState = JSON.parse(savedState);
-                    
-                    // Restore players
                     simulatedDB.players = gameState.players || [];
-                    
-                    // Restore issued cards
                     simulatedDB.issuedCards = new Set(gameState.issuedCards || []);
-                    
-                    // Restore player cards
                     simulatedDB.playerCards = gameState.playerCards || {};
                     
-                    // Reconstruct card objects for each player
                     simulatedDB.players.forEach(player => {
                         const cardIds = simulatedDB.playerCards[player.id] || [];
                         player.cards = cardIds.map(id => 
                             simulatedDB.cardsPool.find(card => card.id === id)
                         ).filter(card => card);
                     });
-                    
-                    console.log('Game state loaded from localStorage');
                 } catch (error) {
                     console.error('Failed to load game state:', error);
                 }
             }
         }
-
+        
         // Global variables
         let currentPlayer = null;
         let currentCardIndex = 0;
 
-        // Initialize the game when page loads
+        // Initialize the game
         window.addEventListener('DOMContentLoaded', () => {
             loadFromLocalStorage();
             initGame();
