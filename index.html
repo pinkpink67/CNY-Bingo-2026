@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Bingo Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        .content {
+            padding: 25px 20px;
+        }
+        
+        /* Login Screen */
+        #loginScreen {
+            text-align: center;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .input-group input {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+        
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #5a0cb0;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn-small {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+        }
+        
+        .players-count {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .players-count span {
+            font-weight: 700;
+            color: #6a11cb;
+        }
+        
+        /* Game Screen */
+        #gameScreen {
+            display: none;
+        }
+        
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .player-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #6a11cb;
+        }
+        
+        .card-counter {
+            background-color: #f0f0f0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .bingo-card-container {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        
+        .bingo-header {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .bingo-letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: white;
+            background-color: #6a11cb;
+            border-radius: 8px;
+        }
+        
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+        
+        .bingo-cell {
+            aspect-ratio: 1;
+            background-color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .bingo-cell.free {
+            background-color: #ffd166;
+            color: #333;
+        }
+        
+        .bingo-cell.marked {
+            background-color: #6a11cb;
+            color: white;
+        }
+        
+        .bingo-cell.marked::after {
+            content: "✓";
+            position: absolute;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .controls .btn {
+            flex: 1;
+        }
+        
+        .drawing-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .drawing-controls .btn {
+            flex: 1;
+            min-width: calc(50% - 5px);
+        }
+        
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .color-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .color-option.selected {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+        
+        .drawing-canvas-container {
+            width: 100%;
+            height: 300px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            touch-action: none;
+        }
+        
+        #drawingCanvas {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            cursor: crosshair;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #777;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .bingo-cell {
+                font-size: 1rem;
+            }
+            
+            .drawing-canvas-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-dice"></i> Mobile Bingo</h1>
+            <p>Login to play with your unique bingo cards</p>
+        </div>
+        
+        <div class="content">
+            <!-- Login Screen -->
+            <div id="loginScreen">
+                <h2>Welcome to Bingo!</h2>
+                <p>Enter your name to join the game. Maximum 30 players.</p>
+                
+                <form class="login-form" id="loginForm">
+                    <div class="input-group">
+                        <label for="playerName">Your Name</label>
+                        <input type="text" id="playerName" placeholder="Enter your name" required autocomplete="off">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Join Game
+                    </button>
+                </form>
+                
+                <div class="players-count">
+                    Players joined: <span id="currentPlayers">0</span> / 30
+                </div>
+                
+                <div class="footer">
+                    <p>Each player receives 3 unique bingo cards from a pool of 150 cards.</p>
+                </div>
+            </div>
+            
+            <!-- Game Screen -->
+            <div id="gameScreen">
+                <div class="player-info">
+                    <div class="player-name" id="displayPlayerName">Player</div>
+                    <div class="card-counter">Card <span id="currentCard">1</span> of 3</div>
+                </div>
+                
+                <div class="bingo-card-container">
+                    <div class="bingo-header">
+                        <div class="bingo-letter">B</div>
+                        <div class="bingo-letter">I</div>
+                        <div class="bingo-letter">N</div>
+                        <div class="bingo-letter">G</div>
+                        <div class="bingo-letter">O</div>
+                    </div>
+                    
+                    <div class="bingo-grid" id="bingoGrid">
+                        <!-- Bingo cells will be generated here -->
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-secondary" id="prevCardBtn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button class="btn btn-primary" id="nextCardBtn">
+                        Next <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                
+                <h3>Draw on Your Card</h3>
+                <div class="drawing-controls">
+                    <button class="btn btn-secondary btn-small" id="drawBtn">
+                        <i class="fas fa-pencil-alt"></i> Draw
+                    </button>
+                    <button class="btn btn-secondary btn-small" id="eraseBtn">
+                        <i class="fas fa-eraser"></i> Eraser
+                    </button>
+                    <button class="btn btn-secondary btn-small" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i> Clear
+                    </button>
+                </div>
+                
+                <div class="color-picker">
+                    <div class="color-option selected" style="background-color: #6a11cb;" data-color="#6a11cb"></div>
+                    <div class="color-option" style="background-color: #2575fc;" data-color="#2575fc"></div>
+                    <div class="color-option" style="background-color: #ff416c;" data-color="#ff416c"></div>
+                    <div class="color-option" style="background-color: #ff9966;" data-color="#ff9966"></div>
+                    <div class="color-option" style="background-color: #00b09b;" data-color="#00b09b"></div>
+                    <div class="color-option" style="background-color: #333;" data-color="#333"></div>
+                </div>
+                
+                <div class="drawing-canvas-container">
+                    <canvas id="drawingCanvas"></canvas>
+                </div>
+                
+                <button class="btn btn-primary" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Mobile Bingo Game &copy; 2023 | Touch-friendly interface for mobile devices</p>
+    </div>
+
+    <script>
+        // Database simulation
+        const simulatedDB = {
+            players: [],
+            cardsPool: [],
+            issuedCards: new Set(), // Track issued card IDs
+            playerCards: {} // Store which cards each player has
+        };
+
+        // Generate 150 unique bingo cards
+        function generateBingoCards() {
+            const cards = [];
+            
+            // Standard Bingo ranges
+            const ranges = {
+                B: [1, 15],
+                I: [16, 30],
+                N: [31, 45],
+                G: [46, 60],
+                O: [61, 75]
+            };
+            
+            // Generate 150 unique cards
+            for (let cardId = 1; cardId <= 150; cardId++) {
+                const card = { id: cardId, numbers: {} };
+                
+                // Generate numbers for each column
+                for (let col = 0; col < 5; col++) {
+                    const letter = Object.keys(ranges)[col];
+                    const [min, max] = ranges[letter];
+                    const columnNumbers = [];
+                    
+                    // Generate 5 unique numbers for this column
+                    while (columnNumbers.length < 5) {
+                        const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                        if (!columnNumbers.includes(num)) {
+                            columnNumbers.push(num);
+                        }
+                    }
+                    
+                    card.numbers[letter] = columnNumbers;
+                }
+                
+                // Set the center as FREE
+                card.numbers.N[2] = "FREE";
+                
+                cards.push(card);
+            }
+            
+            simulatedDB.cardsPool = cards;
+        }
+
+        // Initialize the game
+        function initGame() {
+            generateBingoCards();
+            updatePlayersCount();
+            
+            // Setup event listeners
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('prevCardBtn').addEventListener('click', showPrevCard);
+            document.getElementById('nextCardBtn').addEventListener('click', showNextCard);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            // Drawing functionality setup
+            setupDrawingCanvas();
+            
+            // Color picker
+            document.querySelectorAll('.color-option').forEach(colorOption => {
+                colorOption.addEventListener('click', function() {
+                    document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    currentColor = this.dataset.color;
+                    isErasing = false;
+                    document.getElementById('drawBtn').classList.add('btn-primary');
+                    document.getElementById('eraseBtn').classList.remove('btn-primary');
+                });
+            });
+            
+            // Drawing control buttons
+            document.getElementById('drawBtn').addEventListener('click', function() {
+                isErasing = false;
+                this.classList.add('btn-primary');
+                document.getElementById('eraseBtn').classList.remove('btn-primary');
+            });
+            
+            document.getElementById('eraseBtn').addEventListener('click', function() {
+                isErasing = true;
+                this.classList.add('btn-primary');
+                document.getElementById('drawBtn').classList.remove('btn-primary');
+            });
+            
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+        }
+
+        // Handle player login
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const playerNameInput = document.getElementById('playerName');
+            const playerName = playerNameInput.value.trim();
+            
+            if (!playerName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            // Check if player already exists
+            const existingPlayer = simulatedDB.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+            
+            if (existingPlayer) {
+                // Player exists, restore their cards
+                currentPlayer = existingPlayer;
+                alert(`Welcome back, ${playerName}!`);
+            } else {
+                // Check if we've reached the player limit
+                if (simulatedDB.players.length >= 30) {
+                    alert('Sorry, the game is full! Maximum 30 players allowed.');
+                    return;
+                }
+                
+                // Create new player
+                const playerId = simulatedDB.players.length + 1;
+                currentPlayer = {
+                    id: playerId,
+                    name: playerName,
+                    cards: []
+                };
+                
+                // Assign 3 unique cards to the player
+                assignCardsToPlayer(currentPlayer);
+                
+                // Add player to database
+                simulatedDB.players.push(currentPlayer);
+                simulatedDB.playerCards[playerId] = currentPlayer.cards.map(card => card.id);
+            }
+            
+            // Update UI
+            document.getElementById('displayPlayerName').textContent = currentPlayer.name;
+            currentCardIndex = 0;
+            updateCardDisplay();
+            
+            // Switch to game screen
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            // Update player count
+            updatePlayersCount();
+            
+            // Clear the input
+            playerNameInput.value = '';
+            
+            // Save to localStorage for persistence
+            saveToLocalStorage();
+        }
+
+        // Assign 3 unique cards to a player
+        function assignCardsToPlayer(player) {
+            const assignedCards = [];
+            
+            // Try to assign 3 cards
+            while (assignedCards.length < 3) {
+                // Find a card that hasn't been issued yet
+                const availableCards = simulatedDB.cardsPool.filter(card => !simulatedDB.issuedCards.has(card.id));
+                
+                if (availableCards.length === 0) {
+                    // If we run out of cards, recycle (shouldn't happen with 150 cards for 30 players)
+                    console.warn('Ran out of unique cards, recycling');
+                    simulatedDB.issuedCards.clear();
+                    continue;
+                }
+                
+                // Pick a random card
+                const randomIndex = Math.floor(Math.random() * availableCards.length);
+                const selectedCard = availableCards[randomIndex];
+                
+                // Mark as issued and assign to player
+                simulatedDB.issuedCards.add(selectedCard.id);
+                assignedCards.push(selectedCard);
+            }
+            
+            player.cards = assignedCards;
+        }
+
+        // Update the players count display
+        function updatePlayersCount() {
+            document.getElementById('currentPlayers').textContent = simulatedDB.players.length;
+        }
+
+        // Show the previous card
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCardDisplay();
+            }
+        }
+
+        // Show the next card
+        function showNextCard() {
+            if (currentCardIndex < currentPlayer.cards.length - 1) {
+                currentCardIndex++;
+                updateCardDisplay();
+            }
+        }
+
+        // Update the bingo card display
+        function updateCardDisplay() {
+            const card = currentPlayer.cards[currentCardIndex];
+            const bingoGrid = document.getElementById('bingoGrid');
+            const currentCardSpan = document.getElementById('currentCard');
+            
+            // Update card counter
+            currentCardSpan.textContent = currentCardIndex + 1;
+            
+            // Clear the grid
+            bingoGrid.innerHTML = '';
+            
+            // Create cells for each number
+            const letters = ['B', 'I', 'N', 'G', 'O'];
+            
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement('div');
+                    const letter = letters[col];
+                    const number = card.numbers[letter][row];
+                    
+                    cell.className = 'bingo-cell';
+                    cell.textContent = number;
+                    
+                    // Mark center as FREE
+                    if (col === 2 && row === 2) {
+                        cell.classList.add('free');
+                    }
+                    
+                    // Add click handler to mark/unmark cells
+                    cell.addEventListener('click', function() {
+                        if (!this.classList.contains('free')) {
+                            this.classList.toggle('marked');
+                        }
+                    });
+                    
+                    bingoGrid.appendChild(cell);
+                }
+            }
+            
+            // Clear the drawing canvas
+            clearCanvas();
+        }
+
+        // Handle logout
+        function handleLogout() {
+            currentPlayer = null;
+            currentCardIndex = 0;
+            
+            // Switch to login screen
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'block';
+            
+            // Save to localStorage
+            saveToLocalStorage();
+        }
+
+        // Drawing functionality
+        let canvas, ctx;
+        let isDrawing = false;
+        let isErasing = false;
+        let currentColor = '#6a11cb';
+        let lastX = 0;
+        let lastY = 0;
+        
+        function setupDrawingCanvas() {
+            canvas = document.getElementById('drawingCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Set canvas dimensions
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            
+            // Set initial drawing styles
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            // Drawing event listeners
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            e.preventDefault();
+            
+            const [x, y] = getCoordinates(e);
+            
+            // Set drawing style based on mode
+            if (isErasing) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 20;
+            } else {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = 3;
+            }
+            
+            // Draw line
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            [lastX, lastY] = [x, y];
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+            ctx.beginPath(); // Reset the path
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            startDrawing(touch);
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            draw(touch);
+        }
+        
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            
+            let clientX, clientY;
+            
+            if (e.type.includes('touch')) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            return [
+                clientX - rect.left,
+                clientY - rect.top
+            ];
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Save game state to localStorage
+        function saveToLocalStorage() {
+            const gameState = {
+                players: simulatedDB.players,
+                issuedCards: Array.from(simulatedDB.issuedCards),
+                playerCards: simulatedDB.playerCards
+            };
+            
+            localStorage.setItem('mobileBingoGame', JSON.stringify(gameState));
+        }
+
+        // Load game state from localStorage
+        function loadFromLocalStorage() {
+            const savedState = localStorage.getItem('mobileBingoGame');
+            
+            if (savedState) {
+                try {
+                    const gameState = JSON.parse(savedState);
+                    
+                    // Restore players
+                    simulatedDB.players = gameState.players || [];
+                    
+                    // Restore issued cards
+                    simulatedDB.issuedCards = new Set(gameState.issuedCards || []);
+                    
+                    // Restore player cards
+                    simulatedDB.playerCards = gameState.playerCards || {};
+                    
+                    // Reconstruct card objects for each player
+                    simulatedDB.players.forEach(player => {
+                        const cardIds = simulatedDB.playerCards[player.id] || [];
+                        player.cards = cardIds.map(id => 
+                            simulatedDB.cardsPool.find(card => card.id === id)
+                        ).filter(card => card); // Filter out any undefined cards
+                    });
+                    
+                    console.log('Game state loaded from localStorage');
+                } catch (error) {
+                    console.error('Failed to load game state:', error);
+                }
+            }
+        }
+
+        // Global variables
+        let currentPlayer = null;
+        let currentCardIndex = 0;
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            initGame();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (canvas) {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
+        });
+    </script>
+</body>
+</html>
