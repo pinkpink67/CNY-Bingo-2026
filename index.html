@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mobile Bingo Game</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        /* SIMPLIFIED CSS - Remove complex transitions and effects */
         * {
             margin: 0;
             padding: 0;
@@ -117,16 +113,6 @@
             color: #333;
         }
         
-        .btn-small {
-            padding: 12px 20px;
-            font-size: 0.9rem;
-        }
-        
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-        }
-        
         .players-count {
             margin-top: 20px;
             padding: 15px;
@@ -232,98 +218,41 @@
             color: #777;
         }
         
-        /* Loading indicator */
-        .loading-indicator {
-            display: none;
+        /* Confirmation Dialog */
+        .confirmation-dialog {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: white;
-            z-index: 9999;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #6a11cb;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        /* Error display */
-        .error-message {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 10000;
-            flex-direction: column;
+            display: none;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            padding: 20px;
-            text-align: center;
         }
         
-        .error-message h3 {
-            color: #dc3545;
-        }
-        
-        .error-message pre {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            max-width: 90%;
-            overflow: auto;
-            font-family: monospace;
-            font-size: 12px;
-            text-align: left;
-        }
-        
-        /* Debug panel */
-        .debug-panel {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-family: monospace;
-            z-index: 1000;
-            display: none;
-        }
-        
-        /* Connection Status */
-        .connection-status {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            z-index: 999;
+        .confirmation-content {
             background: white;
-            border: 1px solid #ddd;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
         }
         
-        /* Responsive */
+        .confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        
+        .confirmation-buttons .btn {
+            flex: 1;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 border-radius: 15px;
@@ -344,32 +273,22 @@
     </style>
 </head>
 <body>
-    <!-- Loading Indicator -->
-    <div class="loading-indicator" id="loadingIndicator">
-        <div class="loading-spinner"></div>
-        <p id="loadingText">Loading game...</p>
-    </div>
-    
-    <!-- Error Display -->
-    <div class="error-message" id="errorMessage">
-        <h3><i class="fas fa-exclamation-triangle"></i> Game Error</h3>
-        <p id="errorText">An error occurred while loading the game.</p>
-        <pre id="errorDetails"></pre>
-        <button class="btn btn-primary" onclick="location.reload()">
-            <i class="fas fa-redo"></i> Reload Game
-        </button>
-        <button class="btn btn-secondary" onclick="resetGame()">
-            <i class="fas fa-trash"></i> Reset Game Data
-        </button>
-    </div>
-    
-    <!-- Connection Status -->
-    <div class="connection-status" id="connectionStatus">Connecting...</div>
-    
-    <!-- Debug Panel (Ctrl+D to toggle) -->
-    <div class="debug-panel" id="debugPanel">
-        <div>Debug Info</div>
-        <div id="debugInfo"></div>
+    <!-- Confirmation Dialog -->
+    <div class="confirmation-dialog" id="confirmationDialog">
+        <div class="confirmation-content">
+            <h3><i class="fas fa-user-check"></i> Welcome Back!</h3>
+            <p>Name "<span id="returningPlayerName"></span>" is already registered.</p>
+            <p>Is this you? Would you like to continue with your existing cards?</p>
+            
+            <div class="confirmation-buttons">
+                <button class="btn btn-secondary" id="confirmNewPlayerBtn">
+                    <i class="fas fa-user-times"></i> No, I'm Different
+                </button>
+                <button class="btn btn-primary" id="confirmReturningPlayerBtn">
+                    <i class="fas fa-sign-in-alt"></i> Yes, It's Me
+                </button>
+            </div>
+        </div>
     </div>
     
     <div class="container">
@@ -388,11 +307,6 @@
                     <div class="input-group">
                         <label for="playerName">Your Name</label>
                         <input type="text" id="playerName" placeholder="Enter your name" required autocomplete="off">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label for="gameRoomCode">Game Room Code (Optional)</label>
-                        <input type="text" id="gameRoomCode" placeholder="Leave empty for default room">
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -452,12 +366,8 @@
     </div>
 
     <script>
-        // ==================== SIMPLIFIED GAME LOGIC ====================
+        // ==================== GAME STATE ====================
         
-        // Debug mode
-        const DEBUG_MODE = true;
-        
-        // Game state
         let gameState = {
             players: [],
             currentPlayer: null,
@@ -468,64 +378,19 @@
             }
         };
         
-        // Admin credentials
         const ADMIN_CREDENTIALS = {
             id: "admin",
             password: "1234"
         };
         
-        // ==================== DEBUG FUNCTIONS ====================
+        // Variables to track login attempts
+        let pendingLoginName = '';
+        let existingPlayerFound = null;
         
-        function debugLog(message, data = null) {
-            if (DEBUG_MODE) {
-                console.log(`[BINGO] ${message}`, data || '');
-                updateDebugInfo(message);
-            }
-        }
-        
-        function updateDebugInfo(message) {
-            const debugPanel = document.getElementById('debugPanel');
-            const debugInfo = document.getElementById('debugInfo');
-            
-            if (debugPanel && debugInfo) {
-                const time = new Date().toLocaleTimeString();
-                debugInfo.innerHTML = `${time}: ${message}<br>${debugInfo.innerHTML}`;
-            }
-        }
-        
-        function showError(error, details = '') {
-            debugLog(`ERROR: ${error}`);
-            
-            const errorMessage = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            const errorDetails = document.getElementById('errorDetails');
-            
-            if (errorMessage && errorText && errorDetails) {
-                errorText.textContent = error;
-                errorDetails.textContent = details || error.stack || 'No details available';
-                errorMessage.style.display = 'flex';
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }
-            
-            // Also log to console
-            console.error('Bingo Game Error:', error);
-            if (details) console.error('Error Details:', details);
-        }
-        
-        function resetGame() {
-            if (confirm('Are you sure you want to reset ALL game data? This will delete all players and settings.')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-        
-        // ==================== CORE GAME FUNCTIONS ====================
+        // ==================== GAME FUNCTIONS ====================
         
         function generateBingoCards() {
-            debugLog('Generating bingo cards...');
             const cards = [];
-            
-            // Standard Bingo ranges
             const ranges = {
                 B: [1, 15],
                 I: [16, 30],
@@ -534,9 +399,8 @@
                 O: [61, 75]
             };
             
-            // Generate 150 cards (simplified to 30 for faster loading)
-            const totalCards = 30; // Reduced from 150 for performance
-            for (let cardId = 1; cardId <= totalCards; cardId++) {
+            // Generate 30 cards
+            for (let cardId = 1; cardId <= 30; cardId++) {
                 const card = { id: cardId, numbers: {} };
                 
                 for (let col = 0; col < 5; col++) {
@@ -558,12 +422,10 @@
                 cards.push(card);
             }
             
-            debugLog(`Generated ${cards.length} bingo cards`);
             return cards;
         }
         
         function assignCardsToPlayer(player, cardsPool) {
-            debugLog(`Assigning cards to player: ${player.name}`);
             const assignedCards = [];
             const cardsToAssign = gameState.settings.cardsPerPlayer;
             
@@ -574,7 +436,6 @@
                 )
             );
             
-            // If not enough cards, use any cards
             const cardsToUse = availableCards.length >= cardsToAssign ? availableCards : cardsPool;
             
             for (let i = 0; i < cardsToAssign; i++) {
@@ -583,65 +444,48 @@
                 const randomIndex = Math.floor(Math.random() * cardsToUse.length);
                 const selectedCard = cardsToUse[randomIndex];
                 assignedCards.push(selectedCard);
-                
-                // Remove from pool to avoid duplicates for same player
                 cardsToUse.splice(randomIndex, 1);
             }
             
             player.cards = assignedCards;
-            debugLog(`Assigned ${assignedCards.length} cards to ${player.name}`);
             return assignedCards;
         }
         
         function updateCardDisplay() {
-            try {
-                if (!gameState.currentPlayer || !gameState.currentPlayer.cards) {
-                    throw new Error('No player or cards found');
-                }
-                
-                const card = gameState.currentPlayer.cards[gameState.currentCardIndex];
-                if (!card) {
-                    throw new Error(`Card not found at index ${gameState.currentCardIndex}`);
-                }
-                
-                const bingoGrid = document.getElementById('bingoGrid');
-                const currentCardSpan = document.getElementById('currentCard');
-                
-                if (!bingoGrid || !currentCardSpan) {
-                    throw new Error('Required elements not found');
-                }
-                
-                currentCardSpan.textContent = gameState.currentCardIndex + 1;
-                bingoGrid.innerHTML = '';
-                
-                const letters = ['B', 'I', 'N', 'G', 'O'];
-                
-                for (let row = 0; row < 5; row++) {
-                    for (let col = 0; col < 5; col++) {
-                        const cell = document.createElement('div');
-                        const letter = letters[col];
-                        const number = card.numbers[letter][row];
-                        
-                        cell.className = 'bingo-cell';
-                        cell.textContent = number;
-                        
-                        if (col === 2 && row === 2) {
-                            cell.classList.add('free');
-                        }
-                        
-                        cell.addEventListener('click', function() {
-                            if (!this.classList.contains('free')) {
-                                this.classList.toggle('marked');
-                            }
-                        });
-                        
-                        bingoGrid.appendChild(cell);
+            if (!gameState.currentPlayer || !gameState.currentPlayer.cards) return;
+            
+            const card = gameState.currentPlayer.cards[gameState.currentCardIndex];
+            if (!card) return;
+            
+            const bingoGrid = document.getElementById('bingoGrid');
+            const currentCardSpan = document.getElementById('currentCard');
+            
+            currentCardSpan.textContent = gameState.currentCardIndex + 1;
+            bingoGrid.innerHTML = '';
+            
+            const letters = ['B', 'I', 'N', 'G', 'O'];
+            
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col < 5; col++) {
+                    const cell = document.createElement('div');
+                    const letter = letters[col];
+                    const number = card.numbers[letter][row];
+                    
+                    cell.className = 'bingo-cell';
+                    cell.textContent = number;
+                    
+                    if (col === 2 && row === 2) {
+                        cell.classList.add('free');
                     }
+                    
+                    cell.addEventListener('click', function() {
+                        if (!this.classList.contains('free')) {
+                            this.classList.toggle('marked');
+                        }
+                    });
+                    
+                    bingoGrid.appendChild(cell);
                 }
-                
-                debugLog('Card display updated');
-            } catch (error) {
-                showError('Failed to update card display', error);
             }
         }
         
@@ -670,38 +514,58 @@
             }
         }
         
+        function showConfirmationDialog(playerName) {
+            document.getElementById('returningPlayerName').textContent = playerName;
+            document.getElementById('confirmationDialog').style.display = 'flex';
+        }
+        
+        function hideConfirmationDialog() {
+            document.getElementById('confirmationDialog').style.display = 'none';
+        }
+        
         // ==================== EVENT HANDLERS ====================
         
         function setupEventListeners() {
-            try {
-                // Login form
-                const loginForm = document.getElementById('loginForm');
-                if (loginForm) {
-                    loginForm.addEventListener('submit', handleLogin);
-                }
-                
-                // Admin login link
-                const adminLink = document.getElementById('adminLoginLink');
-                if (adminLink) {
-                    adminLink.addEventListener('click', showAdminLogin);
-                }
-                
-                // Navigation buttons
-                const prevBtn = document.getElementById('prevCardBtn');
-                const nextBtn = document.getElementById('nextCardBtn');
-                if (prevBtn) prevBtn.addEventListener('click', showPrevCard);
-                if (nextBtn) nextBtn.addEventListener('click', showNextCard);
-                
-                // Logout buttons
-                const logoutBtn = document.getElementById('logoutBtn');
-                const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-                if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-                if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => showScreen('loginScreen'));
-                
-                debugLog('Event listeners setup complete');
-            } catch (error) {
-                showError('Failed to setup event listeners', error);
+            // Login form
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
             }
+            
+            // Admin login link
+            const adminLink = document.getElementById('adminLoginLink');
+            if (adminLink) {
+                adminLink.addEventListener('click', showAdminLogin);
+            }
+            
+            // Navigation buttons
+            const prevBtn = document.getElementById('prevCardBtn');
+            const nextBtn = document.getElementById('nextCardBtn');
+            if (prevBtn) prevBtn.addEventListener('click', showPrevCard);
+            if (nextBtn) nextBtn.addEventListener('click', showNextCard);
+            
+            // Logout buttons
+            const logoutBtn = document.getElementById('logoutBtn');
+            const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+            if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+            if (adminLogoutBtn) adminLogoutBtn.addEventListener('click', () => showScreen('loginScreen'));
+            
+            // Confirmation dialog buttons
+            document.getElementById('confirmReturningPlayerBtn').addEventListener('click', function() {
+                hideConfirmationDialog();
+                loginAsReturningPlayer();
+            });
+            
+            document.getElementById('confirmNewPlayerBtn').addEventListener('click', function() {
+                hideConfirmationDialog();
+                // Go back to login page for user to choose different name
+                const playerNameInput = document.getElementById('playerName');
+                if (playerNameInput) {
+                    playerNameInput.value = '';
+                    playerNameInput.focus();
+                }
+                alert('Please choose a different name.');
+            });
         }
         
         function handleLogin(e) {
@@ -709,7 +573,6 @@
             
             const playerNameInput = document.getElementById('playerName');
             const playerName = playerNameInput ? playerNameInput.value.trim() : '';
-            const roomCodeInput = document.getElementById('gameRoomCode');
             
             if (!playerName) {
                 alert('Please enter your name');
@@ -728,38 +591,45 @@
                 return;
             }
             
-            // Check if name already exists
-            const existingPlayer = gameState.players.find(p => 
+            // Store the name being attempted
+            pendingLoginName = playerName;
+            
+            // Check if name already exists (case-insensitive)
+            existingPlayerFound = gameState.players.find(p => 
                 p.name.toLowerCase() === playerName.toLowerCase()
             );
             
-            if (existingPlayer) {
-                // Ask if this is the same person
-                const isSamePerson = confirm(`Name "${playerName}" already exists. Is this you?`);
-                if (isSamePerson) {
-                    gameState.currentPlayer = existingPlayer;
-                    gameState.currentCardIndex = 0;
-                    document.getElementById('displayPlayerName').textContent = existingPlayer.name;
-                    document.getElementById('totalCards').textContent = existingPlayer.cards.length;
-                    updateCardDisplay();
-                    showScreen('gameScreen');
-                    debugLog(`Existing player logged in: ${playerName}`);
-                } else {
-                    // Create new player with different name
-                    const newName = `${playerName}${gameState.players.length + 1}`;
-                    alert(`Using name "${newName}" instead.`);
-                    createNewPlayer(newName);
-                }
+            if (existingPlayerFound) {
+                // Show confirmation dialog instead of auto-creating
+                showConfirmationDialog(playerName);
             } else {
+                // Name is unique, create new player
                 createNewPlayer(playerName);
+                if (playerNameInput) playerNameInput.value = '';
             }
+        }
+        
+        function loginAsReturningPlayer() {
+            if (!existingPlayerFound) return;
             
+            gameState.currentPlayer = existingPlayerFound;
+            gameState.currentCardIndex = 0;
+            
+            document.getElementById('displayPlayerName').textContent = existingPlayerFound.name;
+            document.getElementById('totalCards').textContent = existingPlayerFound.cards.length;
+            updateCardDisplay();
+            showScreen('gameScreen');
+            
+            // Clear the input field
+            const playerNameInput = document.getElementById('playerName');
             if (playerNameInput) playerNameInput.value = '';
+            
+            // Reset tracking variables
+            pendingLoginName = '';
+            existingPlayerFound = null;
         }
         
         function createNewPlayer(playerName) {
-            debugLog(`Creating new player: ${playerName}`);
-            
             // Check player limit
             if (gameState.players.length >= gameState.settings.maxPlayers) {
                 alert(`Sorry, the game is full! Maximum ${gameState.settings.maxPlayers} players allowed.`);
@@ -794,7 +664,6 @@
             // Save to localStorage
             saveGameState();
             
-            debugLog(`New player created: ${playerName} with ${newPlayer.cards.length} cards`);
             alert(`Welcome ${playerName}! You have received ${newPlayer.cards.length} bingo cards.`);
         }
         
@@ -840,7 +709,6 @@
                 gameState.currentPlayer = null;
                 gameState.currentCardIndex = 0;
                 showScreen('loginScreen');
-                debugLog('Player logged out');
             }
         }
         
@@ -849,9 +717,8 @@
         function saveGameState() {
             try {
                 localStorage.setItem('bingoGameState', JSON.stringify(gameState));
-                debugLog('Game state saved to localStorage');
             } catch (error) {
-                showError('Failed to save game state', error);
+                console.error('Failed to save game state:', error);
             }
         }
         
@@ -860,103 +727,32 @@
                 const saved = localStorage.getItem('bingoGameState');
                 if (saved) {
                     const parsed = JSON.parse(saved);
-                    
-                    // Merge saved state with defaults
                     gameState.players = parsed.players || [];
                     gameState.settings = { ...gameState.settings, ...(parsed.settings || {}) };
-                    
-                    debugLog(`Loaded ${gameState.players.length} players from localStorage`);
                 }
             } catch (error) {
-                showError('Failed to load game state', error);
+                console.error('Failed to load game state:', error);
             }
         }
         
         // ==================== INITIALIZATION ====================
         
         function initGame() {
-            try {
-                debugLog('Initializing game...');
-                
-                // Update loading text
-                const loadingText = document.getElementById('loadingText');
-                if (loadingText) loadingText.textContent = 'Loading game...';
-                
-                // Show loading indicator
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                if (loadingIndicator) loadingIndicator.style.display = 'flex';
-                
-                // Update connection status
-                const connectionStatus = document.getElementById('connectionStatus');
-                if (connectionStatus) {
-                    connectionStatus.textContent = 'Online';
-                    connectionStatus.style.background = '#4CAF50';
-                    connectionStatus.style.color = 'white';
-                }
-                
-                // Load saved game state
-                loadGameState();
-                
-                // Update UI
-                updatePlayersCount();
-                
-                // Setup event listeners
-                setupEventListeners();
-                
-                // Show login screen
-                showScreen('loginScreen');
-                
-                // Hide loading indicator
-                setTimeout(() => {
-                    if (loadingIndicator) loadingIndicator.style.display = 'none';
-                    debugLog('Game initialization complete');
-                }, 500);
-                
-            } catch (error) {
-                showError('Failed to initialize game', error);
-            }
+            // Load saved game state
+            loadGameState();
+            
+            // Update UI
+            updatePlayersCount();
+            
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Show login screen
+            showScreen('loginScreen');
         }
         
-        // ==================== DEBUG KEYBOARD SHORTCUTS ====================
-        
-        document.addEventListener('keydown', function(e) {
-            // Ctrl+D to toggle debug panel
-            if (e.ctrlKey && e.key === 'd') {
-                e.preventDefault();
-                const debugPanel = document.getElementById('debugPanel');
-                if (debugPanel) {
-                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-                }
-            }
-            
-            // Ctrl+R to reload
-            if (e.ctrlKey && e.key === 'r') {
-                e.preventDefault();
-                location.reload();
-            }
-            
-            // Ctrl+Shift+R to reset
-            if (e.ctrlKey && e.shiftKey && e.key === 'R') {
-                e.preventDefault();
-                resetGame();
-            }
-        });
-        
-        // ==================== START GAME ====================
-        
-        // Start initialization when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            debugLog('DOM loaded, starting game initialization...');
-            initGame();
-        });
-        
-        // Fallback timeout in case initialization hangs
-        setTimeout(() => {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            if (loadingIndicator && loadingIndicator.style.display === 'flex') {
-                showError('Game initialization timeout', 'The game took too long to load. Please try reloading.');
-            }
-        }, 10000); // 10 second timeout
+        // Start the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
         
     </script>
 </body>
