@@ -230,6 +230,8 @@
             font-size: 1.2rem;
             /* Default color - will be overridden by JavaScript */
             color: #333;
+            /* Padding for internal spacing */
+            padding: 5px;
         }
         
         .bingo-cell.free {
@@ -841,12 +843,23 @@
                         </div>
                         
                         <div class="range-slider-group">
-                            <label for="cellSpacing">Cell Spacing (gap)</label>
+                            <label for="cellSpacing">Cell Spacing (gap between cells)</label>
                             <input type="range" id="cellSpacing" min="1" max="20" value="8">
                             <div class="range-value">
                                 <span>Tight (1px)</span>
                                 <span id="cellSpacingValue">8px</span>
                                 <span>Wide (20px)</span>
+                            </div>
+                        </div>
+                        
+                        <!-- NEW: Cell Internal Padding Control -->
+                        <div class="range-slider-group">
+                            <label for="cellPadding">Cell Internal Padding (space inside cell)</label>
+                            <input type="range" id="cellPadding" min="0" max="20" value="5">
+                            <div class="range-value">
+                                <span>None (0px)</span>
+                                <span id="cellPaddingValue">5px</span>
+                                <span>Large (20px)</span>
                             </div>
                         </div>
                         
@@ -1052,7 +1065,7 @@
     <script>
         // ==================== CACHE CONTROL ====================
         // Add version parameter to force cache refresh
-        const GAME_VERSION = '2.5';
+        const GAME_VERSION = '2.6';
         const lastVersion = localStorage.getItem('gameVersion');
         
         if (lastVersion !== GAME_VERSION) {
@@ -1119,6 +1132,7 @@
                     cellNumberColor: "#333333",
                     cellFontSize: 18,
                     cellSpacing: 8,
+                    cellPadding: 5, // NEW: Cell internal padding
                     
                     // Cell border customization
                     cellBorderEnabled: false,
@@ -1245,10 +1259,28 @@
                     updatedBy: gameState.currentPlayer ? gameState.currentPlayer.name : 'admin'
                 };
                 
-                // Debug: log what we're pushing
-                console.log('Pushing to Firebase:', settingsToPush);
+                // Remove large Base64 images to avoid Firebase size limits
+                // Store them separately in localStorage and sync via URL if needed
+                const settingsForFirebase = JSON.parse(JSON.stringify(settingsToPush));
                 
-                firebaseSettingsRef.set(settingsToPush)
+                // Check if images are too large for Firebase (approx 1MB limit for RTDB)
+                const headerImageSize = settingsForFirebase.settings.customization.headerBackgroundImage ? 
+                    settingsForFirebase.settings.customization.headerBackgroundImage.length : 0;
+                const mainImageSize = settingsForFirebase.settings.customization.mainBackgroundImage ? 
+                    settingsForFirebase.settings.customization.mainBackgroundImage.length : 0;
+                
+                const MAX_FIREBASE_SIZE = 1000000; // 1MB in characters
+                
+                if (headerImageSize > MAX_FIREBASE_SIZE || mainImageSize > MAX_FIREBASE_SIZE) {
+                    showCustomAlert('Background images are too large for Firebase. Using localStorage only.');
+                    // Remove images from Firebase data
+                    delete settingsForFirebase.settings.customization.headerBackgroundImage;
+                    delete settingsForFirebase.settings.customization.mainBackgroundImage;
+                }
+                
+                console.log('Pushing to Firebase:', settingsForFirebase);
+                
+                firebaseSettingsRef.set(settingsForFirebase)
                     .then(() => {
                         syncMessage.textContent = 'Settings pushed to Firebase successfully!';
                         syncStatus.className = 'sync-status';
@@ -1341,6 +1373,10 @@
                 if (firebaseData.settings) {
                     console.log('Updating from Firebase data:', firebaseData.settings);
                     
+                    // Preserve local background images if Firebase doesn't have them
+                    const localHeaderImage = gameState.settings.customization.headerBackgroundImage;
+                    const localMainImage = gameState.settings.customization.mainBackgroundImage;
+                    
                     // Update gameState with Firebase settings
                     gameState.settings = { 
                         ...gameState.settings,
@@ -1350,6 +1386,14 @@
                             ...firebaseData.settings.customization
                         }
                     };
+                    
+                    // Restore local background images if Firebase doesn't have them
+                    if (!gameState.settings.customization.headerBackgroundImage && localHeaderImage) {
+                        gameState.settings.customization.headerBackgroundImage = localHeaderImage;
+                    }
+                    if (!gameState.settings.customization.mainBackgroundImage && localMainImage) {
+                        gameState.settings.customization.mainBackgroundImage = localMainImage;
+                    }
                     
                     // Save to localStorage for offline use
                     saveMasterSettings();
@@ -1408,7 +1452,7 @@
                 // Also save to individual localStorage for backward compatibility
                 localStorage.setItem('bingoGameState', JSON.stringify(gameState));
                 
-                console.log('Master settings saved:', settingsToSave);
+                console.log('Master settings saved');
                 return true;
             } catch (error) {
                 console.error('Failed to save master settings:', error);
@@ -1435,7 +1479,7 @@
                                 ...parsedMaster.settings.customization
                             }
                         };
-                        console.log('Loaded master settings:', parsedMaster.settings);
+                        console.log('Loaded master settings');
                     }
                 } else if (savedLocal) {
                     // Fallback to local storage
@@ -1449,7 +1493,6 @@
                                 ...parsed.settings.customization
                             }
                         };
-                        console.log('Loaded local settings:', parsed.settings);
                     }
                 }
                 
@@ -1652,7 +1695,7 @@
             const letters = ['B', 'I', 'N', 'G', 'O'];
             const customization = gameState.settings.customization;
             
-            // Apply cell spacing
+            // Apply cell spacing (gap between cells)
             bingoGrid.style.gap = customization.cellSpacing + 'px';
             
             for (let row = 0; row < 5; row++) {
@@ -1669,6 +1712,9 @@
                     
                     // Apply cell font size
                     cell.style.fontSize = customization.cellFontSize + 'px';
+                    
+                    // Apply cell internal padding
+                    cell.style.padding = customization.cellPadding + 'px';
                     
                     // Apply cell background color - use transparent if set
                     cell.style.backgroundColor = customization.cellBackgroundColor === 'transparent' ? 'transparent' : customization.cellBackgroundColor;
@@ -1816,7 +1862,7 @@
             // Apply main background
             console.log('Main background settings:', {
                 mainTransparent: customization.mainTransparent,
-                mainBackgroundImage: customization.mainBackgroundImage ? 'has image' : 'no image',
+                mainBackgroundImage: customization.mainBackgroundImage ? 'yes' : 'no',
                 mainBackgroundColor: customization.mainBackgroundColor
             });
             
@@ -1888,11 +1934,49 @@
                 return;
             }
             
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                callback(e.target.result);
-            };
-            reader.readAsDataURL(file);
+            // Compress image if too large
+            const maxSize = 500000; // 500KB
+            if (file.size > maxSize) {
+                showCustomAlert('Image is too large. Compressing...');
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Calculate new dimensions
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDimension = 1024;
+                        
+                        if (width > height && width > maxDimension) {
+                            height *= maxDimension / width;
+                            width = maxDimension;
+                        } else if (height > maxDimension) {
+                            width *= maxDimension / height;
+                            height = maxDimension;
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convert to JPEG with 80% quality
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                        callback(compressedDataUrl);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    callback(e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
         }
         
         function updatePreview(elementId, imageData, isColor = false) {
@@ -1951,6 +2035,10 @@
             document.getElementById('cellFontSizeValue').textContent = customization.cellFontSize + 'px';
             document.getElementById('cellSpacing').value = customization.cellSpacing;
             document.getElementById('cellSpacingValue').textContent = customization.cellSpacing + 'px';
+            
+            // NEW: Load cell padding
+            document.getElementById('cellPadding').value = customization.cellPadding;
+            document.getElementById('cellPaddingValue').textContent = customization.cellPadding + 'px';
             
             document.getElementById('freeCellEnabled').checked = customization.freeCellEnabled;
             document.getElementById('freeCellColor').value = customization.freeCellColor;
@@ -2219,11 +2307,11 @@
                 });
             }
             
-            // File upload handlers - FIXED TO SAVE BASE64 DATA
+            // File upload handlers - FIXED TO COMPRESS IMAGES
             document.getElementById('headerBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
                     if (base64) {
-                        console.log('Header background image loaded:', base64.substring(0, 100) + '...');
+                        console.log('Header background image loaded (compressed):', base64.substring(0, 100) + '...');
                         gameState.settings.customization.headerBackgroundImage = base64;
                         gameState.settings.customization.headerTransparent = false;
                         document.getElementById('headerTransparent').checked = false;
@@ -2231,6 +2319,9 @@
                         
                         // Auto-save to localStorage
                         saveMasterSettings();
+                        
+                        // Show success message
+                        showCustomAlert('Header background image uploaded and compressed successfully!');
                     }
                 });
             });
@@ -2238,7 +2329,7 @@
             document.getElementById('mainBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
                     if (base64) {
-                        console.log('Main background image loaded:', base64.substring(0, 100) + '...');
+                        console.log('Main background image loaded (compressed):', base64.substring(0, 100) + '...');
                         gameState.settings.customization.mainBackgroundImage = base64;
                         gameState.settings.customization.mainTransparent = false;
                         gameState.settings.customization.mainBackgroundColor = 'transparent';
@@ -2248,6 +2339,9 @@
                         
                         // Auto-save to localStorage
                         saveMasterSettings();
+                        
+                        // Show success message
+                        showCustomAlert('Main background image uploaded and compressed successfully!');
                     }
                 });
             });
@@ -2283,6 +2377,14 @@
                 const value = this.value;
                 gameState.settings.customization.cellSpacing = parseInt(value);
                 document.getElementById('cellSpacingValue').textContent = value + 'px';
+                saveMasterSettings();
+            });
+            
+            // NEW: Cell padding handler
+            document.getElementById('cellPadding').addEventListener('input', function() {
+                const value = this.value;
+                gameState.settings.customization.cellPadding = parseInt(value);
+                document.getElementById('cellPaddingValue').textContent = value + 'px';
                 saveMasterSettings();
             });
             
@@ -2464,6 +2566,7 @@
                 gameState.settings.customization.cellNumberColor = "#333333";
                 gameState.settings.customization.cellFontSize = 18;
                 gameState.settings.customization.cellSpacing = 8;
+                gameState.settings.customization.cellPadding = 5;
                 
                 document.getElementById('cellNumberColor').value = "#333333";
                 document.getElementById('cellNumberColorText').value = "#333333";
@@ -2471,6 +2574,8 @@
                 document.getElementById('cellFontSizeValue').textContent = "18px";
                 document.getElementById('cellSpacing').value = 8;
                 document.getElementById('cellSpacingValue').textContent = "8px";
+                document.getElementById('cellPadding').value = 5;
+                document.getElementById('cellPaddingValue').textContent = "5px";
                 saveMasterSettings();
             });
             
@@ -2732,6 +2837,7 @@
             gameState.settings.customization.cellNumberColor = document.getElementById('cellNumberColor').value;
             gameState.settings.customization.cellFontSize = parseInt(document.getElementById('cellFontSize').value);
             gameState.settings.customization.cellSpacing = parseInt(document.getElementById('cellSpacing').value);
+            gameState.settings.customization.cellPadding = parseInt(document.getElementById('cellPadding').value);
             
             // Update color settings from text inputs (validate first)
             const colorsToValidate = [
