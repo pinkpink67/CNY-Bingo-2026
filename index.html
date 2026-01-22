@@ -115,6 +115,11 @@
             color: #333;
         }
         
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        
         .players-count {
             margin-top: 20px;
             padding: 15px;
@@ -220,7 +225,7 @@
             color: #777;
         }
         
-        /* Password Display */
+        /* Lucky 4D Number Display */
         .password-display {
             position: fixed;
             bottom: 20px;
@@ -324,6 +329,20 @@
             border-radius: 10px;
         }
         
+        .admin-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .admin-actions h3 {
+            color: #dc3545;
+        }
+        
         @media (max-width: 480px) {
             .container {
                 border-radius: 15px;
@@ -388,7 +407,7 @@
                     
                     <div class="input-group">
                         <label for="playerPassword">Password</label>
-                        <input type="password" id="playerPassword" placeholder="Enter password (default: 8888)" required>
+                        <input type="password" id="playerPassword" placeholder="Enter password" required>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -453,9 +472,21 @@
                         </div>
                         
                         <div class="input-group-admin">
-                            <label for="playerPasswordSetting">Default Player Password (alphanumeric)</label>
+                            <label for="playerPasswordSetting">Player Login Password</label>
                             <input type="text" id="playerPasswordSetting" value="8888">
                         </div>
+                    </div>
+                    
+                    <div class="admin-actions">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Admin Actions</h3>
+                        
+                        <button class="btn btn-danger" id="clearPlayerDataBtn">
+                            <i class="fas fa-trash-alt"></i> Clear All Player Data
+                        </button>
+                        
+                        <p style="font-size: 0.9rem; color: #666;">
+                            This will remove all player cards and Lucky 4D numbers. Authorized player list will be preserved.
+                        </p>
                     </div>
                     
                     <button class="btn btn-primary" id="saveSettingsBtn">
@@ -553,13 +584,19 @@
             // Get available cards (not issued yet)
             const availableCards = cardsPool.filter(card => 
                 !gameState.players.some(p => 
-                    p.cards && p.cards.some(c => c.id === card.id)
+                    p !== player && p.cards && p.cards.some(c => c.id === card.id)
                 )
             );
             
             const cardsToUse = availableCards.length >= cardsToAssign ? availableCards : cardsPool;
             
-            for (let i = 0; i < cardsToAssign; i++) {
+            // If player already has cards, keep them
+            if (player.cards && player.cards.length > 0) {
+                assignedCards.push(...player.cards);
+            }
+            
+            // Add new cards if needed
+            for (let i = assignedCards.length; i < cardsToAssign; i++) {
                 if (cardsToUse.length === 0) break;
                 
                 const randomIndex = Math.floor(Math.random() * cardsToUse.length);
@@ -570,6 +607,34 @@
             
             player.cards = assignedCards;
             return assignedCards;
+        }
+        
+        function updatePlayerCardsForAllPlayers(newCardsPerPlayer) {
+            // Generate enough cards for all players
+            const totalCardsNeeded = gameState.settings.maxPlayers * newCardsPerPlayer;
+            const cardsPool = generateBingoCards(totalCardsNeeded);
+            
+            // Update cards for each player
+            gameState.players.forEach(player => {
+                assignCardsToPlayer(player, cardsPool, newCardsPerPlayer);
+                
+                // If current player is active, update their display
+                if (gameState.currentPlayer && gameState.currentPlayer.id === player.id) {
+                    gameState.currentPlayer = player;
+                    document.getElementById('totalCards').textContent = player.cards.length;
+                    
+                    // Adjust current card index if necessary
+                    if (gameState.currentCardIndex >= player.cards.length) {
+                        gameState.currentCardIndex = player.cards.length - 1;
+                    }
+                    
+                    updateCardDisplay();
+                    updatePasswordDisplay();
+                }
+            });
+            
+            // Save updated state
+            saveGameState();
         }
         
         function updateCardDisplay() {
@@ -620,6 +685,27 @@
             } else {
                 passwordDisplay.style.display = 'none';
             }
+        }
+        
+        function clearAllPlayerData() {
+            // Keep authorized players list, but clear all player data
+            gameState.players = [];
+            gameState.currentPlayer = null;
+            gameState.currentCardIndex = 0;
+            
+            // Update UI
+            updatePlayersCount();
+            
+            // Save to localStorage
+            saveGameState();
+            
+            showCustomAlert(`
+                <strong>All player data has been cleared!</strong><br><br>
+                • Player cards removed<br>
+                • Lucky 4D numbers reset<br>
+                • Authorized player list preserved<br><br>
+                Players will receive new cards and Lucky 4D numbers on next login.
+            `);
         }
         
         // ==================== UI FUNCTIONS ====================
@@ -759,6 +845,12 @@
             if (saveSettingsBtn) {
                 saveSettingsBtn.addEventListener('click', saveAdminSettings);
             }
+            
+            // Clear player data button
+            const clearPlayerDataBtn = document.getElementById('clearPlayerDataBtn');
+            if (clearPlayerDataBtn) {
+                clearPlayerDataBtn.addEventListener('click', confirmClearPlayerData);
+            }
         }
         
         function handleLogin(e) {
@@ -803,9 +895,9 @@
                 return;
             }
             
-            // Check password against default password
+            // Check password
             if (password !== gameState.settings.defaultPassword) {
-                showCustomAlert('Incorrect password. Please use the default password: ' + gameState.settings.defaultPassword);
+                showCustomAlert('Incorrect password. Please try again.');
                 return;
             }
             
@@ -893,8 +985,7 @@
                 <strong>Welcome ${playerName}!</strong><br><br>
                 You have received ${newPlayer.cards.length} BINGO cards.<br><br>
                 <strong>Your Lucky 4D number: ${luckyNumber}</strong><br><br>
-                Remember this number for future reference!<br>
-                (Your login password remains: ${gameState.settings.defaultPassword})
+                Good luck and have fun!
             `;
             
             showCustomAlert(welcomeMessage, true);
@@ -971,9 +1062,12 @@
             // Get default password
             const defaultPassword = playerPasswordSettingInput.value.trim();
             if (defaultPassword.length === 0) {
-                showCustomAlert('Default password cannot be empty');
+                showCustomAlert('Player password cannot be empty');
                 return;
             }
+            
+            // Check if cards per player changed
+            const cardsChanged = cardsPerPlayer !== gameState.settings.cardsPerPlayer;
             
             // Update settings
             gameState.settings.authorizedPlayers = playerNames;
@@ -981,19 +1075,74 @@
             gameState.settings.cardsPerPlayer = cardsPerPlayer;
             gameState.settings.defaultPassword = defaultPassword;
             
+            // If cards per player changed, update all players
+            if (cardsChanged) {
+                updatePlayerCardsForAllPlayers(cardsPerPlayer);
+            }
+            
             // Save to localStorage
             saveGameState();
             
             // Update players count display
             updatePlayersCount();
             
-            showCustomAlert(`
+            let message = `
                 <strong>Settings saved successfully!</strong><br><br>
                 • Authorized players: ${playerNames.length}<br>
                 • Maximum players: ${maxPlayers}<br>
                 • Cards per player: ${cardsPerPlayer}<br>
-                • Default password: ${defaultPassword}
-            `);
+                • Player password updated
+            `;
+            
+            if (cardsChanged) {
+                message += `<br><br><strong>All player cards have been updated to ${cardsPerPlayer} cards per player.</strong>`;
+            }
+            
+            showCustomAlert(message);
+        }
+        
+        function confirmClearPlayerData() {
+            // Create confirmation dialog
+            const dialog = document.createElement('div');
+            dialog.className = 'confirmation-dialog';
+            dialog.style.display = 'flex';
+            
+            const content = document.createElement('div');
+            content.className = 'confirmation-content';
+            
+            content.innerHTML = `
+                <h3><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i> Confirm Action</h3>
+                <div style="text-align: left; line-height: 1.6;">
+                    <strong>Warning: This action cannot be undone!</strong><br><br>
+                    This will:<br>
+                    • Clear all player cards<br>
+                    • Remove all Lucky 4D numbers<br>
+                    • Reset all player progress<br><br>
+                    Authorized player list will be preserved.<br>
+                    Are you sure you want to continue?
+                </div>
+                <div class="confirmation-buttons">
+                    <button class="btn btn-secondary" id="cancelClearBtn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-danger" id="confirmClearBtn">
+                        <i class="fas fa-trash-alt"></i> Clear All Data
+                    </button>
+                </div>
+            `;
+            
+            dialog.appendChild(content);
+            document.body.appendChild(dialog);
+            
+            // Add event listeners
+            document.getElementById('cancelClearBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+            });
+            
+            document.getElementById('confirmClearBtn').addEventListener('click', function() {
+                document.body.removeChild(dialog);
+                clearAllPlayerData();
+            });
         }
         
         function showPrevCard() {
