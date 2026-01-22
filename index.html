@@ -92,6 +92,19 @@
             outline: none;
         }
         
+        select {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        
+        select:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+        
         .btn {
             padding: 16px;
             border: none;
@@ -165,12 +178,17 @@
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 25px;
+            background-size: cover;
+            background-position: center;
         }
         
         .bingo-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
+            min-height: 300px;
+            background-size: cover;
+            background-position: center;
         }
         
         .bingo-cell {
@@ -560,6 +578,22 @@
                         </div>
                         
                         <div class="input-group-admin">
+                            <label for="gameTitleIcon">Game Title Icon</label>
+                            <select id="gameTitleIcon">
+                                <option value="">No Icon</option>
+                                <option value="fas fa-dice">Dice (fa-dice)</option>
+                                <option value="fas fa-bingo">Bingo (fa-bingo)</option>
+                                <option value="fas fa-gamepad">Gamepad (fa-gamepad)</option>
+                                <option value="fas fa-trophy">Trophy (fa-trophy)</option>
+                                <option value="fas fa-star">Star (fa-star)</option>
+                                <option value="fas fa-heart">Heart (fa-heart)</option>
+                                <option value="fas fa-flag">Flag (fa-flag)</option>
+                                <option value="fas fa-gem">Gem (fa-gem)</option>
+                                <option value="fas fa-crown">Crown (fa-crown)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="input-group-admin">
                             <label for="gameSubtitleText">Game Subtitle</label>
                             <input type="text" id="gameSubtitleText" value="Login to play with your unique bingo cards">
                         </div>
@@ -653,7 +687,37 @@
                         </button>
                     </div>
                     
-                    <!-- Card Background Customization -->
+                    <!-- Card Container Background Customization -->
+                    <div class="admin-customization">
+                        <h3><i class="fas fa-layer-group"></i> Card Container Background</h3>
+                        
+                        <div class="file-upload-group">
+                            <label>Upload Container Background Image</label>
+                            <input type="file" id="containerBackgroundUpload" accept="image/*">
+                            <div class="preview-box" id="containerBackgroundPreview">
+                                <div class="preview-text">Container Background Preview</div>
+                            </div>
+                        </div>
+                        
+                        <div class="color-picker-group">
+                            <label>Container Background Color:</label>
+                            <div class="color-input-group">
+                                <input type="color" id="containerBackgroundColor" value="#f8f9fa">
+                                <input type="text" id="containerBackgroundColorText" value="#f8f9fa" placeholder="#RRGGBB">
+                            </div>
+                        </div>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="containerTransparent">
+                            <label for="containerTransparent">Make Container Background Transparent</label>
+                        </div>
+                        
+                        <button class="btn btn-secondary reset-btn" id="resetContainerBackgroundBtn">
+                            <i class="fas fa-undo"></i> Reset to Default
+                        </button>
+                    </div>
+                    
+                    <!-- Bingo Card Background Customization -->
                     <div class="admin-customization">
                         <h3><i class="fas fa-th"></i> Bingo Card Background</h3>
                         
@@ -665,8 +729,18 @@
                             </div>
                         </div>
                         
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="cardBackgroundEnabled">
+                            <label for="cardBackgroundEnabled">Enable Card Background</label>
+                        </div>
+                        
+                        <div class="transparency-checkbox">
+                            <input type="checkbox" id="cardBackgroundTransparent">
+                            <label for="cardBackgroundTransparent">Make Card Background Transparent</label>
+                        </div>
+                        
                         <div class="color-picker-group">
-                            <label>Card Container Color:</label>
+                            <label>Card Background Color:</label>
                             <div class="color-input-group">
                                 <input type="color" id="cardBackgroundColor" value="#f8f9fa">
                                 <input type="text" id="cardBackgroundColorText" value="#f8f9fa" placeholder="#RRGGBB">
@@ -834,9 +908,16 @@
                     mainBackgroundColor: "#f5f5f5",
                     mainTransparent: false,
                     
+                    // Card container background
+                    containerBackgroundImage: null,
+                    containerBackgroundColor: "#f8f9fa",
+                    containerTransparent: false,
+                    
                     // Card background
                     cardBackgroundImage: null,
                     cardBackgroundColor: "#f8f9fa",
+                    cardBackgroundEnabled: true,
+                    cardBackgroundTransparent: false,
                     cellBackgroundColor: "#ffffff",
                     markedCellColor: "#6a11cb",
                     freeCellColor: "#ffd166",
@@ -849,6 +930,7 @@
                     
                     // Text content
                     gameTitle: "Mobile Bingo",
+                    gameTitleIcon: "",
                     gameSubtitle: "Login to play with your unique bingo cards",
                     welcomeTitle: "Welcome to Bingo!",
                     welcomeMessage: "Enter your name and password to join the game.",
@@ -1118,6 +1200,14 @@
         function applyCustomizations() {
             const customization = gameState.settings.customization;
             
+            // Apply game title icon
+            const gameTitleElement = document.getElementById('gameTitle');
+            if (customization.gameTitleIcon && customization.gameTitleIcon !== "") {
+                gameTitleElement.innerHTML = `<i class="${customization.gameTitleIcon}"></i> ${customization.gameTitle}`;
+            } else {
+                gameTitleElement.textContent = customization.gameTitle;
+            }
+            
             // Apply header background
             const header = document.querySelector('.header');
             if (customization.headerTransparent) {
@@ -1150,12 +1240,35 @@
             
             // Apply card container background
             const cardContainer = document.getElementById('bingoCardContainer');
-            if (customization.cardBackgroundImage) {
-                cardContainer.style.background = `url('${customization.cardBackgroundImage}')`;
+            if (customization.containerTransparent) {
+                cardContainer.style.background = 'transparent';
+                cardContainer.style.backgroundImage = 'none';
+            } else if (customization.containerBackgroundImage) {
+                cardContainer.style.background = `url('${customization.containerBackgroundImage}')`;
                 cardContainer.style.backgroundSize = 'cover';
                 cardContainer.style.backgroundPosition = 'center';
             } else {
-                cardContainer.style.backgroundColor = customization.cardBackgroundColor;
+                cardContainer.style.backgroundColor = customization.containerBackgroundColor;
+                cardContainer.style.backgroundImage = 'none';
+            }
+            
+            // Apply card background
+            const bingoGrid = document.getElementById('bingoGrid');
+            if (customization.cardBackgroundEnabled) {
+                if (customization.cardBackgroundTransparent) {
+                    bingoGrid.style.background = 'transparent';
+                    bingoGrid.style.backgroundImage = 'none';
+                } else if (customization.cardBackgroundImage) {
+                    bingoGrid.style.background = `url('${customization.cardBackgroundImage}')`;
+                    bingoGrid.style.backgroundSize = 'cover';
+                    bingoGrid.style.backgroundPosition = 'center';
+                } else {
+                    bingoGrid.style.background = customization.cardBackgroundColor;
+                    bingoGrid.style.backgroundImage = 'none';
+                }
+            } else {
+                bingoGrid.style.background = 'none';
+                bingoGrid.style.backgroundImage = 'none';
             }
             
             // Apply button colors
@@ -1178,7 +1291,6 @@
             });
             
             // Update text content
-            document.getElementById('gameTitle').textContent = customization.gameTitle;
             document.getElementById('gameSubtitle').textContent = customization.gameSubtitle;
             document.getElementById('welcomeTitle').textContent = customization.welcomeTitle;
             document.getElementById('welcomeMessage').textContent = customization.welcomeMessage;
@@ -1231,6 +1343,7 @@
             
             // Load text fields
             document.getElementById('gameTitleText').value = customization.gameTitle;
+            document.getElementById('gameTitleIcon').value = customization.gameTitleIcon || "";
             document.getElementById('gameSubtitleText').value = customization.gameSubtitle;
             document.getElementById('welcomeTitleText').value = customization.welcomeTitle;
             document.getElementById('welcomeMessageText').value = customization.welcomeMessage;
@@ -1248,8 +1361,14 @@
             document.getElementById('mainBackgroundColorText').value = customization.mainBackgroundColor;
             document.getElementById('mainTransparent').checked = customization.mainTransparent;
             
+            document.getElementById('containerBackgroundColor').value = customization.containerBackgroundColor;
+            document.getElementById('containerBackgroundColorText').value = customization.containerBackgroundColor;
+            document.getElementById('containerTransparent').checked = customization.containerTransparent;
+            
             document.getElementById('cardBackgroundColor').value = customization.cardBackgroundColor;
             document.getElementById('cardBackgroundColorText').value = customization.cardBackgroundColor;
+            document.getElementById('cardBackgroundEnabled').checked = customization.cardBackgroundEnabled;
+            document.getElementById('cardBackgroundTransparent').checked = customization.cardBackgroundTransparent;
             document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor;
             document.getElementById('cellBackgroundColorText').value = customization.cellBackgroundColor;
             document.getElementById('markedCellColor').value = customization.markedCellColor;
@@ -1269,6 +1388,7 @@
             // Update previews
             updatePreview('headerBackgroundPreview', customization.headerBackgroundImage);
             updatePreview('mainBackgroundPreview', customization.mainBackgroundImage);
+            updatePreview('containerBackgroundPreview', customization.containerBackgroundImage);
             updatePreview('cardBackgroundPreview', customization.cardBackgroundImage);
         }
         
@@ -1419,9 +1539,20 @@
                 });
             });
             
+            document.getElementById('containerBackgroundUpload').addEventListener('change', function() {
+                loadImageAsBase64(this, function(base64) {
+                    gameState.settings.customization.containerBackgroundImage = base64;
+                    gameState.settings.customization.containerTransparent = false;
+                    document.getElementById('containerTransparent').checked = false;
+                    updatePreview('containerBackgroundPreview', base64);
+                });
+            });
+            
             document.getElementById('cardBackgroundUpload').addEventListener('change', function() {
                 loadImageAsBase64(this, function(base64) {
                     gameState.settings.customization.cardBackgroundImage = base64;
+                    gameState.settings.customization.cardBackgroundTransparent = false;
+                    document.getElementById('cardBackgroundTransparent').checked = false;
                     updatePreview('cardBackgroundPreview', base64);
                 });
             });
@@ -1430,6 +1561,7 @@
             updateColorInputFromPicker('headerBackgroundColor', 'headerBackgroundColorText');
             updateColorInputFromPicker('headerTextColor', 'headerTextColorText');
             updateColorInputFromPicker('mainBackgroundColor', 'mainBackgroundColorText');
+            updateColorInputFromPicker('containerBackgroundColor', 'containerBackgroundColorText');
             updateColorInputFromPicker('cardBackgroundColor', 'cardBackgroundColorText');
             updateColorInputFromPicker('cellBackgroundColor', 'cellBackgroundColorText');
             updateColorInputFromPicker('markedCellColor', 'markedCellColorText');
@@ -1474,10 +1606,38 @@
                 }
             });
             
+            document.getElementById('containerBackgroundColor').addEventListener('change', function() {
+                gameState.settings.customization.containerBackgroundImage = null;
+                gameState.settings.customization.containerBackgroundColor = this.value;
+                gameState.settings.customization.containerTransparent = false;
+                document.getElementById('containerTransparent').checked = false;
+                updatePreview('containerBackgroundPreview', this.value, true);
+            });
+            
+            document.getElementById('containerTransparent').addEventListener('change', function() {
+                gameState.settings.customization.containerTransparent = this.checked;
+                if (this.checked) {
+                    gameState.settings.customization.containerBackgroundImage = null;
+                }
+            });
+            
             document.getElementById('cardBackgroundColor').addEventListener('change', function() {
                 gameState.settings.customization.cardBackgroundImage = null;
                 gameState.settings.customization.cardBackgroundColor = this.value;
+                gameState.settings.customization.cardBackgroundTransparent = false;
+                document.getElementById('cardBackgroundTransparent').checked = false;
                 updatePreview('cardBackgroundPreview', this.value, true);
+            });
+            
+            document.getElementById('cardBackgroundEnabled').addEventListener('change', function() {
+                gameState.settings.customization.cardBackgroundEnabled = this.checked;
+            });
+            
+            document.getElementById('cardBackgroundTransparent').addEventListener('change', function() {
+                gameState.settings.customization.cardBackgroundTransparent = this.checked;
+                if (this.checked) {
+                    gameState.settings.customization.cardBackgroundImage = null;
+                }
             });
             
             document.getElementById('cellBackgroundColor').addEventListener('change', function() {
@@ -1511,6 +1671,10 @@
             // Text field handlers
             document.getElementById('gameTitleText').addEventListener('change', function() {
                 gameState.settings.customization.gameTitle = this.value;
+            });
+            
+            document.getElementById('gameTitleIcon').addEventListener('change', function() {
+                gameState.settings.customization.gameTitleIcon = this.value;
             });
             
             document.getElementById('gameSubtitleText').addEventListener('change', function() {
@@ -1561,15 +1725,31 @@
                 updatePreview('mainBackgroundPreview', "#f5f5f5", true);
             });
             
+            document.getElementById('resetContainerBackgroundBtn').addEventListener('click', function() {
+                gameState.settings.customization.containerBackgroundImage = null;
+                gameState.settings.customization.containerBackgroundColor = "#f8f9fa";
+                gameState.settings.customization.containerTransparent = false;
+                
+                document.getElementById('containerBackgroundColor').value = "#f8f9fa";
+                document.getElementById('containerBackgroundColorText').value = "#f8f9fa";
+                document.getElementById('containerTransparent').checked = false;
+                
+                updatePreview('containerBackgroundPreview', "#f8f9fa", true);
+            });
+            
             document.getElementById('resetCardBackgroundBtn').addEventListener('click', function() {
                 gameState.settings.customization.cardBackgroundImage = null;
                 gameState.settings.customization.cardBackgroundColor = "#f8f9fa";
+                gameState.settings.customization.cardBackgroundEnabled = true;
+                gameState.settings.customization.cardBackgroundTransparent = false;
                 gameState.settings.customization.cellBackgroundColor = "#ffffff";
                 gameState.settings.customization.markedCellColor = "#6a11cb";
                 gameState.settings.customization.freeCellColor = "#ffd166";
                 
                 document.getElementById('cardBackgroundColor').value = "#f8f9fa";
                 document.getElementById('cardBackgroundColorText').value = "#f8f9fa";
+                document.getElementById('cardBackgroundEnabled').checked = true;
+                document.getElementById('cardBackgroundTransparent').checked = false;
                 document.getElementById('cellBackgroundColor').value = "#ffffff";
                 document.getElementById('cellBackgroundColorText').value = "#ffffff";
                 document.getElementById('markedCellColor').value = "#6a11cb";
@@ -1803,6 +1983,7 @@
             
             // Update customization settings from form fields
             gameState.settings.customization.gameTitle = document.getElementById('gameTitleText').value;
+            gameState.settings.customization.gameTitleIcon = document.getElementById('gameTitleIcon').value;
             gameState.settings.customization.gameSubtitle = document.getElementById('gameSubtitleText').value;
             gameState.settings.customization.welcomeTitle = document.getElementById('welcomeTitleText').value;
             gameState.settings.customization.welcomeMessage = document.getElementById('welcomeMessageText').value;
@@ -1814,6 +1995,7 @@
                 { picker: 'headerBackgroundColorText', setting: 'headerBackgroundColor' },
                 { picker: 'headerTextColorText', setting: 'headerTextColor' },
                 { picker: 'mainBackgroundColorText', setting: 'mainBackgroundColor' },
+                { picker: 'containerBackgroundColorText', setting: 'containerBackgroundColor' },
                 { picker: 'cardBackgroundColorText', setting: 'cardBackgroundColor' },
                 { picker: 'cellBackgroundColorText', setting: 'cellBackgroundColor' },
                 { picker: 'markedCellColorText', setting: 'markedCellColor' },
@@ -1839,9 +2021,12 @@
             
             if (hasInvalidColor) return;
             
-            // Update transparency settings
+            // Update transparency and toggle settings
             gameState.settings.customization.headerTransparent = document.getElementById('headerTransparent').checked;
             gameState.settings.customization.mainTransparent = document.getElementById('mainTransparent').checked;
+            gameState.settings.customization.containerTransparent = document.getElementById('containerTransparent').checked;
+            gameState.settings.customization.cardBackgroundEnabled = document.getElementById('cardBackgroundEnabled').checked;
+            gameState.settings.customization.cardBackgroundTransparent = document.getElementById('cardBackgroundTransparent').checked;
             
             // Apply customizations immediately
             applyCustomizations();
