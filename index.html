@@ -21,7 +21,7 @@
         }
         
         body {
-            background-color: #f5f5f5;
+            background-color: transparent !important;
             color: #333;
             min-height: 100vh;
             display: flex;
@@ -33,7 +33,7 @@
         .container {
             width: 100%;
             max-width: 500px;
-            background-color: white;
+            background-color: transparent !important;
             border-radius: 20px;
             box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
             overflow: hidden;
@@ -61,6 +61,7 @@
             padding: 25px 20px;
             position: relative;
             min-height: 500px;
+            background-color: transparent !important;
         }
         
         /* Login Screen */
@@ -92,11 +93,13 @@
             border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
         .input-group input:focus {
             border-color: #6a11cb;
             outline: none;
+            background-color: white;
         }
         
         select {
@@ -104,12 +107,13 @@
             border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 1rem;
-            background-color: white;
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
         select:focus {
             border-color: #6a11cb;
             outline: none;
+            background-color: white;
         }
         
         .btn {
@@ -131,7 +135,7 @@
         }
         
         .btn-secondary {
-            background-color: #f0f0f0;
+            background-color: rgba(240, 240, 240, 0.9);
             color: #333;
         }
         
@@ -153,7 +157,7 @@
         .players-count {
             margin-top: 20px;
             padding: 15px;
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             border-radius: 10px;
             font-size: 0.9rem;
         }
@@ -174,7 +178,7 @@
             align-items: center;
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.5);
         }
         
         .player-name {
@@ -184,14 +188,14 @@
         }
         
         .card-counter {
-            background-color: #f0f0f0;
+            background-color: rgba(240, 240, 240, 0.9);
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: 600;
         }
         
         .bingo-card-container {
-            background-color: #f8f9fa;
+            background-color: transparent !important;
             border-radius: 15px;
             padding: 20px;
             margin-bottom: 25px;
@@ -205,11 +209,13 @@
             min-height: 300px;
             background-size: cover;
             background-position: center;
+            background-color: transparent !important;
+            background-image: none !important;
         }
         
         .bingo-cell {
             aspect-ratio: 1;
-            background-color: white;
+            background-color: transparent !important;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -232,7 +238,7 @@
         }
         
         .bingo-cell.marked {
-            background-color: #6a11cb;
+            background-color: rgba(106, 17, 203, 0.8);
             color: white;
         }
         
@@ -338,6 +344,7 @@
             border: 2px solid #ddd;
             border-radius: 10px;
             font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
         .textarea-group textarea {
@@ -348,6 +355,7 @@
         .textarea-group textarea:focus, .input-group-admin input:focus {
             border-color: #6a11cb;
             outline: none;
+            background-color: white;
         }
         
         .admin-settings {
@@ -355,7 +363,7 @@
             flex-direction: column;
             gap: 15px;
             margin-top: 20px;
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             padding: 20px;
             border-radius: 10px;
         }
@@ -365,7 +373,7 @@
             flex-direction: column;
             gap: 15px;
             margin-top: 20px;
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             padding: 20px;
             border-radius: 10px;
         }
@@ -376,7 +384,7 @@
             gap: 15px;
             margin-top: 20px;
             padding: 20px;
-            background-color: #f8f9fa;
+            background-color: rgba(248, 249, 250, 0.9);
             border-radius: 10px;
         }
         
@@ -415,6 +423,7 @@
             border: 2px solid #ddd;
             border-radius: 5px;
             font-family: monospace;
+            background-color: rgba(255, 255, 255, 0.9);
         }
         
         .transparency-checkbox {
@@ -465,7 +474,7 @@
             padding: 10px;
             border: 2px solid #ddd;
             border-radius: 10px;
-            background: white;
+            background: rgba(255, 255, 255, 0.9);
         }
         
         .reset-btn {
@@ -509,17 +518,17 @@
             align-items: center;
             gap: 10px;
             padding: 10px;
-            background-color: #e9f7ef;
+            background-color: rgba(233, 247, 239, 0.9);
             border-radius: 8px;
             margin-top: 10px;
         }
         
         .sync-status.syncing {
-            background-color: #fff3cd;
+            background-color: rgba(255, 243, 205, 0.9);
         }
         
         .sync-status.error {
-            background-color: #f8d7da;
+            background-color: rgba(248, 215, 218, 0.9);
         }
         
         .firebase-status {
@@ -527,18 +536,18 @@
             align-items: center;
             gap: 10px;
             padding: 10px;
-            background-color: #e7f3ff;
+            background-color: rgba(231, 243, 255, 0.9);
             border-radius: 8px;
             margin-top: 10px;
             font-size: 0.9rem;
         }
         
         .firebase-status.connected {
-            background-color: #e9f7ef;
+            background-color: rgba(233, 247, 239, 0.9);
         }
         
         .firebase-status.disconnected {
-            background-color: #f8d7da;
+            background-color: rgba(248, 215, 218, 0.9);
         }
         
         @media (max-width: 480px) {
@@ -755,82 +764,17 @@
                         <div class="color-picker-group">
                             <label>Or use solid color:</label>
                             <div class="color-input-group">
-                                <input type="color" id="mainBackgroundColor" value="#f5f5f5">
-                                <input type="text" id="mainBackgroundColorText" value="#f5f5f5" placeholder="#RRGGBB">
+                                <input type="color" id="mainBackgroundColor" value="transparent">
+                                <input type="text" id="mainBackgroundColorText" value="transparent" placeholder="transparent or #RRGGBB">
                             </div>
                         </div>
                         
                         <div class="transparency-checkbox">
-                            <input type="checkbox" id="mainTransparent">
+                            <input type="checkbox" id="mainTransparent" checked>
                             <label for="mainTransparent">Make main background transparent</label>
                         </div>
                         
                         <button class="btn btn-secondary reset-btn" id="resetMainBackgroundBtn">
-                            <i class="fas fa-undo"></i> Reset to Default
-                        </button>
-                    </div>
-                    
-                    <!-- Card Container Background Customization -->
-                    <div class="admin-customization">
-                        <h3><i class="fas fa-layer-group"></i> Card Container Background</h3>
-                        
-                        <div class="file-upload-group">
-                            <label>Upload Container Background Image</label>
-                            <input type="file" id="containerBackgroundUpload" accept="image/*">
-                            <div class="preview-box" id="containerBackgroundPreview">
-                                <div class="preview-text">Container Background Preview</div>
-                            </div>
-                        </div>
-                        
-                        <div class="color-picker-group">
-                            <label>Container Background Color:</label>
-                            <div class="color-input-group">
-                                <input type="color" id="containerBackgroundColor" value="#f8f9fa">
-                                <input type="text" id="containerBackgroundColorText" value="#f8f9fa" placeholder="#RRGGBB">
-                            </div>
-                        </div>
-                        
-                        <div class="transparency-checkbox">
-                            <input type="checkbox" id="containerTransparent">
-                            <label for="containerTransparent">Make Container Background Transparent</label>
-                        </div>
-                        
-                        <button class="btn btn-secondary reset-btn" id="resetContainerBackgroundBtn">
-                            <i class="fas fa-undo"></i> Reset to Default
-                        </button>
-                    </div>
-                    
-                    <!-- Bingo Card Background Customization -->
-                    <div class="admin-customization">
-                        <h3><i class="fas fa-th"></i> Bingo Card Background</h3>
-                        
-                        <div class="file-upload-group">
-                            <label>Upload Card Background Image</label>
-                            <input type="file" id="cardBackgroundUpload" accept="image/*">
-                            <div class="preview-box" id="cardBackgroundPreview">
-                                <div class="preview-text">Card Background Preview</div>
-                            </div>
-                        </div>
-                        
-                        <div class="transparency-checkbox">
-                            <input type="checkbox" id="cardBackgroundEnabled">
-                            <label for="cardBackgroundEnabled">Enable Card Background</label>
-                        </div>
-                        
-                        <div class="transparency-checkbox">
-                            <input type="checkbox" id="cardBackgroundTransparent">
-                            <label for="cardBackgroundTransparent">Make Card Background Transparent</label>
-                        </div>
-                        
-                        <div class="color-picker-group">
-                            <label>Card Background Color:</label>
-                            <div class="color-input-group">
-                                <input type="color" id="cardBackgroundColor" value="#f8f9fa">
-                                <input type="text" id="cardBackgroundColorText" value="#f8f9fa" placeholder="#RRGGBB">
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-secondary reset-btn" id="resetCardBackgroundBtn">
                             <i class="fas fa-undo"></i> Reset to Default
                         </button>
                     </div>
@@ -840,25 +784,10 @@
                         <h3><i class="fas fa-square"></i> Cell Customization</h3>
                         
                         <div class="color-picker-group">
-                            <label>Number Cell Color:</label>
+                            <label>Cell Background Color:</label>
                             <div class="color-input-group">
-                                <input type="color" id="cellBackgroundColor" value="#ffffff">
-                                <input type="text" id="cellBackgroundColorText" value="#ffffff" placeholder="#RRGGBB">
-                            </div>
-                        </div>
-                        
-                        <div class="transparency-checkbox">
-                            <input type="checkbox" id="cellTransparentEnabled">
-                            <label for="cellTransparentEnabled">Enable Cell Transparency</label>
-                        </div>
-                        
-                        <div class="range-slider-group" id="cellTransparencyGroup" style="display: none;">
-                            <label for="cellTransparency">Cell Transparency Level</label>
-                            <input type="range" id="cellTransparency" min="0" max="100" value="100">
-                            <div class="range-value">
-                                <span>Opaque (0%)</span>
-                                <span id="cellTransparencyValue">100%</span>
-                                <span>Transparent (100%)</span>
+                                <input type="color" id="cellBackgroundColor" value="transparent">
+                                <input type="text" id="cellBackgroundColorText" value="transparent" placeholder="transparent or #RRGGBB">
                             </div>
                         </div>
                         
@@ -883,8 +812,8 @@
                         <div class="color-picker-group">
                             <label>Marked Cell Color:</label>
                             <div class="color-input-group">
-                                <input type="color" id="markedCellColor" value="#6a11cb">
-                                <input type="text" id="markedCellColorText" value="#6a11cb" placeholder="#RRGGBB">
+                                <input type="color" id="markedCellColor" value="rgba(106, 17, 203, 0.8)">
+                                <input type="text" id="markedCellColorText" value="rgba(106, 17, 203, 0.8)" placeholder="rgba(R,G,B,A) or #RRGGBB">
                             </div>
                         </div>
                     </div>
@@ -953,16 +882,6 @@
                             </div>
                         </div>
                         
-                        <div class="range-slider-group" id="cellBorderTransparencyGroup" style="display: none;">
-                            <label for="cellBorderTransparency">Border Transparency</label>
-                            <input type="range" id="cellBorderTransparency" min="0" max="100" value="0">
-                            <div class="range-value">
-                                <span>Opaque (0%)</span>
-                                <span id="cellBorderTransparencyValue">0%</span>
-                                <span>Transparent (100%)</span>
-                            </div>
-                        </div>
-                        
                         <button class="btn btn-secondary reset-btn" id="resetCellBorderBtn">
                             <i class="fas fa-undo"></i> Reset Borders to Default
                         </button>
@@ -983,8 +902,8 @@
                         <div class="color-picker-group">
                             <label>Secondary Button Color:</label>
                             <div class="color-input-group">
-                                <input type="color" id="secondaryButtonColor" value="#f0f0f0">
-                                <input type="text" id="secondaryButtonColorText" value="#f0f0f0" placeholder="#RRGGBB">
+                                <input type="color" id="secondaryButtonColor" value="rgba(240, 240, 240, 0.9)">
+                                <input type="text" id="secondaryButtonColorText" value="rgba(240, 240, 240, 0.9)" placeholder="rgba(R,G,B,A) or #RRGGBB">
                             </div>
                         </div>
                         
@@ -1007,7 +926,7 @@
                         <div class="preview-box small" id="buttonPreview">
                             <div style="display: flex; gap: 10px;">
                                 <button style="padding: 8px 16px; border: none; border-radius: 5px; background-color: #6a11cb; color: white;">Primary</button>
-                                <button style="padding: 8px 16px; border: none; border-radius: 5px; background-color: #f0f0f0; color: #333;">Secondary</button>
+                                <button style="padding: 8px 16px; border: none; border-radius: 5px; background-color: rgba(240, 240, 240, 0.9); color: #333;">Secondary</button>
                                 <button style="padding: 8px 16px; border: none; border-radius: 5px; background-color: #dc3545; color: white;">Danger</button>
                             </div>
                         </div>
@@ -1133,7 +1052,7 @@
     <script>
         // ==================== CACHE CONTROL ====================
         // Add version parameter to force cache refresh
-        const GAME_VERSION = '2.3';
+        const GAME_VERSION = '2.4';
         const lastVersion = localStorage.getItem('gameVersion');
         
         if (lastVersion !== GAME_VERSION) {
@@ -1186,28 +1105,15 @@
                     
                     // Main background
                     mainBackgroundImage: null,
-                    mainBackgroundColor: "#f5f5f5",
-                    mainTransparent: false,
+                    mainBackgroundColor: "transparent",
+                    mainTransparent: true,
                     
-                    // Card container background
-                    containerBackgroundImage: null,
-                    containerBackgroundColor: "#f8f9fa",
-                    containerTransparent: false,
-                    
-                    // Card background
-                    cardBackgroundImage: null,
-                    cardBackgroundColor: "#f8f9fa",
-                    cardBackgroundEnabled: true,
-                    cardBackgroundTransparent: false,
-                    
-                    // Cell customization
-                    cellBackgroundColor: "#ffffff",
-                    cellTransparentEnabled: false,
-                    cellTransparency: 100,
-                    freeCellEnabled: true,
+                    // Cell customization - ALL CELLS TRANSPARENT
+                    cellBackgroundColor: "transparent",
+                    freeCellEnabled: false,
                     freeCellText: "FREE",
                     freeCellColor: "#ffd166",
-                    markedCellColor: "#6a11cb",
+                    markedCellColor: "rgba(106, 17, 203, 0.8)",
                     
                     // Cell number customization
                     cellNumberColor: "#333333",
@@ -1218,11 +1124,10 @@
                     cellBorderEnabled: false,
                     cellBorderColor: "#cccccc",
                     cellBorderThickness: 2,
-                    cellBorderTransparency: 0,
                     
                     // Buttons
                     primaryButtonColor: "#6a11cb",
-                    secondaryButtonColor: "#f0f0f0",
+                    secondaryButtonColor: "rgba(240, 240, 240, 0.9)",
                     dangerButtonColor: "#dc3545",
                     buttonTextColor: "#ffffff",
                     
@@ -1755,19 +1660,12 @@
                     // Apply cell font size
                     cell.style.fontSize = customization.cellFontSize + 'px';
                     
-                    // Apply cell background color with transparency
-                    let bgColor = customization.cellBackgroundColor;
-                    if (customization.cellTransparentEnabled) {
-                        const alpha = (100 - customization.cellTransparency) / 100;
-                        bgColor = hexToRgba(bgColor, alpha);
-                    }
-                    cell.style.backgroundColor = bgColor;
+                    // Apply cell background color - ALWAYS TRANSPARENT
+                    cell.style.backgroundColor = 'transparent';
                     
-                    // Apply cell border
+                    // Apply cell border if enabled
                     if (customization.cellBorderEnabled) {
-                        const borderAlpha = (100 - customization.cellBorderTransparency) / 100;
-                        const borderColor = hexToRgba(customization.cellBorderColor, borderAlpha);
-                        cell.style.border = `${customization.cellBorderThickness}px solid ${borderColor}`;
+                        cell.style.border = `${customization.cellBorderThickness}px solid ${customization.cellBorderColor}`;
                     } else {
                         cell.style.border = 'none';
                     }
@@ -1783,9 +1681,7 @@
                         
                         // Apply border to FREE cell too
                         if (customization.cellBorderEnabled) {
-                            const borderAlpha = (100 - customization.cellBorderTransparency) / 100;
-                            const borderColor = hexToRgba(customization.cellBorderColor, borderAlpha);
-                            cell.style.border = `${customization.cellBorderThickness}px solid ${borderColor}`;
+                            cell.style.border = `${customization.cellBorderThickness}px solid ${customization.cellBorderColor}`;
                         }
                     }
                     
@@ -1799,12 +1695,7 @@
                             this.style.color = customization.buttonTextColor;
                         } else {
                             // Reapply transparency to unmarked cell
-                            let bgColor = customization.cellBackgroundColor;
-                            if (customization.cellTransparentEnabled) {
-                                const alpha = (100 - customization.cellTransparency) / 100;
-                                bgColor = hexToRgba(bgColor, alpha);
-                            }
-                            this.style.backgroundColor = bgColor;
+                            this.style.backgroundColor = 'transparent';
                             this.style.color = customization.cellNumberColor;
                         }
                     });
@@ -1812,27 +1703,6 @@
                     bingoGrid.appendChild(cell);
                 }
             }
-        }
-        
-        function hexToRgba(hex, alpha = 1) {
-            // Remove # if present
-            hex = hex.replace('#', '');
-            
-            // Parse r, g, b values
-            let r, g, b;
-            if (hex.length === 3) {
-                r = parseInt(hex[0] + hex[0], 16);
-                g = parseInt(hex[1] + hex[1], 16);
-                b = parseInt(hex[2] + hex[2], 16);
-            } else if (hex.length === 6) {
-                r = parseInt(hex.substring(0, 2), 16);
-                g = parseInt(hex.substring(2, 4), 16);
-                b = parseInt(hex.substring(4, 6), 16);
-            } else {
-                return `rgba(255, 255, 255, ${alpha})`;
-            }
-            
-            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
         
         function updatePasswordDisplay() {
@@ -1866,7 +1736,11 @@
         
         // ==================== COLOR VALIDATION FUNCTIONS ====================
         
-        function isValidHexColor(color) {
+        function isValidColor(color) {
+            // Check if it's a valid hex color or 'transparent' or rgba
+            if (color === 'transparent') return true;
+            if (color.startsWith('rgba(') && color.endsWith(')')) return true;
+            if (color.startsWith('rgb(') && color.endsWith(')')) return true;
             return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
         }
         
@@ -1880,15 +1754,17 @@
             
             textInput.addEventListener('input', function() {
                 const color = this.value.trim();
-                if (isValidHexColor(color)) {
+                if (color === 'transparent') {
+                    picker.value = '#ffffff'; // Can't set transparent to color picker
+                } else if (isValidColor(color)) {
                     picker.value = color;
                 }
             });
             
             textInput.addEventListener('blur', function() {
                 const color = this.value.trim();
-                if (!isValidHexColor(color) && color !== '') {
-                    showCustomAlert('Invalid color format. Please use #RRGGBB format (e.g., #FF0000 for red).');
+                if (!isValidColor(color) && color !== '') {
+                    showCustomAlert('Invalid color format. Please use #RRGGBB format, "transparent", or rgba(R,G,B,A).');
                     this.value = picker.value;
                 }
             });
@@ -1932,45 +1808,16 @@
                 document.body.style.backgroundSize = 'cover';
                 document.body.style.backgroundPosition = 'center';
                 document.body.style.backgroundAttachment = 'fixed';
+            } else if (customization.mainBackgroundColor === 'transparent') {
+                document.body.style.backgroundColor = 'transparent';
+                document.body.style.backgroundImage = 'none';
             } else {
                 document.body.style.backgroundImage = 'none';
                 document.body.style.backgroundColor = customization.mainBackgroundColor;
             }
             
-            // Apply card container background
-            const cardContainer = document.getElementById('bingoCardContainer');
-            if (customization.containerTransparent) {
-                cardContainer.style.background = 'transparent';
-                cardContainer.style.backgroundImage = 'none';
-            } else if (customization.containerBackgroundImage) {
-                cardContainer.style.background = `url('${customization.containerBackgroundImage}')`;
-                cardContainer.style.backgroundSize = 'cover';
-                cardContainer.style.backgroundPosition = 'center';
-            } else {
-                cardContainer.style.backgroundColor = customization.containerBackgroundColor;
-                cardContainer.style.backgroundImage = 'none';
-            }
-            
-            // Apply card background
-            const bingoGrid = document.getElementById('bingoGrid');
-            if (customization.cardBackgroundEnabled) {
-                if (customization.cardBackgroundTransparent) {
-                    bingoGrid.style.background = 'transparent';
-                    bingoGrid.style.backgroundImage = 'none';
-                } else if (customization.cardBackgroundImage) {
-                    bingoGrid.style.background = `url('${customization.cardBackgroundImage}')`;
-                    bingoGrid.style.backgroundSize = 'cover';
-                    bingoGrid.style.backgroundPosition = 'center';
-                } else {
-                    bingoGrid.style.background = customization.cardBackgroundColor;
-                    bingoGrid.style.backgroundImage = 'none';
-                }
-            } else {
-                bingoGrid.style.background = 'none';
-                bingoGrid.style.backgroundImage = 'none';
-            }
-            
             // Apply cell spacing
+            const bingoGrid = document.getElementById('bingoGrid');
             if (bingoGrid) {
                 bingoGrid.style.gap = customization.cellSpacing + 'px';
             }
@@ -2062,24 +1909,12 @@
             document.getElementById('headerTextColorText').value = customization.headerTextColor;
             document.getElementById('headerTransparent').checked = customization.headerTransparent;
             
-            document.getElementById('mainBackgroundColor').value = customization.mainBackgroundColor;
+            document.getElementById('mainBackgroundColor').value = customization.mainBackgroundColor === 'transparent' ? '#ffffff' : customization.mainBackgroundColor;
             document.getElementById('mainBackgroundColorText').value = customization.mainBackgroundColor;
             document.getElementById('mainTransparent').checked = customization.mainTransparent;
             
-            document.getElementById('containerBackgroundColor').value = customization.containerBackgroundColor;
-            document.getElementById('containerBackgroundColorText').value = customization.containerBackgroundColor;
-            document.getElementById('containerTransparent').checked = customization.containerTransparent;
-            
-            document.getElementById('cardBackgroundColor').value = customization.cardBackgroundColor;
-            document.getElementById('cardBackgroundColorText').value = customization.cardBackgroundColor;
-            document.getElementById('cardBackgroundEnabled').checked = customization.cardBackgroundEnabled;
-            document.getElementById('cardBackgroundTransparent').checked = customization.cardBackgroundTransparent;
-            
-            document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor;
+            document.getElementById('cellBackgroundColor').value = customization.cellBackgroundColor === 'transparent' ? '#ffffff' : customization.cellBackgroundColor;
             document.getElementById('cellBackgroundColorText').value = customization.cellBackgroundColor;
-            document.getElementById('cellTransparentEnabled').checked = customization.cellTransparentEnabled;
-            document.getElementById('cellTransparency').value = customization.cellTransparency;
-            document.getElementById('cellTransparencyValue').textContent = customization.cellTransparency + '%';
             
             document.getElementById('cellNumberColor').value = customization.cellNumberColor;
             document.getElementById('cellNumberColorText').value = customization.cellNumberColor;
@@ -2099,12 +1934,10 @@
             document.getElementById('cellBorderColorText').value = customization.cellBorderColor;
             document.getElementById('cellBorderThickness').value = customization.cellBorderThickness;
             document.getElementById('cellBorderThicknessValue').textContent = customization.cellBorderThickness + 'px';
-            document.getElementById('cellBorderTransparency').value = customization.cellBorderTransparency;
-            document.getElementById('cellBorderTransparencyValue').textContent = customization.cellBorderTransparency + '%';
             
             document.getElementById('primaryButtonColor').value = customization.primaryButtonColor;
             document.getElementById('primaryButtonColorText').value = customization.primaryButtonColor;
-            document.getElementById('secondaryButtonColor').value = customization.secondaryButtonColor;
+            document.getElementById('secondaryButtonColor').value = customization.secondaryButtonColor === 'rgba(240, 240, 240, 0.9)' ? '#f0f0f0' : customization.secondaryButtonColor;
             document.getElementById('secondaryButtonColorText').value = customization.secondaryButtonColor;
             document.getElementById('dangerButtonColor').value = customization.dangerButtonColor;
             document.getElementById('dangerButtonColorText').value = customization.dangerButtonColor;
@@ -2123,20 +1956,12 @@
             document.getElementById('firebasePath').value = savedPath;
             
             // Show/hide dependent fields
-            toggleCellTransparencyGroup();
             toggleFreeCellTextGroup();
             toggleCellBorderGroups();
             
             // Update previews
             updatePreview('headerBackgroundPreview', customization.headerBackgroundImage);
             updatePreview('mainBackgroundPreview', customization.mainBackgroundImage);
-            updatePreview('containerBackgroundPreview', customization.containerBackgroundImage);
-            updatePreview('cardBackgroundPreview', customization.cardBackgroundImage);
-        }
-        
-        function toggleCellTransparencyGroup() {
-            const enabled = document.getElementById('cellTransparentEnabled').checked;
-            document.getElementById('cellTransparencyGroup').style.display = enabled ? 'block' : 'none';
         }
         
         function toggleFreeCellTextGroup() {
@@ -2148,7 +1973,6 @@
             const enabled = document.getElementById('cellBorderEnabled').checked;
             document.getElementById('cellBorderColorGroup').style.display = enabled ? 'flex' : 'none';
             document.getElementById('cellBorderThicknessGroup').style.display = enabled ? 'block' : 'none';
-            document.getElementById('cellBorderTransparencyGroup').style.display = enabled ? 'block' : 'none';
         }
         
         // ==================== UI FUNCTIONS ====================
@@ -2380,26 +2204,10 @@
                 loadImageAsBase64(this, function(base64) {
                     gameState.settings.customization.mainBackgroundImage = base64;
                     gameState.settings.customization.mainTransparent = false;
+                    gameState.settings.customization.mainBackgroundColor = 'transparent';
                     document.getElementById('mainTransparent').checked = false;
+                    document.getElementById('mainBackgroundColorText').value = 'transparent';
                     updatePreview('mainBackgroundPreview', base64);
-                });
-            });
-            
-            document.getElementById('containerBackgroundUpload').addEventListener('change', function() {
-                loadImageAsBase64(this, function(base64) {
-                    gameState.settings.customization.containerBackgroundImage = base64;
-                    gameState.settings.customization.containerTransparent = false;
-                    document.getElementById('containerTransparent').checked = false;
-                    updatePreview('containerBackgroundPreview', base64);
-                });
-            });
-            
-            document.getElementById('cardBackgroundUpload').addEventListener('change', function() {
-                loadImageAsBase64(this, function(base64) {
-                    gameState.settings.customization.cardBackgroundImage = base64;
-                    gameState.settings.customization.cardBackgroundTransparent = false;
-                    document.getElementById('cardBackgroundTransparent').checked = false;
-                    updatePreview('cardBackgroundPreview', base64);
                 });
             });
             
@@ -2407,8 +2215,6 @@
             updateColorInputFromPicker('headerBackgroundColor', 'headerBackgroundColorText');
             updateColorInputFromPicker('headerTextColor', 'headerTextColorText');
             updateColorInputFromPicker('mainBackgroundColor', 'mainBackgroundColorText');
-            updateColorInputFromPicker('containerBackgroundColor', 'containerBackgroundColorText');
-            updateColorInputFromPicker('cardBackgroundColor', 'cardBackgroundColorText');
             updateColorInputFromPicker('cellBackgroundColor', 'cellBackgroundColorText');
             updateColorInputFromPicker('cellNumberColor', 'cellNumberColorText');
             updateColorInputFromPicker('markedCellColor', 'markedCellColorText');
@@ -2436,18 +2242,6 @@
                 document.getElementById('cellSpacingValue').textContent = value + 'px';
             });
             
-            // Cell transparency handlers
-            document.getElementById('cellTransparentEnabled').addEventListener('change', function() {
-                gameState.settings.customization.cellTransparentEnabled = this.checked;
-                toggleCellTransparencyGroup();
-            });
-            
-            document.getElementById('cellTransparency').addEventListener('input', function() {
-                const value = this.value;
-                gameState.settings.customization.cellTransparency = parseInt(value);
-                document.getElementById('cellTransparencyValue').textContent = value + '%';
-            });
-            
             // FREE cell handlers
             document.getElementById('freeCellEnabled').addEventListener('change', function() {
                 gameState.settings.customization.freeCellEnabled = this.checked;
@@ -2472,12 +2266,6 @@
                 const value = this.value;
                 gameState.settings.customization.cellBorderThickness = parseInt(value);
                 document.getElementById('cellBorderThicknessValue').textContent = value + 'px';
-            });
-            
-            document.getElementById('cellBorderTransparency').addEventListener('input', function() {
-                const value = this.value;
-                gameState.settings.customization.cellBorderTransparency = parseInt(value);
-                document.getElementById('cellBorderTransparencyValue').textContent = value + '%';
             });
             
             // Color picker handlers
@@ -2512,40 +2300,8 @@
                 gameState.settings.customization.mainTransparent = this.checked;
                 if (this.checked) {
                     gameState.settings.customization.mainBackgroundImage = null;
-                }
-            });
-            
-            document.getElementById('containerBackgroundColor').addEventListener('change', function() {
-                gameState.settings.customization.containerBackgroundImage = null;
-                gameState.settings.customization.containerBackgroundColor = this.value;
-                gameState.settings.customization.containerTransparent = false;
-                document.getElementById('containerTransparent').checked = false;
-                updatePreview('containerBackgroundPreview', this.value, true);
-            });
-            
-            document.getElementById('containerTransparent').addEventListener('change', function() {
-                gameState.settings.customization.containerTransparent = this.checked;
-                if (this.checked) {
-                    gameState.settings.customization.containerBackgroundImage = null;
-                }
-            });
-            
-            document.getElementById('cardBackgroundColor').addEventListener('change', function() {
-                gameState.settings.customization.cardBackgroundImage = null;
-                gameState.settings.customization.cardBackgroundColor = this.value;
-                gameState.settings.customization.cardBackgroundTransparent = false;
-                document.getElementById('cardBackgroundTransparent').checked = false;
-                updatePreview('cardBackgroundPreview', this.value, true);
-            });
-            
-            document.getElementById('cardBackgroundEnabled').addEventListener('change', function() {
-                gameState.settings.customization.cardBackgroundEnabled = this.checked;
-            });
-            
-            document.getElementById('cardBackgroundTransparent').addEventListener('change', function() {
-                gameState.settings.customization.cardBackgroundTransparent = this.checked;
-                if (this.checked) {
-                    gameState.settings.customization.cardBackgroundImage = null;
+                    gameState.settings.customization.mainBackgroundColor = 'transparent';
+                    document.getElementById('mainBackgroundColorText').value = 'transparent';
                 }
             });
             
@@ -2624,40 +2380,14 @@
             
             document.getElementById('resetMainBackgroundBtn').addEventListener('click', function() {
                 gameState.settings.customization.mainBackgroundImage = null;
-                gameState.settings.customization.mainBackgroundColor = "#f5f5f5";
-                gameState.settings.customization.mainTransparent = false;
+                gameState.settings.customization.mainBackgroundColor = "transparent";
+                gameState.settings.customization.mainTransparent = true;
                 
-                document.getElementById('mainBackgroundColor').value = "#f5f5f5";
-                document.getElementById('mainBackgroundColorText').value = "#f5f5f5";
-                document.getElementById('mainTransparent').checked = false;
+                document.getElementById('mainBackgroundColor').value = "#ffffff";
+                document.getElementById('mainBackgroundColorText').value = "transparent";
+                document.getElementById('mainTransparent').checked = true;
                 
-                updatePreview('mainBackgroundPreview', "#f5f5f5", true);
-            });
-            
-            document.getElementById('resetContainerBackgroundBtn').addEventListener('click', function() {
-                gameState.settings.customization.containerBackgroundImage = null;
-                gameState.settings.customization.containerBackgroundColor = "#f8f9fa";
-                gameState.settings.customization.containerTransparent = false;
-                
-                document.getElementById('containerBackgroundColor').value = "#f8f9fa";
-                document.getElementById('containerBackgroundColorText').value = "#f8f9fa";
-                document.getElementById('containerTransparent').checked = false;
-                
-                updatePreview('containerBackgroundPreview', "#f8f9fa", true);
-            });
-            
-            document.getElementById('resetCardBackgroundBtn').addEventListener('click', function() {
-                gameState.settings.customization.cardBackgroundImage = null;
-                gameState.settings.customization.cardBackgroundColor = "#f8f9fa";
-                gameState.settings.customization.cardBackgroundEnabled = true;
-                gameState.settings.customization.cardBackgroundTransparent = false;
-                
-                document.getElementById('cardBackgroundColor').value = "#f8f9fa";
-                document.getElementById('cardBackgroundColorText').value = "#f8f9fa";
-                document.getElementById('cardBackgroundEnabled').checked = true;
-                document.getElementById('cardBackgroundTransparent').checked = false;
-                
-                updatePreview('cardBackgroundPreview', "#f8f9fa", true);
+                updatePreview('mainBackgroundPreview', "transparent", true);
             });
             
             document.getElementById('resetCellNumberBtn').addEventListener('click', function() {
@@ -2677,29 +2407,26 @@
                 gameState.settings.customization.cellBorderEnabled = false;
                 gameState.settings.customization.cellBorderColor = "#cccccc";
                 gameState.settings.customization.cellBorderThickness = 2;
-                gameState.settings.customization.cellBorderTransparency = 0;
                 
                 document.getElementById('cellBorderEnabled').checked = false;
                 document.getElementById('cellBorderColor').value = "#cccccc";
                 document.getElementById('cellBorderColorText').value = "#cccccc";
                 document.getElementById('cellBorderThickness').value = 2;
                 document.getElementById('cellBorderThicknessValue').textContent = "2px";
-                document.getElementById('cellBorderTransparency').value = 0;
-                document.getElementById('cellBorderTransparencyValue').textContent = "0%";
                 
                 toggleCellBorderGroups();
             });
             
             document.getElementById('resetButtonsBtn').addEventListener('click', function() {
                 gameState.settings.customization.primaryButtonColor = "#6a11cb";
-                gameState.settings.customization.secondaryButtonColor = "#f0f0f0";
+                gameState.settings.customization.secondaryButtonColor = "rgba(240, 240, 240, 0.9)";
                 gameState.settings.customization.dangerButtonColor = "#dc3545";
                 gameState.settings.customization.buttonTextColor = "#ffffff";
                 
                 document.getElementById('primaryButtonColor').value = "#6a11cb";
                 document.getElementById('primaryButtonColorText').value = "#6a11cb";
                 document.getElementById('secondaryButtonColor').value = "#f0f0f0";
-                document.getElementById('secondaryButtonColorText').value = "#f0f0f0";
+                document.getElementById('secondaryButtonColorText').value = "rgba(240, 240, 240, 0.9)";
                 document.getElementById('dangerButtonColor').value = "#dc3545";
                 document.getElementById('dangerButtonColorText').value = "#dc3545";
                 document.getElementById('buttonTextColor').value = "#ffffff";
@@ -2922,12 +2649,9 @@
             gameState.settings.customization.freeCellText = document.getElementById('freeCellText').value;
             
             // Update toggle settings
-            gameState.settings.customization.cellTransparentEnabled = document.getElementById('cellTransparentEnabled').checked;
-            gameState.settings.customization.cellTransparency = parseInt(document.getElementById('cellTransparency').value);
             gameState.settings.customization.freeCellEnabled = document.getElementById('freeCellEnabled').checked;
             gameState.settings.customization.cellBorderEnabled = document.getElementById('cellBorderEnabled').checked;
             gameState.settings.customization.cellBorderThickness = parseInt(document.getElementById('cellBorderThickness').value);
-            gameState.settings.customization.cellBorderTransparency = parseInt(document.getElementById('cellBorderTransparency').value);
             
             // Update cell number settings
             gameState.settings.customization.cellNumberColor = document.getElementById('cellNumberColor').value;
@@ -2939,8 +2663,6 @@
                 { picker: 'headerBackgroundColorText', setting: 'headerBackgroundColor' },
                 { picker: 'headerTextColorText', setting: 'headerTextColor' },
                 { picker: 'mainBackgroundColorText', setting: 'mainBackgroundColor' },
-                { picker: 'containerBackgroundColorText', setting: 'containerBackgroundColor' },
-                { picker: 'cardBackgroundColorText', setting: 'cardBackgroundColor' },
                 { picker: 'cellBackgroundColorText', setting: 'cellBackgroundColor' },
                 { picker: 'cellNumberColorText', setting: 'cellNumberColor' },
                 { picker: 'markedCellColorText', setting: 'markedCellColor' },
@@ -2955,8 +2677,8 @@
             let hasInvalidColor = false;
             colorsToValidate.forEach(color => {
                 const colorValue = document.getElementById(color.picker).value.trim();
-                if (colorValue && !isValidHexColor(colorValue)) {
-                    showCustomAlert(`Invalid color format for ${color.setting}. Please use #RRGGBB format.`);
+                if (colorValue && !isValidColor(colorValue)) {
+                    showCustomAlert(`Invalid color format for ${color.setting}. Please use #RRGGBB format, "transparent", or rgba(R,G,B,A).`);
                     hasInvalidColor = true;
                     return;
                 }
@@ -2970,9 +2692,6 @@
             // Update transparency settings
             gameState.settings.customization.headerTransparent = document.getElementById('headerTransparent').checked;
             gameState.settings.customization.mainTransparent = document.getElementById('mainTransparent').checked;
-            gameState.settings.customization.containerTransparent = document.getElementById('containerTransparent').checked;
-            gameState.settings.customization.cardBackgroundEnabled = document.getElementById('cardBackgroundEnabled').checked;
-            gameState.settings.customization.cardBackgroundTransparent = document.getElementById('cardBackgroundTransparent').checked;
             
             // Apply customizations immediately
             applyCustomizations();
