@@ -144,8 +144,15 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #FF6B35;
             background: rgba(0, 0, 0, 0.3);
+        }
+
+        .password-note {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 5px;
+            text-align: center;
         }
 
         /* Buttons */
@@ -347,7 +354,7 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        .control-group input, .control-group select {
+        .control-group input, .control-group select, .control-group textarea {
             width: 100%;
             padding: 12px 15px;
             border-radius: var(--border-radius);
@@ -356,9 +363,15 @@
             color: white;
             font-size: 0.95rem;
             transition: var(--transition);
+            font-family: 'Poppins', sans-serif;
         }
 
-        .control-group input:focus, .control-group select:focus {
+        .control-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .control-group input:focus, .control-group select:focus, .control-group textarea:focus {
             outline: none;
             border-color: #FF6B35;
         }
@@ -376,44 +389,63 @@
             border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Player List */
-        .player-list {
+        /* Player List Management */
+        .player-list-editor {
             max-height: 200px;
             overflow-y: auto;
             background: rgba(0, 0, 0, 0.2);
             border-radius: var(--border-radius);
-            padding: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
-        .player-item {
+        .player-list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 15px;
+            padding: 10px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
             margin-bottom: 8px;
         }
 
-        .player-item:last-child {
+        .player-list-item:last-child {
             margin-bottom: 0;
         }
 
-        .player-item-info {
+        .player-list-item input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px;
+            font-size: 0.95rem;
+        }
+
+        .player-list-item input:focus {
+            outline: none;
+        }
+
+        .player-list-controls {
             display: flex;
-            flex-direction: column;
+            gap: 10px;
         }
 
-        .player-item-name {
-            font-weight: 600;
-            text-transform: capitalize;
+        .player-list-controls button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .player-item-lucky {
-            font-size: 0.8rem;
-            color: #06D6A0;
-            font-weight: 700;
-            letter-spacing: 1px;
+        .player-list-controls button:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         /* Tabs */
@@ -563,7 +595,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>MX BINGO</h1>
+            <h1 id="headerTitle">MX BINGO</h1>
             <div class="player-info hidden" id="playerInfo">
                 <div class="player-name" id="playerNameDisplay">Player Name</div>
                 <div class="lucky-number" id="luckyNumberDisplay">1234</div>
@@ -587,17 +619,17 @@
 
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <h2>Welcome to MX BINGO!</h2>
+            <h2 id="welcomeText">Welcome to MX BINGO!</h2>
             <div class="input-group">
                 <label for="playerName">Player Name</label>
-                <input type="text" id="playerName" placeholder="Enter your name">
+                <input type="text" id="playerName" placeholder="Enter your name or 'admin' for admin">
             </div>
             <div class="input-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" placeholder="Enter password">
+                <div class="password-note" id="passwordNote">Use the general password provided by admin</div>
             </div>
-            <button class="btn btn-primary" id="loginBtn">Login as Player</button>
-            <button class="btn btn-secondary" id="adminLoginBtn">Admin Login</button>
+            <button class="btn btn-primary" id="loginBtn">Login</button>
         </div>
 
         <!-- Player Game Screen -->
@@ -660,6 +692,22 @@
                 </div>
                 
                 <div class="admin-section">
+                    <h3><i class="fas fa-palette"></i> Text Customization</h3>
+                    <div class="control-group">
+                        <label for="headerText">Header Title</label>
+                        <input type="text" id="headerText" value="MX BINGO">
+                    </div>
+                    <div class="control-group">
+                        <label for="welcomeTextInput">Welcome Text</label>
+                        <input type="text" id="welcomeTextInput" value="Welcome to MX BINGO!">
+                    </div>
+                    <div class="control-group">
+                        <label for="generalPassword">General Password (for all players)</label>
+                        <input type="text" id="generalPassword" value="bingo123">
+                    </div>
+                </div>
+                
+                <div class="admin-section">
                     <h3><i class="fas fa-palette"></i> Design Settings</h3>
                     <div class="admin-controls">
                         <div class="control-group">
@@ -685,7 +733,7 @@
                 </div>
                 
                 <button class="btn btn-primary" id="saveSettingsBtn">
-                    <i class="fas fa-save"></i> Save Settings
+                    <i class="fas fa-save"></i> Save All Settings
                 </button>
                 <button class="btn btn-secondary" id="resetPlayersBtn">
                     <i class="fas fa-trash"></i> Reset All Players
@@ -695,9 +743,29 @@
             <!-- Players Tab -->
             <div class="tab-content" id="playersTab">
                 <div class="admin-section">
-                    <h3><i class="fas fa-list"></i> Player List</h3>
+                    <h3><i class="fas fa-list"></i> Player List Management</h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 15px; font-size: 0.9rem;">
+                        Add players who are allowed to join. Each player will be automatically assigned a 4-digit lucky number.
+                    </p>
+                    
+                    <div class="player-list-editor" id="playerListEditor">
+                        <!-- Player list items will be added here -->
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary btn-small" id="addPlayerBtn">
+                            <i class="fas fa-plus"></i> Add Player
+                        </button>
+                        <button class="btn btn-secondary btn-small" id="importPlayersBtn">
+                            <i class="fas fa-file-import"></i> Import List
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3><i class="fas fa-users"></i> Registered Players</h3>
                     <div class="player-list" id="playerListContainer">
-                        <!-- Player list will be populated here -->
+                        <!-- Registered players will be populated here -->
                     </div>
                 </div>
             </div>
@@ -727,27 +795,14 @@
         // FIREBASE CONFIGURATION FOR MX BINGO
         // ===========================================
         const firebaseConfig = {
-            // You need to get the actual apiKey from Firebase Console
-            // Go to: Project Settings > General > Your apps > SDK setup and configuration
             apiKey: "AIzaSyB01PdqxQOdevXQNcYJMGzuYmG1u-S77ec",
-  authDomain: "mx-bingo.firebaseapp.com",
-  databaseURL: "https://mx-bingo-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "mx-bingo",
-  storageBucket: "mx-bingo.firebasestorage.app",
-  messagingSenderId: "480388469034",
-  appId: "1:480388469034:web:a6edab28faf37e3e0c4e53"
+            authDomain: "mx-bingo.firebaseapp.com",
+            databaseURL: "https://mx-bingo-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "mx-bingo",
+            storageBucket: "mx-bingo.firebasestorage.app",
+            messagingSenderId: "480388469034",
+            appId: "1:480388469034:web:a6edab28faf37e3e0c4e53"
         };
-
-        // ===========================================
-        // HOW TO GET YOUR API KEY AND APP ID:
-        // ===========================================
-        // 1. Go to https://console.firebase.google.com/
-        // 2. Select your "mx-bingo" project
-        // 3. Click the gear icon ⚙️ > Project settings
-        // 4. Scroll down to "Your apps" section
-        // 5. Click on your web app (or register one if not done)
-        // 6. Copy the "apiKey" and "appId" values
-        // 7. Replace them in the config above
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -764,7 +819,11 @@
             gameActive: false,
             cellColor: "#4361ee",
             cellBorder: "2px solid #4361ee",
-            backgroundColor: "#1a1a2e"
+            backgroundColor: "#1a1a2e",
+            headerText: "MX BINGO",
+            welcomeText: "Welcome to MX BINGO!",
+            generalPassword: "bingo123",
+            allowedPlayers: []  // List of players allowed to join
         };
 
         // DOM Elements
@@ -783,12 +842,14 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const loginBtn = document.getElementById('loginBtn');
-        const adminLoginBtn = document.getElementById('adminLoginBtn');
         const adminTabs = document.getElementById('adminTabs');
         const gameStatus = document.getElementById('gameStatus');
         const statusIndicator = document.getElementById('statusIndicator');
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notificationText');
+        const headerTitle = document.getElementById('headerTitle');
+        const welcomeText = document.getElementById('welcomeText');
+        const passwordNote = document.getElementById('passwordNote');
 
         // Admin controls
         const maxPlayersInput = document.getElementById('maxPlayers');
@@ -797,9 +858,15 @@
         const cellColorInput = document.getElementById('cellColor');
         const cellBorderInput = document.getElementById('cellBorder');
         const backgroundColorInput = document.getElementById('backgroundColor');
+        const headerTextInput = document.getElementById('headerText');
+        const welcomeTextInput = document.getElementById('welcomeTextInput');
+        const generalPasswordInput = document.getElementById('generalPassword');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const resetPlayersBtn = document.getElementById('resetPlayersBtn');
         const playerListContainer = document.getElementById('playerListContainer');
+        const playerListEditor = document.getElementById('playerListEditor');
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        const importPlayersBtn = document.getElementById('importPlayersBtn');
         const cellColorPreview = document.getElementById('cellColorPreview');
         const backgroundColorPreview = document.getElementById('backgroundColorPreview');
 
@@ -981,7 +1048,21 @@
             }, 3000);
         }
 
-        // Login as player
+        // Format player name: first character uppercase, rest lowercase
+        function formatPlayerName(name) {
+            if (!name) return '';
+            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        }
+
+        // Check if player is in allowed list
+        function isPlayerAllowed(playerName) {
+            const formattedName = formatPlayerName(playerName);
+            return gameSettings.allowedPlayers.some(player => 
+                player.name.toLowerCase() === formattedName.toLowerCase()
+            );
+        }
+
+        // Login function (combined for both player and admin)
         loginBtn.addEventListener('click', async function() {
             const playerName = document.getElementById('playerName').value.trim();
             const password = document.getElementById('password').value.trim();
@@ -991,81 +1072,111 @@
                 return;
             }
             
-            // Format name: first character uppercase, rest lowercase
-            const formattedName = playerName.charAt(0).toUpperCase() + playerName.slice(1).toLowerCase();
+            if (!password) {
+                showNotification('Please enter password', false);
+                return;
+            }
+            
+            // Check if it's admin login
+            if (playerName.toLowerCase() === 'admin' && password === '1234') {
+                // Admin login
+                isAdmin = true;
+                currentUser = { name: 'Admin' };
+                
+                // Show admin panel
+                loginScreen.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                adminTabs.classList.remove('hidden');
+                gameStatus.classList.remove('hidden');
+                
+                // Load settings from Firebase
+                loadSettings();
+                
+                // Load player list
+                loadPlayerList();
+                
+                // Generate preview card
+                const previewCard = generateBingoCard();
+                renderBingoGrid(previewCard, previewGrid, true);
+                
+                showNotification('Admin login successful');
+                return;
+            }
+            
+            // Regular player login
+            const formattedName = formatPlayerName(playerName);
+            
+            // Check if game is active
+            if (!gameSettings.gameActive) {
+                showNotification('Game is not active. Cannot login.', false);
+                return;
+            }
+            
+            // Check if player is in allowed list
+            if (!isPlayerAllowed(formattedName)) {
+                showNotification('Player not in allowed list. Please contact admin.', false);
+                return;
+            }
+            
+            // Check password (non-case sensitive, using general password)
+            if (password.toLowerCase() !== gameSettings.generalPassword.toLowerCase()) {
+                showNotification('Incorrect password', false);
+                return;
+            }
             
             // Check if player exists in Firebase
             const playersRef = database.ref('players');
             const snapshot = await playersRef.orderByChild('name').equalTo(formattedName).once('value');
             
             if (snapshot.exists()) {
-                // Player exists, check password
+                // Player exists, login
                 let playerData;
                 snapshot.forEach(child => {
                     playerData = child.val();
                     playerData.id = child.key;
                 });
                 
-                // Check password (non-case sensitive)
-                if (playerData.password.toLowerCase() === password.toLowerCase()) {
-                    // Login successful
-                    currentUser = {
-                        id: playerData.id,
-                        name: formattedName,
-                        luckyNumber: playerData.luckyNumber
-                    };
-                    
-                    // Load player cards
-                    playerCards = playerData.cards || [];
-                    
-                    // If no cards exist, generate them
-                    if (playerCards.length === 0) {
-                        for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
-                            playerCards.push({
-                                numbers: generateBingoCard(),
-                                marked: {}
-                            });
-                        }
-                        // Save to Firebase
-                        await playersRef.child(playerData.id).update({ cards: playerCards });
+                // Login successful
+                currentUser = {
+                    id: playerData.id,
+                    name: formattedName,
+                    luckyNumber: playerData.luckyNumber
+                };
+                
+                // Load player cards
+                playerCards = playerData.cards || [];
+                
+                // If no cards exist, generate them
+                if (playerCards.length === 0) {
+                    for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
+                        playerCards.push({
+                            numbers: generateBingoCard(),
+                            marked: {}
+                        });
                     }
-                    
-                    // Show player screen
-                    loginScreen.classList.add('hidden');
-                    playerScreen.classList.remove('hidden');
-                    playerInfo.classList.remove('hidden');
-                    
-                    // Update player info
-                    playerNameDisplay.textContent = formattedName;
-                    luckyNumberDisplay.textContent = playerData.luckyNumber;
-                    
-                    // Update card navigation
-                    currentCardIndex = 0;
-                    updateCardNavigation();
-                    
-                    showNotification(`Welcome back, ${formattedName}!`);
-                } else {
-                    showNotification('Incorrect password', false);
+                    // Save to Firebase
+                    await playersRef.child(playerData.id).update({ cards: playerCards });
                 }
+                
+                // Show player screen
+                loginScreen.classList.add('hidden');
+                playerScreen.classList.remove('hidden');
+                playerInfo.classList.remove('hidden');
+                
+                // Update player info
+                playerNameDisplay.textContent = formattedName;
+                luckyNumberDisplay.textContent = playerData.luckyNumber;
+                
+                // Update card navigation
+                currentCardIndex = 0;
+                updateCardNavigation();
+                
+                showNotification(`Welcome back, ${formattedName}!`);
             } else {
-                // Check if game is active and we can add new players
-                if (!gameSettings.gameActive) {
-                    showNotification('Game is not active. New players cannot join.', false);
-                    return;
-                }
-                
-                // Check if max players reached
-                const allPlayers = await playersRef.once('value');
-                if (allPlayers.numChildren() >= gameSettings.maxPlayers) {
-                    showNotification('Maximum players reached. Cannot join game.', false);
-                    return;
-                }
-                
                 // Create new player
                 const luckyNumber = generateLuckyNumber();
                 const newPlayer = {
                     name: formattedName,
-                    password: password || 'bingo123', // Default password if none provided
                     luckyNumber: luckyNumber,
                     joinedAt: new Date().toISOString(),
                     cards: []
@@ -1108,38 +1219,6 @@
             }
         });
 
-        // Login as admin
-        adminLoginBtn.addEventListener('click', function() {
-            const playerName = document.getElementById('playerName').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            // Admin credentials
-            if (playerName.toLowerCase() === 'admin' && password === '1234') {
-                isAdmin = true;
-                currentUser = { name: 'Admin' };
-                
-                // Show admin panel
-                loginScreen.classList.add('hidden');
-                adminPanel.classList.remove('hidden');
-                adminTabs.classList.remove('hidden');
-                gameStatus.classList.remove('hidden');
-                
-                // Load settings from Firebase
-                loadSettings();
-                
-                // Load player list
-                loadPlayerList();
-                
-                // Generate preview card
-                const previewCard = generateBingoCard();
-                renderBingoGrid(previewCard, previewGrid, true);
-                
-                showNotification('Admin login successful');
-            } else {
-                showNotification('Invalid admin credentials', false);
-            }
-        });
-
         // Load settings from Firebase
         async function loadSettings() {
             const settingsRef = database.ref('settings');
@@ -1155,6 +1234,14 @@
                 cellColorInput.value = gameSettings.cellColor;
                 cellBorderInput.value = gameSettings.cellBorder;
                 backgroundColorInput.value = gameSettings.backgroundColor;
+                headerTextInput.value = gameSettings.headerText || "MX BINGO";
+                welcomeTextInput.value = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
+                
+                // Update displayed texts
+                headerTitle.textContent = gameSettings.headerText || "MX BINGO";
+                welcomeText.textContent = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                passwordNote.textContent = `Use password: ${gameSettings.generalPassword || "bingo123"}`;
                 
                 // Update color previews
                 cellColorPreview.style.backgroundColor = gameSettings.cellColor;
@@ -1165,7 +1252,114 @@
                 
                 // Apply styling
                 applyCellStyling();
+                
+                // Render player list editor
+                renderPlayerListEditor();
             }
+        }
+
+        // Render player list editor
+        function renderPlayerListEditor() {
+            playerListEditor.innerHTML = '';
+            
+            if (!gameSettings.allowedPlayers || gameSettings.allowedPlayers.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.textContent = 'No players added yet. Click "Add Player" to add players.';
+                emptyMessage.style.color = 'rgba(255, 255, 255, 0.5)';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.padding = '20px';
+                playerListEditor.appendChild(emptyMessage);
+                return;
+            }
+            
+            gameSettings.allowedPlayers.forEach((player, index) => {
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-list-item';
+                playerItem.innerHTML = `
+                    <input type="text" value="${player.name}" data-index="${index}" placeholder="Player Name">
+                    <div class="player-list-controls">
+                        <button class="remove-player" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                playerListEditor.appendChild(playerItem);
+            });
+            
+            // Add event listeners for remove buttons
+            document.querySelectorAll('.remove-player').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    removePlayerFromList(index);
+                });
+            });
+            
+            // Add event listeners for input changes
+            document.querySelectorAll('#playerListEditor input').forEach(input => {
+                input.addEventListener('change', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    const newName = this.value.trim();
+                    if (newName) {
+                        updatePlayerInList(index, newName);
+                    }
+                });
+            });
+        }
+
+        // Add player to list
+        function addPlayerToList() {
+            if (!gameSettings.allowedPlayers) {
+                gameSettings.allowedPlayers = [];
+            }
+            
+            const newPlayer = {
+                name: `Player ${gameSettings.allowedPlayers.length + 1}`,
+                luckyNumber: generateLuckyNumber()
+            };
+            
+            gameSettings.allowedPlayers.push(newPlayer);
+            renderPlayerListEditor();
+        }
+
+        // Update player in list
+        function updatePlayerInList(index, newName) {
+            if (gameSettings.allowedPlayers && gameSettings.allowedPlayers[index]) {
+                gameSettings.allowedPlayers[index].name = formatPlayerName(newName);
+            }
+        }
+
+        // Remove player from list
+        function removePlayerFromList(index) {
+            if (gameSettings.allowedPlayers && gameSettings.allowedPlayers[index]) {
+                gameSettings.allowedPlayers.splice(index, 1);
+                renderPlayerListEditor();
+            }
+        }
+
+        // Import players from text
+        function importPlayersFromText() {
+            const text = prompt('Enter player names (one per line):');
+            if (!text) return;
+            
+            const names = text.split('\n').filter(name => name.trim() !== '');
+            if (names.length === 0) return;
+            
+            if (!gameSettings.allowedPlayers) {
+                gameSettings.allowedPlayers = [];
+            }
+            
+            names.forEach(name => {
+                const trimmedName = name.trim();
+                if (trimmedName) {
+                    gameSettings.allowedPlayers.push({
+                        name: formatPlayerName(trimmedName),
+                        luckyNumber: generateLuckyNumber()
+                    });
+                }
+            });
+            
+            renderPlayerListEditor();
+            showNotification(`Imported ${names.length} players`);
         }
 
         // Update game status indicator
@@ -1179,7 +1373,7 @@
             }
         }
 
-        // Load player list
+        // Load player list (registered players)
         async function loadPlayerList() {
             const playersRef = database.ref('players');
             const snapshot = await playersRef.once('value');
@@ -1187,7 +1381,7 @@
             playerListContainer.innerHTML = '';
             
             if (!snapshot.exists()) {
-                playerListContainer.innerHTML = '<div class="player-item">No players yet</div>';
+                playerListContainer.innerHTML = '<div class="player-item">No players registered yet</div>';
                 return;
             }
             
@@ -1215,11 +1409,20 @@
                 gameActive: gameActiveSelect.value === 'true',
                 cellColor: cellColorInput.value,
                 cellBorder: cellBorderInput.value,
-                backgroundColor: backgroundColorInput.value
+                backgroundColor: backgroundColorInput.value,
+                headerText: headerTextInput.value,
+                welcomeText: welcomeTextInput.value,
+                generalPassword: generalPasswordInput.value,
+                allowedPlayers: gameSettings.allowedPlayers || []
             };
             
             // Save to Firebase
             await database.ref('settings').set(gameSettings);
+            
+            // Update displayed texts
+            headerTitle.textContent = gameSettings.headerText;
+            welcomeText.textContent = gameSettings.welcomeText;
+            passwordNote.textContent = `Use password: ${gameSettings.generalPassword}`;
             
             // Update color previews
             cellColorPreview.style.backgroundColor = gameSettings.cellColor;
@@ -1231,16 +1434,26 @@
             // Apply styling
             applyCellStyling();
             
-            showNotification('Settings saved successfully!');
+            showNotification('All settings saved successfully!');
         });
 
         // Reset all players
         resetPlayersBtn.addEventListener('click', async function() {
-            if (confirm('Are you sure you want to reset all players? This will remove all player data.')) {
+            if (confirm('Are you sure you want to reset all players? This will remove all registered player data.')) {
                 await database.ref('players').remove();
                 loadPlayerList();
                 showNotification('All players have been reset');
             }
+        });
+
+        // Add player button
+        addPlayerBtn.addEventListener('click', function() {
+            addPlayerToList();
+        });
+
+        // Import players button
+        importPlayersBtn.addEventListener('click', function() {
+            importPlayersFromText();
         });
 
         // Card navigation
@@ -1270,6 +1483,7 @@
         // Logout
         logoutBtn.addEventListener('click', function() {
             currentUser = null;
+            isAdmin = false;
             playerCards = [];
             currentCardIndex = 0;
             
@@ -1306,6 +1520,12 @@
         database.ref('settings').on('value', (snapshot) => {
             if (snapshot.exists() && !isAdmin) {
                 gameSettings = snapshot.val();
+                
+                // Update displayed texts
+                headerTitle.textContent = gameSettings.headerText || "MX BINGO";
+                welcomeText.textContent = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                passwordNote.textContent = `Use password: ${gameSettings.generalPassword || "bingo123"}`;
+                
                 applyCellStyling();
                 
                 // Update game status indicator if visible
@@ -1352,11 +1572,20 @@
             
             // Demo notification
             setTimeout(() => {
-                showNotification('Welcome to MX BINGO! Login as player or admin (admin/1234)');
+                showNotification('Welcome to MX BINGO! Enter "admin" as player name and "1234" as password for admin access.');
             }, 1000);
             
             // Check Firebase connection
             testFirebaseConnection();
+            
+            // Add initial player to list if empty
+            if (!gameSettings.allowedPlayers || gameSettings.allowedPlayers.length === 0) {
+                gameSettings.allowedPlayers = [
+                    { name: "Player 1", luckyNumber: generateLuckyNumber() },
+                    { name: "Player 2", luckyNumber: generateLuckyNumber() },
+                    { name: "Player 3", luckyNumber: generateLuckyNumber() }
+                ];
+            }
         });
 
         // Test Firebase connection
@@ -1365,7 +1594,8 @@
                 const testRef = database.ref('connectionTest');
                 await testRef.set({
                     timestamp: new Date().toISOString(),
-                    message: 'MX BINGO connected successfully'
+                    message: 'MX BINGO connected successfully',
+                    project: 'mx-bingo'
                 });
                 console.log('✅ Firebase connection successful for MX BINGO');
             } catch (error) {
