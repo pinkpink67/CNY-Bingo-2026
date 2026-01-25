@@ -245,12 +245,6 @@
             width: auto;
         }
 
-        .btn-logout {
-            background: rgba(247, 37, 133, 0.2);
-            color: var(--accent);
-            border: 1px solid rgba(247, 37, 133, 0.3);
-        }
-
         /* Card Container */
         .card-container {
             flex-grow: 1;
@@ -979,8 +973,6 @@
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-            
-            <button class="btn btn-logout" id="logoutBtn">Logout</button>
         </div>
 
         <!-- Admin Panel -->
@@ -1063,10 +1055,10 @@
                 </div>
                 
                 <div class="admin-section">
-                    <h3><i class="fas fa-palette"></i> Design Settings</h3>
+                    <h3><i class="fas fa-palette"></i> Cell Design Settings</h3>
                     <div class="admin-controls">
                         <div class="control-group">
-                            <label>Cell Color (RGB)</label>
+                            <label>Cell Background Color (RGB)</label>
                             <div class="rgb-inputs">
                                 <input type="number" id="cellColorR" min="0" max="255" value="67" placeholder="R">
                                 <input type="number" id="cellColorG" min="0" max="255" value="97" placeholder="G">
@@ -1074,11 +1066,34 @@
                             </div>
                         </div>
                         <div class="control-group">
-                            <label for="cellBorder">Cell Border</label>
-                            <input type="text" id="cellBorder" placeholder="2px solid #4361ee" value="2px solid #4361ee">
+                            <label>Cell Number Color (RGB)</label>
+                            <div class="rgb-inputs">
+                                <input type="number" id="cellNumberColorR" min="0" max="255" value="255" placeholder="R">
+                                <input type="number" id="cellNumberColorG" min="0" max="255" value="255" placeholder="G">
+                                <input type="number" id="cellNumberColorB" min="0" max="255" value="255" placeholder="B">
+                            </div>
                         </div>
                     </div>
                     
+                    <div class="admin-controls">
+                        <div class="control-group">
+                            <label for="cellNumberSize">Cell Number Font Size (px)</label>
+                            <input type="number" id="cellNumberSize" min="8" max="30" value="16">
+                        </div>
+                        <div class="control-group">
+                            <label for="cellSpacing">Cell Spacing (px)</label>
+                            <input type="number" id="cellSpacing" min="0" max="20" value="8">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="cellBorder">Cell Border</label>
+                        <input type="text" id="cellBorder" placeholder="2px solid #4361ee" value="2px solid #4361ee">
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3><i class="fas fa-palette"></i> Background Settings</h3>
                     <div class="control-group">
                         <label>Background Color (RGB)</label>
                         <div class="rgb-inputs">
@@ -1157,7 +1172,7 @@
                 </div>
             </div>
             
-            <button class="btn btn-logout" id="adminLogoutBtn">Logout</button>
+            <button class="btn btn-secondary" id="adminLogoutBtn">Logout</button>
         </div>
 
         <!-- Import Modal -->
@@ -1231,6 +1246,11 @@
             cellColorR: 67,
             cellColorG: 97,
             cellColorB: 238,
+            cellNumberColorR: 255,
+            cellNumberColorG: 255,
+            cellNumberColorB: 255,
+            cellNumberSize: 16,
+            cellSpacing: 8,
             cellBorder: "2px solid #4361ee",
             bgColorR: 26,
             bgColorG: 26,
@@ -1244,7 +1264,7 @@
             playerNameColorR: 255,
             playerNameColorG: 255,
             playerNameColorB: 255,
-            playerNameSize: 35, // Default 35px as requested
+            playerNameSize: 35,
             allowedPlayers: []
         };
 
@@ -1262,7 +1282,6 @@
         const prevCardBtn = document.getElementById('prevCardBtn');
         const nextCardBtn = document.getElementById('nextCardBtn');
         const clearCardBtn = document.getElementById('clearCardBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
         const adminLogoutBtn = document.getElementById('adminLogoutBtn');
         const loginBtn = document.getElementById('loginBtn');
         const adminTabs = document.getElementById('adminTabs');
@@ -1288,6 +1307,11 @@
         const cellColorRInput = document.getElementById('cellColorR');
         const cellColorGInput = document.getElementById('cellColorG');
         const cellColorBInput = document.getElementById('cellColorB');
+        const cellNumberColorRInput = document.getElementById('cellNumberColorR');
+        const cellNumberColorGInput = document.getElementById('cellNumberColorG');
+        const cellNumberColorBInput = document.getElementById('cellNumberColorB');
+        const cellNumberSizeInput = document.getElementById('cellNumberSize');
+        const cellSpacingInput = document.getElementById('cellSpacing');
         const cellBorderInput = document.getElementById('cellBorder');
         const bgColorRInput = document.getElementById('bgColorR');
         const bgColorGInput = document.getElementById('bgColorG');
@@ -1378,38 +1402,90 @@
             return number;
         }
 
-        // Generate a BINGO card with random numbers
+        // Generate a unique BINGO card with no duplicates across all players
+        async function generateUniqueBingoCard() {
+            let card;
+            let isUnique = false;
+            let attempts = 0;
+            const maxAttempts = 100;
+            
+            while (!isUnique && attempts < maxAttempts) {
+                card = generateBingoCard();
+                
+                // Check if this card already exists for any player
+                const playersRef = database.ref('players');
+                const snapshot = await playersRef.once('value');
+                
+                let cardExists = false;
+                if (snapshot.exists()) {
+                    snapshot.forEach(player => {
+                        const playerData = player.val();
+                        if (playerData.cards) {
+                            playerData.cards.forEach(playerCard => {
+                                if (JSON.stringify(playerCard.numbers) === JSON.stringify(card)) {
+                                    cardExists = true;
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                if (!cardExists) {
+                    isUnique = true;
+                }
+                
+                attempts++;
+            }
+            
+            // If we couldn't find a unique card after max attempts, generate any card
+            if (!isUnique) {
+                console.warn('Could not generate unique card after', maxAttempts, 'attempts. Using random card.');
+                card = generateBingoCard();
+            }
+            
+            return card;
+        }
+
+        // Generate a BINGO card with random numbers (standard BINGO rules)
         function generateBingoCard() {
             const card = [];
             
             // B column: 1-15
-            for (let i = 0; i < 5; i++) {
-                card.push(Math.floor(Math.random() * 15) + 1);
+            const bNumbers = new Set();
+            while (bNumbers.size < 5) {
+                bNumbers.add(Math.floor(Math.random() * 15) + 1);
             }
+            card.push(...Array.from(bNumbers));
             
             // I column: 16-30
-            for (let i = 0; i < 5; i++) {
-                card.push(Math.floor(Math.random() * 15) + 16);
+            const iNumbers = new Set();
+            while (iNumbers.size < 5) {
+                iNumbers.add(Math.floor(Math.random() * 15) + 16);
             }
+            card.push(...Array.from(iNumbers));
             
             // N column: 31-45 (with FREE in the middle)
-            for (let i = 0; i < 5; i++) {
-                if (i === 2) {
-                    card.push('FREE');
-                } else {
-                    card.push(Math.floor(Math.random() * 15) + 31);
-                }
+            const nNumbers = new Set();
+            while (nNumbers.size < 4) {
+                nNumbers.add(Math.floor(Math.random() * 15) + 31);
             }
+            const nArray = Array.from(nNumbers);
+            nArray.splice(2, 0, 'FREE');
+            card.push(...nArray);
             
             // G column: 46-60
-            for (let i = 0; i < 5; i++) {
-                card.push(Math.floor(Math.random() * 15) + 46);
+            const gNumbers = new Set();
+            while (gNumbers.size < 5) {
+                gNumbers.add(Math.floor(Math.random() * 15) + 46);
             }
+            card.push(...Array.from(gNumbers));
             
             // O column: 61-75
-            for (let i = 0; i < 5; i++) {
-                card.push(Math.floor(Math.random() * 15) + 61);
+            const oNumbers = new Set();
+            while (oNumbers.size < 5) {
+                oNumbers.add(Math.floor(Math.random() * 15) + 61);
             }
+            card.push(...Array.from(oNumbers));
             
             return card;
         }
@@ -1560,6 +1636,9 @@
         function renderBingoGrid(card, container, isPreview = false) {
             container.innerHTML = '';
             
+            // Apply cell spacing from settings
+            container.style.gap = `${gameSettings.cellSpacing}px`;
+            
             // Add card cells (25 cells total - NO BINGO headers)
             for (let i = 0; i < 25; i++) {
                 const cell = document.createElement('div');
@@ -1570,6 +1649,11 @@
                 if (card[i] === 'FREE') {
                     cell.classList.add('free');
                 }
+                
+                // Apply cell number styling
+                const cellNumberColor = rgbToHex(gameSettings.cellNumberColorR, gameSettings.cellNumberColorG, gameSettings.cellNumberColorB);
+                cell.style.color = cellNumberColor;
+                cell.style.fontSize = `${gameSettings.cellNumberSize}px`;
                 
                 // For player cards, add click event to mark cells
                 if (!isPreview) {
@@ -1640,9 +1724,19 @@
         function applyCellStyling() {
             const cells = document.querySelectorAll('.cell:not(.cell-header)');
             const cellColor = rgbToHex(gameSettings.cellColorR, gameSettings.cellColorG, gameSettings.cellColorB);
+            const cellNumberColor = rgbToHex(gameSettings.cellNumberColorR, gameSettings.cellNumberColorG, gameSettings.cellNumberColorB);
+            
             cells.forEach(cell => {
                 cell.style.backgroundColor = cellColor;
                 cell.style.border = gameSettings.cellBorder;
+                cell.style.color = cellNumberColor;
+                cell.style.fontSize = `${gameSettings.cellNumberSize}px`;
+            });
+            
+            // Apply grid spacing
+            const grids = document.querySelectorAll('.bingo-grid');
+            grids.forEach(grid => {
+                grid.style.gap = `${gameSettings.cellSpacing}px`;
             });
             
             // Apply background color
@@ -1865,11 +1959,12 @@
                 // Load player cards
                 playerCards = playerData.cards || [];
                 
-                // If no cards exist, generate them
+                // If no cards exist, generate unique cards
                 if (playerCards.length === 0) {
                     for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
+                        const uniqueCard = await generateUniqueBingoCard();
                         playerCards.push({
-                            numbers: generateBingoCard(),
+                            numbers: uniqueCard,
                             marked: {}
                         });
                     }
@@ -1895,6 +1990,9 @@
                 currentCardIndex = 0;
                 updateCardNavigation();
                 
+                // Setup real-time listener for marked state changes
+                setupPlayerMarkedListener();
+                
                 showNotification(`Welcome back, ${formattedName}!`);
             } else {
                 // Create new player
@@ -1906,10 +2004,11 @@
                     cards: []
                 };
                 
-                // Generate cards for the player
+                // Generate unique cards for the player
                 for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
+                    const uniqueCard = await generateUniqueBingoCard();
                     newPlayer.cards.push({
-                        numbers: generateBingoCard(),
+                        numbers: uniqueCard,
                         marked: {}
                     });
                 }
@@ -1944,6 +2043,9 @@
                 currentCardIndex = 0;
                 updateCardNavigation();
                 
+                // Setup real-time listener for marked state changes
+                setupPlayerMarkedListener();
+                
                 showNotification(`Welcome to MX BINGO, ${formattedName}! Your lucky number is ${luckyNumber}`);
             }
         });
@@ -1964,6 +2066,11 @@
                 cellColorRInput.value = gameSettings.cellColorR || 67;
                 cellColorGInput.value = gameSettings.cellColorG || 97;
                 cellColorBInput.value = gameSettings.cellColorB || 238;
+                cellNumberColorRInput.value = gameSettings.cellNumberColorR || 255;
+                cellNumberColorGInput.value = gameSettings.cellNumberColorG || 255;
+                cellNumberColorBInput.value = gameSettings.cellNumberColorB || 255;
+                cellNumberSizeInput.value = gameSettings.cellNumberSize || 16;
+                cellSpacingInput.value = gameSettings.cellSpacing || 8;
                 cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                 bgColorRInput.value = gameSettings.bgColorR || 26;
                 bgColorGInput.value = gameSettings.bgColorG || 26;
@@ -2190,6 +2297,11 @@
                 cellColorR: parseInt(cellColorRInput.value),
                 cellColorG: parseInt(cellColorGInput.value),
                 cellColorB: parseInt(cellColorBInput.value),
+                cellNumberColorR: parseInt(cellNumberColorRInput.value),
+                cellNumberColorG: parseInt(cellNumberColorGInput.value),
+                cellNumberColorB: parseInt(cellNumberColorBInput.value),
+                cellNumberSize: parseInt(cellNumberSizeInput.value),
+                cellSpacing: parseInt(cellSpacingInput.value),
                 cellBorder: cellBorderInput.value,
                 bgColorR: parseInt(bgColorRInput.value),
                 bgColorG: parseInt(bgColorGInput.value),
@@ -2275,7 +2387,7 @@
             importModal.classList.add('hidden');
         });
 
-        // Card navigation
+        // Card navigation - Remember marked numbers when switching cards
         prevCardBtn.addEventListener('click', function() {
             if (currentCardIndex > 0) {
                 currentCardIndex--;
@@ -2288,24 +2400,6 @@
                 currentCardIndex++;
                 updateCardNavigation();
             }
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', function() {
-            currentUser = null;
-            isAdmin = false;
-            playerCards = [];
-            currentCardIndex = 0;
-            
-            playerScreen.classList.add('hidden');
-            gameHeader.classList.add('hidden');
-            loginScreen.classList.remove('hidden');
-            
-            // Clear login form
-            document.getElementById('playerName').value = '';
-            document.getElementById('password').value = '';
-            
-            showNotification('Logged out successfully');
         });
 
         // Admin logout
@@ -2326,8 +2420,7 @@
             showNotification('Admin logged out');
         });
 
-        // FIXED: Firebase real-time listeners - settings changes
-        // This listener should run ALWAYS, not just when !isAdmin
+        // Firebase real-time listeners - settings changes
         database.ref('settings').on('value', (snapshot) => {
             if (snapshot.exists()) {
                 const loadedSettings = snapshot.val();
@@ -2373,6 +2466,11 @@
                     cellColorRInput.value = gameSettings.cellColorR || 67;
                     cellColorGInput.value = gameSettings.cellColorG || 97;
                     cellColorBInput.value = gameSettings.cellColorB || 238;
+                    cellNumberColorRInput.value = gameSettings.cellNumberColorR || 255;
+                    cellNumberColorGInput.value = gameSettings.cellNumberColorG || 255;
+                    cellNumberColorBInput.value = gameSettings.cellNumberColorB || 255;
+                    cellNumberSizeInput.value = gameSettings.cellNumberSize || 16;
+                    cellSpacingInput.value = gameSettings.cellSpacing || 8;
                     cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                     bgColorRInput.value = gameSettings.bgColorR || 26;
                     bgColorGInput.value = gameSettings.bgColorG || 26;
@@ -2398,8 +2496,7 @@
             }
         });
 
-        // FIXED: Listen for marked state changes (for real-time sync)
-        // This should only run when player is logged in
+        // Setup real-time listener for marked state changes
         function setupPlayerMarkedListener() {
             if (currentUser && !isAdmin) {
                 database.ref('players/' + currentUser.id + '/cards').on('value', (snapshot) => {
