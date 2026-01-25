@@ -1,230 +1,1340 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mobile Bingo Game</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  body { font-family: 'Helvetica', sans-serif; background: #f2f2f2; }
-  .card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 10px auto; max-width: 320px; }
-  .cell { background: #fff; border: 1px solid #000; padding: 16px 0; text-align: center; font-weight: bold; font-size: 1.2rem; border-radius: 6px; user-select: none; }
-  .cell.marked { background: #4ade80; color: white; }
-  .btn { padding: 8px 16px; border-radius: 6px; font-weight: bold; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BINGO Mobile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #f72585;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            text-transform: capitalize;
+        }
+
+        .lucky-number {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 8px 12px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            min-width: 80px;
+            text-align: center;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Login Screen */
+        .login-screen {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 30px 25px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .login-screen h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 6px 0 rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary:hover, .btn-primary:active {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover, .btn-secondary:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-small {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            width: auto;
+        }
+
+        .btn-logout {
+            background: rgba(247, 37, 133, 0.2);
+            color: var(--accent);
+            border: 1px solid rgba(247, 37, 133, 0.3);
+        }
+
+        /* Card Container */
+        .card-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .bingo-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .card-header h3 {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .card-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        /* Bingo Grid */
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            user-select: none;
+            border: 2px solid transparent;
+        }
+
+        .cell:hover, .cell:active {
+            background: rgba(255, 255, 255, 0.12);
+            transform: scale(1.03);
+        }
+
+        .cell.marked {
+            background: linear-gradient(135deg, var(--success), #2a9d8f);
+            color: white;
+            box-shadow: 0 6px 0 rgba(76, 201, 240, 0.3);
+        }
+
+        .cell.free {
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            color: white;
+        }
+
+        .cell-header {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--accent);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        /* Card Navigation */
+        .card-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            gap: 15px;
+        }
+
+        .card-indicator {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .admin-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .admin-section h3 {
+            color: var(--success);
+            margin-bottom: 15px;
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-section h3 i {
+            font-size: 1.1rem;
+        }
+
+        .admin-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .control-group input, .control-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        .control-group input:focus, .control-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Player List */
+        .player-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            padding: 10px;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .player-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .player-item-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .player-item-name {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .player-item-lucky {
+            font-size: 0.8rem;
+            color: var(--success);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 15px 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            max-width: 90%;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            border-left: 5px solid var(--success);
+        }
+
+        .notification.error {
+            border-left: 5px solid var(--danger);
+        }
+
+        @keyframes slideIn {
+            from { top: -100px; opacity: 0; }
+            to { top: 20px; opacity: 1; }
+        }
+
+        /* Game Status */
+        .game-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-active {
+            background: rgba(76, 201, 240, 0.2);
+            color: var(--success);
+        }
+
+        .status-inactive {
+            background: rgba(108, 117, 125, 0.2);
+            color: var(--gray);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .player-name {
+                font-size: 1rem;
+            }
+            
+            .lucky-number {
+                padding: 6px 10px;
+                font-size: 1rem;
+                min-width: 70px;
+            }
+            
+            .cell {
+                font-size: 1rem;
+            }
+            
+            .admin-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Hide elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 30px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>BINGO MOBILE</h1>
+            <div class="player-info hidden" id="playerInfo">
+                <div class="player-name" id="playerNameDisplay">Player Name</div>
+                <div class="lucky-number" id="luckyNumberDisplay">1234</div>
+            </div>
+        </div>
 
-<!-- Login Screen -->
-<div id="login-screen" class="flex flex-col items-center justify-center min-h-screen">
-  <h1 class="text-3xl font-bold mb-4">Bingo Game</h1>
-  <input id="playerName" type="text" placeholder="Player Name" class="p-2 border rounded mb-2 w-64">
-  <input id="playerPass" type="password" placeholder="Password" class="p-2 border rounded mb-4 w-64">
-  <button id="loginBtn" class="bg-blue-500 text-white btn">Login</button>
-  <p id="loginError" class="text-red-500 mt-2"></p>
-</div>
+        <!-- Tabs for Admin -->
+        <div class="tabs hidden" id="adminTabs">
+            <div class="tab active" data-tab="settings">Settings</div>
+            <div class="tab" data-tab="players">Players</div>
+            <div class="tab" data-tab="preview">Preview</div>
+        </div>
 
-<!-- Player Dashboard -->
-<div id="player-dashboard" class="hidden flex flex-col items-center min-h-screen p-2">
-  <div class="flex justify-between w-full max-w-md mb-2">
-    <h2 id="playerDisplay" class="text-xl font-bold"></h2>
-    <div id="luckNumber" class="text-lg font-bold border px-2 rounded bg-yellow-200"></div>
-  </div>
-  <div id="cardContainer" class="card-grid"></div>
-  <div class="flex gap-4 mt-4">
-    <button id="backCard" class="bg-gray-400 btn">Back</button>
-    <button id="nextCard" class="bg-gray-400 btn">Next</button>
-  </div>
-  <button id="logoutBtn" class="mt-4 bg-red-500 text-white btn">Logout</button>
-</div>
+        <!-- Game Status Indicator -->
+        <div class="game-status hidden" id="gameStatus">
+            <div class="status-indicator status-inactive" id="statusIndicator">
+                <i class="fas fa-circle"></i>
+                <span>Game Not Active</span>
+            </div>
+        </div>
 
-<!-- Admin Dashboard -->
-<div id="admin-dashboard" class="hidden flex flex-col items-center min-h-screen p-4">
-  <h1 class="text-2xl font-bold mb-4">Admin Panel</h1>
-  <div class="flex flex-col max-w-md w-full">
-    <label>New Player Name:</label>
-    <input id="newPlayerName" type="text" class="p-2 border rounded mb-2">
-    <label>New Player Password:</label>
-    <input id="newPlayerPass" type="text" class="p-2 border rounded mb-2">
-    <button id="addPlayerBtn" class="bg-green-500 text-white btn mb-4">Add Player</button>
-    
-    <h2 class="text-xl font-bold mb-2">Players List</h2>
-    <ul id="playersList" class="mb-4"></ul>
+        <!-- Login Screen -->
+        <div class="login-screen" id="loginScreen">
+            <h2>Welcome to BINGO!</h2>
+            <div class="input-group">
+                <label for="playerName">Player Name</label>
+                <input type="text" id="playerName" placeholder="Enter your name">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+            </div>
+            <button class="btn btn-primary" id="loginBtn">Login as Player</button>
+            <button class="btn btn-secondary" id="adminLoginBtn">Admin Login</button>
+        </div>
 
-    <button id="resetAllBtn" class="bg-red-500 text-white btn mb-4">Reset All Players</button>
-    
-    <h2 class="text-xl font-bold mb-2">Bingo Settings</h2>
-    <label>Cards per Player (1-10):</label>
-    <input id="cardsPerPlayer" type="number" min="1" max="10" class="p-2 border rounded mb-2">
-    <button id="saveSettingsBtn" class="bg-blue-500 text-white btn mb-4">Save Settings</button>
-  </div>
-  <button id="adminLogoutBtn" class="mt-4 bg-red-500 text-white btn">Logout</button>
-</div>
+        <!-- Player Game Screen -->
+        <div class="card-container hidden" id="playerScreen">
+            <div class="bingo-card">
+                <div class="card-header">
+                    <h3>BINGO CARD</h3>
+                    <p id="cardInfo">Card 1 of 3</p>
+                </div>
+                
+                <div class="bingo-grid" id="bingoGrid">
+                    <!-- BINGO letters -->
+                    <div class="cell-header">B</div>
+                    <div class="cell-header">I</div>
+                    <div class="cell-header">N</div>
+                    <div class="cell-header">G</div>
+                    <div class="cell-header">O</div>
+                    
+                    <!-- Cells will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="card-nav">
+                <button class="btn btn-secondary btn-small" id="prevCardBtn">
+                    <i class="fas fa-chevron-left"></i> Back
+                </button>
+                <div class="card-indicator" id="cardIndicator">Card 1/3</div>
+                <button class="btn btn-secondary btn-small" id="nextCardBtn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <button class="btn btn-logout" id="logoutBtn">Logout</button>
+        </div>
 
-<script>
-  // ====== Firebase Configuration ======
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+        <!-- Admin Panel -->
+        <div class="admin-panel hidden" id="adminPanel">
+            <!-- Settings Tab -->
+            <div class="tab-content active" id="settingsTab">
+                <div class="admin-section">
+                    <h3><i class="fas fa-users"></i> Game Settings</h3>
+                    <div class="admin-controls">
+                        <div class="control-group">
+                            <label for="maxPlayers">Max Players (1-100)</label>
+                            <input type="number" id="maxPlayers" min="1" max="100" value="50">
+                        </div>
+                        <div class="control-group">
+                            <label for="cardsPerPlayer">Cards Per Player (1-10)</label>
+                            <input type="number" id="cardsPerPlayer" min="1" max="10" value="3">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="gameActive">Game Status</label>
+                        <select id="gameActive">
+                            <option value="false">Not Active / Join Closed</option>
+                            <option value="true">Active / Join Open</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="admin-section">
+                    <h3><i class="fas fa-palette"></i> Design Settings</h3>
+                    <div class="admin-controls">
+                        <div class="control-group">
+                            <label for="cellColor">Cell Color</label>
+                            <div class="color-picker">
+                                <input type="color" id="cellColor" value="#4361ee">
+                                <div class="color-preview" id="cellColorPreview"></div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="cellBorder">Cell Border</label>
+                            <input type="text" id="cellBorder" placeholder="2px solid #4361ee" value="2px solid #4361ee">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="backgroundColor">Background Color</label>
+                        <div class="color-picker">
+                            <input type="color" id="backgroundColor" value="#1a1a2e">
+                            <div class="color-preview" id="backgroundColorPreview"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-primary" id="saveSettingsBtn">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+                <button class="btn btn-secondary" id="resetPlayersBtn">
+                    <i class="fas fa-trash"></i> Reset All Players
+                </button>
+            </div>
+            
+            <!-- Players Tab -->
+            <div class="tab-content" id="playersTab">
+                <div class="admin-section">
+                    <h3><i class="fas fa-list"></i> Player List</h3>
+                    <div class="player-list" id="playerListContainer">
+                        <!-- Player list will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview Tab -->
+            <div class="tab-content" id="previewTab">
+                <div class="admin-section">
+                    <h3><i class="fas fa-eye"></i> Card Preview</h3>
+                    <div class="bingo-grid" id="previewGrid">
+                        <!-- Preview cells will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <button class="btn btn-logout" id="adminLogoutBtn">Logout</button>
+        </div>
+    </div>
 
-  // ====== Globals ======
-  let currentPlayer = null;
-  let currentCardIndex = 0;
-  let totalCards = 1;
+    <!-- Notification -->
+    <div class="notification hidden" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Settings saved successfully!</span>
+    </div>
 
-  // ====== Helpers ======
-  function capitalizeFirst(str) { return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase(); }
+    <script>
+        // Firebase configuration (replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyB5Kv8Kc8N8n7vK5V7xG9B8J7n6vC5x4Z3",
+            authDomain: "bingo-mobile-app.firebaseapp.com",
+            databaseURL: "https://bingo-mobile-app-default-rtdb.firebaseio.com",
+            projectId: "bingo-mobile-app",
+            storageBucket: "bingo-mobile-app.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890"
+        };
 
-  function generateBingoCard() {
-    // Standard 5x5 BINGO numbers
-    const ranges = {B:[1,15], I:[16,30], N:[31,45], G:[46,60], O:[61,75]};
-    let card = [];
-    for(let col in ranges){
-      let nums = [];
-      while(nums.length < 5){
-        let n = Math.floor(Math.random()*(ranges[col][1]-ranges[col][0]+1))+ranges[col][0];
-        if(!nums.includes(n)) nums.push(n);
-      }
-      card.push(nums);
-    }
-    // Transpose to row-major
-    let grid = [];
-    for(let i=0;i<5;i++){
-      grid.push([card.B[i], card.I[i], card.N[i], card.G[i], card.O[i]]);
-    }
-    grid[2][2] = "FREE";
-    return grid;
-  }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-  function renderCard(cardData) {
-    const container = document.getElementById('cardContainer');
-    container.innerHTML = '';
-    cardData.forEach((row, r)=>{
-      row.forEach((cell,c)=>{
-        const div = document.createElement('div');
-        div.className = 'cell';
-        div.textContent = cell;
-        if(currentPlayer.cards[currentCardIndex].marks[r][c]) div.classList.add('marked');
-        div.addEventListener('click', ()=>{
-          currentPlayer.cards[currentCardIndex].marks[r][c] = !currentPlayer.cards[currentCardIndex].marks[r][c];
-          div.classList.toggle('marked');
-          db.ref('players/'+currentPlayer.id+'/cards').set(currentPlayer.cards);
+        // App state
+        let currentUser = null;
+        let isAdmin = false;
+        let playerCards = [];
+        let currentCardIndex = 0;
+        let gameSettings = {
+            maxPlayers: 50,
+            cardsPerPlayer: 3,
+            gameActive: false,
+            cellColor: "#4361ee",
+            cellBorder: "2px solid #4361ee",
+            backgroundColor: "#1a1a2e"
+        };
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const playerScreen = document.getElementById('playerScreen');
+        const adminPanel = document.getElementById('adminPanel');
+        const playerInfo = document.getElementById('playerInfo');
+        const playerNameDisplay = document.getElementById('playerNameDisplay');
+        const luckyNumberDisplay = document.getElementById('luckyNumberDisplay');
+        const bingoGrid = document.getElementById('bingoGrid');
+        const previewGrid = document.getElementById('previewGrid');
+        const cardInfo = document.getElementById('cardInfo');
+        const cardIndicator = document.getElementById('cardIndicator');
+        const prevCardBtn = document.getElementById('prevCardBtn');
+        const nextCardBtn = document.getElementById('nextCardBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const adminTabs = document.getElementById('adminTabs');
+        const gameStatus = document.getElementById('gameStatus');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notificationText');
+
+        // Admin controls
+        const maxPlayersInput = document.getElementById('maxPlayers');
+        const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
+        const gameActiveSelect = document.getElementById('gameActive');
+        const cellColorInput = document.getElementById('cellColor');
+        const cellBorderInput = document.getElementById('cellBorder');
+        const backgroundColorInput = document.getElementById('backgroundColor');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const resetPlayersBtn = document.getElementById('resetPlayersBtn');
+        const playerListContainer = document.getElementById('playerListContainer');
+        const cellColorPreview = document.getElementById('cellColorPreview');
+        const backgroundColorPreview = document.getElementById('backgroundColorPreview');
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(tabId + 'Tab').classList.add('active');
+            });
         });
-        container.appendChild(div);
-      });
-    });
-  }
 
-  // ====== Player Login ======
-  document.getElementById('loginBtn').addEventListener('click', async ()=>{
-    const name = capitalizeFirst(document.getElementById('playerName').value.trim());
-    const pass = document.getElementById('playerPass').value.trim().toLowerCase();
-    if(name === 'Admin' && pass === '1234'){
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('admin-dashboard').classList.remove('hidden');
-      loadAdminPanel();
-      return;
-    }
+        // Generate a random 4-digit lucky number
+        function generateLuckyNumber() {
+            let number = '';
+            for (let i = 0; i < 4; i++) {
+                number += Math.floor(Math.random() * 10);
+            }
+            return number;
+        }
 
-    const snapshot = await db.ref('players').once('value');
-    let found = null;
-    snapshot.forEach(s=>{
-      const p = s.val();
-      if(p.name === name && p.password.toLowerCase() === pass) found = {...p, id: s.key};
-    });
-    if(found){
-      currentPlayer = found;
-      totalCards = currentPlayer.cards.length;
-      currentCardIndex = 0;
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('player-dashboard').classList.remove('hidden');
-      document.getElementById('playerDisplay').textContent = currentPlayer.name;
-      document.getElementById('luckNumber').textContent = currentPlayer.luckNumber;
-      renderCard(currentPlayer.cards[currentCardIndex].grid);
-    } else {
-      document.getElementById('loginError').textContent = 'Invalid Name or Password';
-    }
-  });
+        // Generate a BINGO card with random numbers
+        function generateBingoCard() {
+            const card = [];
+            
+            // B column: 1-15
+            for (let i = 0; i < 5; i++) {
+                card.push(Math.floor(Math.random() * 15) + 1);
+            }
+            
+            // I column: 16-30
+            for (let i = 0; i < 5; i++) {
+                card.push(Math.floor(Math.random() * 15) + 16);
+            }
+            
+            // N column: 31-45 (with FREE in the middle)
+            for (let i = 0; i < 5; i++) {
+                if (i === 2) {
+                    card.push('FREE');
+                } else {
+                    card.push(Math.floor(Math.random() * 15) + 31);
+                }
+            }
+            
+            // G column: 46-60
+            for (let i = 0; i < 5; i++) {
+                card.push(Math.floor(Math.random() * 15) + 46);
+            }
+            
+            // O column: 61-75
+            for (let i = 0; i < 5; i++) {
+                card.push(Math.floor(Math.random() * 15) + 61);
+            }
+            
+            return card;
+        }
 
-  document.getElementById('nextCard').addEventListener('click', ()=>{
-    if(currentCardIndex < totalCards-1) currentCardIndex++;
-    renderCard(currentPlayer.cards[currentCardIndex].grid);
-  });
-  document.getElementById('backCard').addEventListener('click', ()=>{
-    if(currentCardIndex > 0) currentCardIndex--;
-    renderCard(currentPlayer.cards[currentCardIndex].grid);
-  });
-  document.getElementById('logoutBtn').addEventListener('click', ()=>{
-    currentPlayer = null;
-    document.getElementById('player-dashboard').classList.add('hidden');
-    document.getElementById('login-screen').classList.remove('hidden');
-  });
+        // Render BINGO card grid
+        function renderBingoGrid(card, container, isPreview = false) {
+            container.innerHTML = '';
+            
+            // Add BINGO headers
+            const letters = ['B', 'I', 'N', 'G', 'O'];
+            letters.forEach(letter => {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'cell-header';
+                headerCell.textContent = letter;
+                container.appendChild(headerCell);
+            });
+            
+            // Add card cells
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = card[i];
+                
+                if (card[i] === 'FREE') {
+                    cell.classList.add('free');
+                }
+                
+                // For player cards, add click event to mark cells
+                if (!isPreview) {
+                    cell.addEventListener('click', function() {
+                        if (!this.classList.contains('free')) {
+                            this.classList.toggle('marked');
+                            // Save marked state to Firebase
+                            saveMarkedState(i, this.classList.contains('marked'));
+                        }
+                    });
+                }
+                
+                container.appendChild(cell);
+            }
+            
+            // Apply cell styling from settings
+            applyCellStyling();
+        }
 
-  // ====== Admin Panel ======
-  async function loadAdminPanel(){
-    const snapshot = await db.ref('players').once('value');
-    const list = document.getElementById('playersList');
-    list.innerHTML = '';
-    snapshot.forEach(s=>{
-      const li = document.createElement('li');
-      li.textContent = s.val().name + ' (Luck: '+s.val().luckNumber+')';
-      list.appendChild(li);
-    });
-    const settingsSnap = await db.ref('settings').once('value');
-    if(settingsSnap.exists()){
-      document.getElementById('cardsPerPlayer').value = settingsSnap.val().cardsPerPlayer || 1;
-    }
-  }
+        // Save marked state to Firebase
+        function saveMarkedState(cellIndex, isMarked) {
+            if (!currentUser || isAdmin) return;
+            
+            const playerRef = database.ref('players/' + currentUser.id);
+            playerRef.child('cards/' + currentCardIndex + '/marked/' + cellIndex).set(isMarked);
+        }
 
-  document.getElementById('addPlayerBtn').addEventListener('click', async ()=>{
-    const name = capitalizeFirst(document.getElementById('newPlayerName').value.trim());
-    const pass = document.getElementById('newPlayerPass').value.trim();
-    if(!name || !pass) return alert('Enter name and password');
-    const luck = ''+Math.floor(Math.random()*10)+Math.floor(Math.random()*10)+Math.floor(Math.random()*10)+Math.floor(Math.random()*10);
-    const cardsPerPlayer = parseInt(document.getElementById('cardsPerPlayer').value) || 1;
-    const cards = [];
-    for(let i=0;i<cardsPerPlayer;i++){
-      const grid = generateBingoCard();
-      const marks = Array(5).fill(0).map(()=>Array(5).fill(false));
-      cards.push({grid, marks});
-    }
-    await db.ref('players').push({name, password: pass, luckNumber: luck, cards});
-    loadAdminPanel();
-  });
+        // Load marked state from Firebase
+        function loadMarkedState(card, markedData) {
+            if (!markedData) return card;
+            
+            // Apply marked state to cells in the grid
+            const cells = document.querySelectorAll('#bingoGrid .cell');
+            Object.keys(markedData).forEach(cellIndex => {
+                if (markedData[cellIndex] && cells[cellIndex]) {
+                    cells[cellIndex].classList.add('marked');
+                }
+            });
+            
+            return card;
+        }
 
-  document.getElementById('resetAllBtn').addEventListener('click', async ()=>{
-    if(!confirm('Reset all players?')) return;
-    const snapshot = await db.ref('players').once('value');
-    snapshot.forEach(s=>{
-      const player = s.val();
-      player.cards.forEach(card=>card.marks = Array(5).fill(0).map(()=>Array(5).fill(false)));
-      db.ref('players/'+s.key).set(player);
-    });
-    alert('All player cards reset!');
-  });
+        // Apply cell styling from settings
+        function applyCellStyling() {
+            const cells = document.querySelectorAll('.cell:not(.cell-header)');
+            cells.forEach(cell => {
+                cell.style.backgroundColor = gameSettings.cellColor;
+                cell.style.border = gameSettings.cellBorder;
+            });
+            
+            // Apply background color
+            document.body.style.background = gameSettings.backgroundColor;
+        }
 
-  document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{
-    const cardsPerPlayer = parseInt(document.getElementById('cardsPerPlayer').value);
-    await db.ref('settings').set({cardsPerPlayer});
-    alert('Settings saved!');
-  });
+        // Update card navigation
+        function updateCardNavigation() {
+            const totalCards = playerCards.length;
+            cardInfo.textContent = `Card ${currentCardIndex + 1} of ${totalCards}`;
+            cardIndicator.textContent = `Card ${currentCardIndex + 1}/${totalCards}`;
+            
+            prevCardBtn.disabled = currentCardIndex === 0;
+            nextCardBtn.disabled = currentCardIndex === totalCards - 1;
+            
+            // Render current card
+            renderBingoGrid(playerCards[currentCardIndex].numbers, bingoGrid);
+            
+            // Load marked state if available
+            if (playerCards[currentCardIndex].marked) {
+                loadMarkedState(playerCards[currentCardIndex].numbers, playerCards[currentCardIndex].marked);
+            }
+        }
 
-  document.getElementById('adminLogoutBtn').addEventListener('click', ()=>{
-    document.getElementById('admin-dashboard').classList.add('hidden');
-    document.getElementById('login-screen').classList.remove('hidden');
-  });
+        // Show notification
+        function showNotification(message, isSuccess = true) {
+            notificationText.textContent = message;
+            notification.className = `notification ${isSuccess ? 'success' : 'error'}`;
+            notification.classList.remove('hidden');
+            
+            // Update icon based on success/error
+            const icon = notification.querySelector('i');
+            icon.className = isSuccess ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
 
-</script>
+        // Login as player
+        loginBtn.addEventListener('click', async function() {
+            const playerName = document.getElementById('playerName').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!playerName) {
+                showNotification('Please enter your name', false);
+                return;
+            }
+            
+            // Format name: first character uppercase, rest lowercase
+            const formattedName = playerName.charAt(0).toUpperCase() + playerName.slice(1).toLowerCase();
+            
+            // Check if player exists in Firebase
+            const playersRef = database.ref('players');
+            const snapshot = await playersRef.orderByChild('name').equalTo(formattedName).once('value');
+            
+            if (snapshot.exists()) {
+                // Player exists, check password
+                let playerData;
+                snapshot.forEach(child => {
+                    playerData = child.val();
+                    playerData.id = child.key;
+                });
+                
+                // Check password (non-case sensitive)
+                if (playerData.password.toLowerCase() === password.toLowerCase()) {
+                    // Login successful
+                    currentUser = {
+                        id: playerData.id,
+                        name: formattedName,
+                        luckyNumber: playerData.luckyNumber
+                    };
+                    
+                    // Load player cards
+                    playerCards = playerData.cards || [];
+                    
+                    // If no cards exist, generate them
+                    if (playerCards.length === 0) {
+                        for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
+                            playerCards.push({
+                                numbers: generateBingoCard(),
+                                marked: {}
+                            });
+                        }
+                        // Save to Firebase
+                        await playersRef.child(playerData.id).update({ cards: playerCards });
+                    }
+                    
+                    // Show player screen
+                    loginScreen.classList.add('hidden');
+                    playerScreen.classList.remove('hidden');
+                    playerInfo.classList.remove('hidden');
+                    
+                    // Update player info
+                    playerNameDisplay.textContent = formattedName;
+                    luckyNumberDisplay.textContent = playerData.luckyNumber;
+                    
+                    // Update card navigation
+                    currentCardIndex = 0;
+                    updateCardNavigation();
+                    
+                    showNotification(`Welcome back, ${formattedName}!`);
+                } else {
+                    showNotification('Incorrect password', false);
+                }
+            } else {
+                // Check if game is active and we can add new players
+                if (!gameSettings.gameActive) {
+                    showNotification('Game is not active. New players cannot join.', false);
+                    return;
+                }
+                
+                // Check if max players reached
+                const allPlayers = await playersRef.once('value');
+                if (allPlayers.numChildren() >= gameSettings.maxPlayers) {
+                    showNotification('Maximum players reached. Cannot join game.', false);
+                    return;
+                }
+                
+                // Create new player
+                const luckyNumber = generateLuckyNumber();
+                const newPlayer = {
+                    name: formattedName,
+                    password: password || 'bingo123', // Default password if none provided
+                    luckyNumber: luckyNumber,
+                    joinedAt: new Date().toISOString(),
+                    cards: []
+                };
+                
+                // Generate cards for the player
+                for (let i = 0; i < gameSettings.cardsPerPlayer; i++) {
+                    newPlayer.cards.push({
+                        numbers: generateBingoCard(),
+                        marked: {}
+                    });
+                }
+                
+                // Save to Firebase
+                const newPlayerRef = await playersRef.push(newPlayer);
+                
+                // Set current user
+                currentUser = {
+                    id: newPlayerRef.key,
+                    name: formattedName,
+                    luckyNumber: luckyNumber
+                };
+                
+                playerCards = newPlayer.cards;
+                
+                // Show player screen
+                loginScreen.classList.add('hidden');
+                playerScreen.classList.remove('hidden');
+                playerInfo.classList.remove('hidden');
+                
+                // Update player info
+                playerNameDisplay.textContent = formattedName;
+                luckyNumberDisplay.textContent = luckyNumber;
+                
+                // Update card navigation
+                currentCardIndex = 0;
+                updateCardNavigation();
+                
+                showNotification(`Welcome to BINGO, ${formattedName}! Your lucky number is ${luckyNumber}`);
+            }
+        });
 
+        // Login as admin
+        adminLoginBtn.addEventListener('click', function() {
+            const playerName = document.getElementById('playerName').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            // Admin credentials
+            if (playerName.toLowerCase() === 'admin' && password === '1234') {
+                isAdmin = true;
+                currentUser = { name: 'Admin' };
+                
+                // Show admin panel
+                loginScreen.classList.add('hidden');
+                adminPanel.classList.remove('hidden');
+                adminTabs.classList.remove('hidden');
+                gameStatus.classList.remove('hidden');
+                
+                // Load settings from Firebase
+                loadSettings();
+                
+                // Load player list
+                loadPlayerList();
+                
+                // Generate preview card
+                const previewCard = generateBingoCard();
+                renderBingoGrid(previewCard, previewGrid, true);
+                
+                showNotification('Admin login successful');
+            } else {
+                showNotification('Invalid admin credentials', false);
+            }
+        });
+
+        // Load settings from Firebase
+        async function loadSettings() {
+            const settingsRef = database.ref('settings');
+            const snapshot = await settingsRef.once('value');
+            
+            if (snapshot.exists()) {
+                gameSettings = snapshot.val();
+                
+                // Update UI with loaded settings
+                maxPlayersInput.value = gameSettings.maxPlayers;
+                cardsPerPlayerInput.value = gameSettings.cardsPerPlayer;
+                gameActiveSelect.value = gameSettings.gameActive.toString();
+                cellColorInput.value = gameSettings.cellColor;
+                cellBorderInput.value = gameSettings.cellBorder;
+                backgroundColorInput.value = gameSettings.backgroundColor;
+                
+                // Update color previews
+                cellColorPreview.style.backgroundColor = gameSettings.cellColor;
+                backgroundColorPreview.style.backgroundColor = gameSettings.backgroundColor;
+                
+                // Update game status indicator
+                updateGameStatusIndicator();
+                
+                // Apply styling
+                applyCellStyling();
+            }
+        }
+
+        // Update game status indicator
+        function updateGameStatusIndicator() {
+            if (gameSettings.gameActive) {
+                statusIndicator.className = 'status-indicator status-active';
+                statusIndicator.innerHTML = '<i class="fas fa-circle"></i><span>Game Active - Join Open</span>';
+            } else {
+                statusIndicator.className = 'status-indicator status-inactive';
+                statusIndicator.innerHTML = '<i class="fas fa-circle"></i><span>Game Not Active - Join Closed</span>';
+            }
+        }
+
+        // Load player list
+        async function loadPlayerList() {
+            const playersRef = database.ref('players');
+            const snapshot = await playersRef.once('value');
+            
+            playerListContainer.innerHTML = '';
+            
+            if (!snapshot.exists()) {
+                playerListContainer.innerHTML = '<div class="player-item">No players yet</div>';
+                return;
+            }
+            
+            snapshot.forEach(child => {
+                const player = child.val();
+                const playerItem = document.createElement('div');
+                playerItem.className = 'player-item';
+                playerItem.innerHTML = `
+                    <div class="player-item-info">
+                        <div class="player-item-name">${player.name}</div>
+                        <div class="player-item-lucky">${player.luckyNumber}</div>
+                    </div>
+                    <div>${new Date(player.joinedAt).toLocaleDateString()}</div>
+                `;
+                playerListContainer.appendChild(playerItem);
+            });
+        }
+
+        // Save settings to Firebase
+        saveSettingsBtn.addEventListener('click', async function() {
+            // Update gameSettings object
+            gameSettings = {
+                maxPlayers: parseInt(maxPlayersInput.value),
+                cardsPerPlayer: parseInt(cardsPerPlayerInput.value),
+                gameActive: gameActiveSelect.value === 'true',
+                cellColor: cellColorInput.value,
+                cellBorder: cellBorderInput.value,
+                backgroundColor: backgroundColorInput.value
+            };
+            
+            // Save to Firebase
+            await database.ref('settings').set(gameSettings);
+            
+            // Update color previews
+            cellColorPreview.style.backgroundColor = gameSettings.cellColor;
+            backgroundColorPreview.style.backgroundColor = gameSettings.backgroundColor;
+            
+            // Update game status indicator
+            updateGameStatusIndicator();
+            
+            // Apply styling
+            applyCellStyling();
+            
+            showNotification('Settings saved successfully!');
+        });
+
+        // Reset all players
+        resetPlayersBtn.addEventListener('click', async function() {
+            if (confirm('Are you sure you want to reset all players? This will remove all player data.')) {
+                await database.ref('players').remove();
+                loadPlayerList();
+                showNotification('All players have been reset');
+            }
+        });
+
+        // Card navigation
+        prevCardBtn.addEventListener('click', function() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCardNavigation();
+            }
+        });
+
+        nextCardBtn.addEventListener('click', function() {
+            if (currentCardIndex < playerCards.length - 1) {
+                currentCardIndex++;
+                updateCardNavigation();
+            }
+        });
+
+        // Color picker preview updates
+        cellColorInput.addEventListener('input', function() {
+            cellColorPreview.style.backgroundColor = this.value;
+        });
+
+        backgroundColorInput.addEventListener('input', function() {
+            backgroundColorPreview.style.backgroundColor = this.value;
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', function() {
+            currentUser = null;
+            playerCards = [];
+            currentCardIndex = 0;
+            
+            playerScreen.classList.add('hidden');
+            playerInfo.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            
+            // Clear login form
+            document.getElementById('playerName').value = '';
+            document.getElementById('password').value = '';
+            
+            showNotification('Logged out successfully');
+        });
+
+        // Admin logout
+        adminLogoutBtn.addEventListener('click', function() {
+            isAdmin = false;
+            currentUser = null;
+            
+            adminPanel.classList.add('hidden');
+            adminTabs.classList.add('hidden');
+            gameStatus.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            
+            // Clear login form
+            document.getElementById('playerName').value = '';
+            document.getElementById('password').value = '';
+            
+            showNotification('Admin logged out');
+        });
+
+        // Firebase real-time listeners
+        // Listen for settings changes (for players)
+        database.ref('settings').on('value', (snapshot) => {
+            if (snapshot.exists() && !isAdmin) {
+                gameSettings = snapshot.val();
+                applyCellStyling();
+                
+                // Update game status indicator if visible
+                if (!playerScreen.classList.contains('hidden')) {
+                    updateGameStatusIndicator();
+                    gameStatus.classList.remove('hidden');
+                }
+            }
+        });
+
+        // Listen for marked state changes (for real-time sync)
+        if (!isAdmin && currentUser) {
+            database.ref('players/' + currentUser.id + '/cards').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const cardsData = snapshot.val();
+                    playerCards = cardsData;
+                    
+                    // Update current card if needed
+                    if (playerCards[currentCardIndex]) {
+                        renderBingoGrid(playerCards[currentCardIndex].numbers, bingoGrid);
+                        
+                        // Load marked state if available
+                        if (playerCards[currentCardIndex].marked) {
+                            loadMarkedState(playerCards[currentCardIndex].numbers, playerCards[currentCardIndex].marked);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial color previews
+            cellColorPreview.style.backgroundColor = cellColorInput.value;
+            backgroundColorPreview.style.backgroundColor = backgroundColorInput.value;
+            
+            // Generate a sample preview card
+            const previewCard = generateBingoCard();
+            renderBingoGrid(previewCard, previewGrid, true);
+            
+            // Check if user was already logged in (simplified - in real app use Firebase auth persistence)
+            const savedUser = localStorage.getItem('bingoUser');
+            if (savedUser && false) { // Disabled for demo
+                // Auto-login logic would go here
+            }
+            
+            // Demo notification
+            setTimeout(() => {
+                showNotification('Welcome to BINGO Mobile! Login as player or admin (admin/1234)');
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
