@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BINGO Mobile</title>
+    <title>MX BINGO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -69,7 +69,7 @@
             font-family: 'Montserrat', sans-serif;
             font-weight: 800;
             font-size: 1.8rem;
-            background: linear-gradient(90deg, var(--accent), var(--success));
+            background: linear-gradient(90deg, #FF6B35, #FFD166);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -165,15 +165,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, #FF6B35, #FF9E6D);
             color: white;
-            box-shadow: 0 6px 0 rgba(67, 97, 238, 0.3);
+            box-shadow: 0 6px 0 rgba(255, 107, 53, 0.3);
         }
 
         .btn-primary:hover, .btn-primary:active {
-            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            background: linear-gradient(135deg, #E55A2E, #FF8B5A);
             transform: translateY(-2px);
-            box-shadow: 0 8px 0 rgba(67, 97, 238, 0.3);
+            box-shadow: 0 8px 0 rgba(255, 107, 53, 0.3);
         }
 
         .btn-secondary {
@@ -263,20 +263,21 @@
         }
 
         .cell.marked {
-            background: linear-gradient(135deg, var(--success), #2a9d8f);
+            background: linear-gradient(135deg, #06D6A0, #118AB2);
             color: white;
-            box-shadow: 0 6px 0 rgba(76, 201, 240, 0.3);
+            box-shadow: 0 6px 0 rgba(6, 214, 160, 0.3);
         }
 
         .cell.free {
-            background: linear-gradient(135deg, var(--accent), var(--secondary));
-            color: white;
+            background: linear-gradient(135deg, #FFD166, #FF9E6D);
+            color: #1a1a2e;
+            font-weight: 800;
         }
 
         .cell-header {
             font-weight: 700;
             font-size: 1.3rem;
-            color: var(--accent);
+            color: #FFD166;
             text-align: center;
             margin-bottom: 5px;
         }
@@ -316,7 +317,7 @@
         }
 
         .admin-section h3 {
-            color: var(--success);
+            color: #06D6A0;
             margin-bottom: 15px;
             font-weight: 600;
             font-size: 1.3rem;
@@ -359,7 +360,7 @@
 
         .control-group input:focus, .control-group select:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: #FF6B35;
         }
 
         .color-picker {
@@ -410,7 +411,7 @@
 
         .player-item-lucky {
             font-size: 0.8rem;
-            color: var(--success);
+            color: #06D6A0;
             font-weight: 700;
             letter-spacing: 1px;
         }
@@ -434,7 +435,7 @@
         }
 
         .tab.active {
-            background: var(--primary);
+            background: #FF6B35;
             color: white;
         }
 
@@ -467,11 +468,11 @@
         }
 
         .notification.success {
-            border-left: 5px solid var(--success);
+            border-left: 5px solid #06D6A0;
         }
 
         .notification.error {
-            border-left: 5px solid var(--danger);
+            border-left: 5px solid #EF476F;
         }
 
         @keyframes slideIn {
@@ -499,8 +500,8 @@
         }
 
         .status-active {
-            background: rgba(76, 201, 240, 0.2);
-            color: var(--success);
+            background: rgba(6, 214, 160, 0.2);
+            color: #06D6A0;
         }
 
         .status-inactive {
@@ -548,7 +549,7 @@
             height: 50px;
             border: 4px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            border-top-color: var(--primary);
+            border-top-color: #FF6B35;
             animation: spin 1s ease-in-out infinite;
             margin: 30px auto;
         }
@@ -562,7 +563,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>BINGO MOBILE</h1>
+            <h1>MX BINGO</h1>
             <div class="player-info hidden" id="playerInfo">
                 <div class="player-name" id="playerNameDisplay">Player Name</div>
                 <div class="lucky-number" id="luckyNumberDisplay">1234</div>
@@ -586,7 +587,7 @@
 
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <h2>Welcome to BINGO!</h2>
+            <h2>Welcome to MX BINGO!</h2>
             <div class="input-group">
                 <label for="playerName">Player Name</label>
                 <input type="text" id="playerName" placeholder="Enter your name">
@@ -722,16 +723,31 @@
     </div>
 
     <script>
-        // Firebase configuration (replace with your actual config)
+        // ===========================================
+        // FIREBASE CONFIGURATION FOR MX BINGO
+        // ===========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyB5Kv8Kc8N8n7vK5V7xG9B8J7n6vC5x4Z3",
-            authDomain: "bingo-mobile-app.firebaseapp.com",
-            databaseURL: "https://bingo-mobile-app-default-rtdb.firebaseio.com",
-            projectId: "bingo-mobile-app",
-            storageBucket: "bingo-mobile-app.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890"
+            // You need to get the actual apiKey from Firebase Console
+            // Go to: Project Settings > General > Your apps > SDK setup and configuration
+            apiKey: "AIzaSyB5Kv8Kc8N8n7vK5V7xG9B8J7n6vC5x4Z3", // REPLACE WITH YOUR ACTUAL API KEY
+            authDomain: "mx-bingo.firebaseapp.com",
+            databaseURL: "https://mx-bingo-default-rtdb.firebaseio.com",
+            projectId: "mx-bingo",
+            storageBucket: "mx-bingo.appspot.com",
+            messagingSenderId: "480388469034",
+            appId: "1:480388469034:web:abcdef1234567890" // REPLACE WITH YOUR ACTUAL APP ID
         };
+
+        // ===========================================
+        // HOW TO GET YOUR API KEY AND APP ID:
+        // ===========================================
+        // 1. Go to https://console.firebase.google.com/
+        // 2. Select your "mx-bingo" project
+        // 3. Click the gear icon ⚙️ > Project settings
+        // 4. Scroll down to "Your apps" section
+        // 5. Click on your web app (or register one if not done)
+        // 6. Copy the "apiKey" and "appId" values
+        // 7. Replace them in the config above
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
@@ -923,6 +939,12 @@
             
             // Apply background color
             document.body.style.background = gameSettings.backgroundColor;
+            
+            // Update color previews if in admin mode
+            if (cellColorPreview) {
+                cellColorPreview.style.backgroundColor = gameSettings.cellColor;
+                backgroundColorPreview.style.backgroundColor = gameSettings.backgroundColor;
+            }
         }
 
         // Update card navigation
@@ -1082,7 +1104,7 @@
                 currentCardIndex = 0;
                 updateCardNavigation();
                 
-                showNotification(`Welcome to BINGO, ${formattedName}! Your lucky number is ${luckyNumber}`);
+                showNotification(`Welcome to MX BINGO, ${formattedName}! Your lucky number is ${luckyNumber}`);
             }
         });
 
@@ -1317,24 +1339,40 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             // Set initial color previews
-            cellColorPreview.style.backgroundColor = cellColorInput.value;
-            backgroundColorPreview.style.backgroundColor = backgroundColorInput.value;
+            if (cellColorPreview) {
+                cellColorPreview.style.backgroundColor = cellColorInput.value;
+                backgroundColorPreview.style.backgroundColor = backgroundColorInput.value;
+            }
             
             // Generate a sample preview card
             const previewCard = generateBingoCard();
-            renderBingoGrid(previewCard, previewGrid, true);
-            
-            // Check if user was already logged in (simplified - in real app use Firebase auth persistence)
-            const savedUser = localStorage.getItem('bingoUser');
-            if (savedUser && false) { // Disabled for demo
-                // Auto-login logic would go here
+            if (previewGrid) {
+                renderBingoGrid(previewCard, previewGrid, true);
             }
             
             // Demo notification
             setTimeout(() => {
-                showNotification('Welcome to BINGO Mobile! Login as player or admin (admin/1234)');
+                showNotification('Welcome to MX BINGO! Login as player or admin (admin/1234)');
             }, 1000);
+            
+            // Check Firebase connection
+            testFirebaseConnection();
         });
+
+        // Test Firebase connection
+        async function testFirebaseConnection() {
+            try {
+                const testRef = database.ref('connectionTest');
+                await testRef.set({
+                    timestamp: new Date().toISOString(),
+                    message: 'MX BINGO connected successfully'
+                });
+                console.log('✅ Firebase connection successful for MX BINGO');
+            } catch (error) {
+                console.error('❌ Firebase connection error:', error);
+                showNotification('Firebase connection issue. Check your API key.', false);
+            }
+        }
     </script>
 </body>
 </html>
