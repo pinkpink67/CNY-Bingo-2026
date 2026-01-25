@@ -396,6 +396,22 @@
         }
 
         /* Player List Management */
+        .player-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .player-count {
+            background: rgba(255, 107, 53, 0.2);
+            color: #FF6B35;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
         .player-list-editor {
             max-height: 200px;
             overflow-y: auto;
@@ -426,6 +442,7 @@
             color: white;
             padding: 8px;
             font-size: 0.95rem;
+            text-transform: capitalize;
         }
 
         .player-list-item input:focus {
@@ -452,6 +469,89 @@
 
         .player-list-controls button:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Import Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #06D6A0;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-textarea {
+            width: 100%;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .modal-textarea:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .duplicate-warning {
+            background: rgba(239, 71, 111, 0.2);
+            border: 1px solid rgba(239, 71, 111, 0.3);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            color: #EF476F;
+            font-size: 0.9rem;
+        }
+
+        .duplicate-warning ul {
+            margin-top: 8px;
+            padding-left: 20px;
+        }
+
+        .duplicate-warning li {
+            margin-bottom: 4px;
         }
 
         /* Tabs */
@@ -761,9 +861,15 @@
             <!-- Players Tab -->
             <div class="tab-content" id="playersTab">
                 <div class="admin-section">
-                    <h3><i class="fas fa-list"></i> Player List Management</h3>
+                    <div class="player-list-header">
+                        <h3><i class="fas fa-list"></i> Player List Management</h3>
+                        <div class="player-count" id="playerCount">0 players</div>
+                    </div>
+                    
                     <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 15px; font-size: 0.9rem;">
                         Add players who are allowed to join. Each player will be automatically assigned a 4-digit lucky number.
+                        <br><br>
+                        <strong>Format for import:</strong> Names separated by commas. Example: "calvin, cindy, JF,"
                     </p>
                     
                     <div class="player-list-editor" id="playerListEditor">
@@ -799,6 +905,24 @@
             </div>
             
             <button class="btn btn-logout" id="adminLogoutBtn">Logout</button>
+        </div>
+
+        <!-- Import Modal -->
+        <div class="modal-overlay hidden" id="importModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Import Player List</h3>
+                </div>
+                <div class="modal-body">
+                    <div id="duplicateWarning" class="duplicate-warning hidden"></div>
+                    <textarea id="importTextarea" class="modal-textarea" placeholder="Enter names separated by commas (e.g., calvin, cindy, JF, )"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-small" id="cancelImportBtn">Cancel</button>
+                    <button class="btn btn-primary btn-small" id="proceedImportBtn">Proceed (Skip Duplicates)</button>
+                    <button class="btn btn-danger btn-small" id="cancelAllImportBtn">Cancel All</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -870,6 +994,7 @@
         const notificationText = document.getElementById('notificationText');
         const headerTitle = document.getElementById('headerTitle');
         const welcomeText = document.getElementById('welcomeText');
+        const playerCount = document.getElementById('playerCount');
 
         // Admin controls
         const maxPlayersInput = document.getElementById('maxPlayers');
@@ -891,6 +1016,14 @@
         const importPlayersBtn = document.getElementById('importPlayersBtn');
         const cellColorPreview = document.getElementById('cellColorPreview');
         const backgroundColorPreview = document.getElementById('backgroundColorPreview');
+
+        // Import modal elements
+        const importModal = document.getElementById('importModal');
+        const importTextarea = document.getElementById('importTextarea');
+        const duplicateWarning = document.getElementById('duplicateWarning');
+        const cancelImportBtn = document.getElementById('cancelImportBtn');
+        const proceedImportBtn = document.getElementById('proceedImportBtn');
+        const cancelAllImportBtn = document.getElementById('cancelAllImportBtn');
 
         // Tab functionality
         document.querySelectorAll('.tab').forEach(tab => {
@@ -952,6 +1085,40 @@
             }
             
             return card;
+        }
+
+        // Parse comma-separated names
+        function parseCommaSeparatedNames(text) {
+            if (!text || text.trim() === '') return [];
+            
+            // Split by comma, trim spaces, remove empty entries
+            return text.split(',')
+                .map(name => name.trim())
+                .filter(name => name !== '');
+        }
+
+        // Format player name: first character uppercase, rest lowercase
+        function formatPlayerName(name) {
+            if (!name || name.trim() === '') return '';
+            const trimmedName = name.trim();
+            return trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+        }
+
+        // Check for duplicate names
+        function findDuplicateNames(names) {
+            const formattedNames = names.map(name => formatPlayerName(name).toLowerCase());
+            const currentNames = gameSettings.allowedPlayers.map(player => 
+                player.name.toLowerCase()
+            );
+            
+            const duplicates = [];
+            formattedNames.forEach((name, index) => {
+                if (currentNames.includes(name)) {
+                    duplicates.push(names[index]);
+                }
+            });
+            
+            return duplicates;
         }
 
         // Render BINGO card grid
@@ -1049,6 +1216,12 @@
             }
         }
 
+        // Update player count display
+        function updatePlayerCount() {
+            const count = gameSettings.allowedPlayers ? gameSettings.allowedPlayers.length : 0;
+            playerCount.textContent = `${count} player${count !== 1 ? 's' : ''}`;
+        }
+
         // Update card navigation
         function updateCardNavigation() {
             const totalCards = playerCards.length;
@@ -1081,12 +1254,6 @@
             setTimeout(() => {
                 notification.classList.add('hidden');
             }, 3000);
-        }
-
-        // Format player name: first character uppercase, rest lowercase
-        function formatPlayerName(name) {
-            if (!name) return '';
-            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
         }
 
         // Check if player is in allowed list
@@ -1292,6 +1459,7 @@
                 
                 // Render player list editor
                 renderPlayerListEditor();
+                updatePlayerCount();
             }
         }
 
@@ -1306,6 +1474,7 @@
                 emptyMessage.style.textAlign = 'center';
                 emptyMessage.style.padding = '20px';
                 playerListEditor.appendChild(emptyMessage);
+                updatePlayerCount();
                 return;
             }
             
@@ -1340,7 +1509,19 @@
                         updatePlayerInList(index, newName);
                     }
                 });
+                
+                // Auto-format name to uppercase first letter
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        const formattedName = formatPlayerName(this.value);
+                        this.value = formattedName;
+                        const index = parseInt(this.getAttribute('data-index'));
+                        updatePlayerInList(index, formattedName);
+                    }
+                });
             });
+            
+            updatePlayerCount();
         }
 
         // Add player to list
@@ -1361,7 +1542,9 @@
         // Update player in list
         function updatePlayerInList(index, newName) {
             if (gameSettings.allowedPlayers && gameSettings.allowedPlayers[index]) {
-                gameSettings.allowedPlayers[index].name = formatPlayerName(newName);
+                const formattedName = formatPlayerName(newName);
+                gameSettings.allowedPlayers[index].name = formattedName;
+                updatePlayerCount();
             }
         }
 
@@ -1375,28 +1558,74 @@
 
         // Import players from text
         function importPlayersFromText() {
-            const text = prompt('Enter player names (one per line):');
-            if (!text) return;
-            
-            const names = text.split('\n').filter(name => name.trim() !== '');
-            if (names.length === 0) return;
-            
-            if (!gameSettings.allowedPlayers) {
-                gameSettings.allowedPlayers = [];
+            importTextarea.value = '';
+            duplicateWarning.classList.add('hidden');
+            importModal.classList.remove('hidden');
+        }
+
+        // Show duplicate warning
+        function showDuplicateWarning(duplicates) {
+            duplicateWarning.innerHTML = `
+                <strong><i class="fas fa-exclamation-triangle"></i> Found ${duplicates.length} duplicate name${duplicates.length !== 1 ? 's' : ''}:</strong>
+                <ul>
+                    ${duplicates.map(name => `<li>${formatPlayerName(name)}</li>`).join('')}
+                </ul>
+                <div style="margin-top: 8px;">
+                    Choose "Proceed" to import other names (skip duplicates) or "Cancel All" to cancel entire import.
+                </div>
+            `;
+            duplicateWarning.classList.remove('hidden');
+        }
+
+        // Process import
+        function processImport(skipDuplicates = false) {
+            const importText = importTextarea.value.trim();
+            if (!importText) {
+                showNotification('Please enter names to import', false);
+                return;
             }
             
-            names.forEach(name => {
-                const trimmedName = name.trim();
-                if (trimmedName) {
-                    gameSettings.allowedPlayers.push({
-                        name: formatPlayerName(trimmedName),
-                        luckyNumber: generateLuckyNumber()
-                    });
-                }
+            const names = parseCommaSeparatedNames(importText);
+            if (names.length === 0) {
+                showNotification('No valid names found', false);
+                return;
+            }
+            
+            const duplicates = findDuplicateNames(names);
+            
+            if (duplicates.length > 0 && !skipDuplicates) {
+                showDuplicateWarning(duplicates);
+                return;
+            }
+            
+            // Filter out duplicates if skipping
+            const uniqueNames = skipDuplicates 
+                ? names.filter(name => {
+                    const formattedName = formatPlayerName(name);
+                    return !gameSettings.allowedPlayers.some(player => 
+                        player.name.toLowerCase() === formattedName.toLowerCase()
+                    );
+                })
+                : names;
+            
+            if (uniqueNames.length === 0) {
+                showNotification('No new names to add (all names already exist)', false);
+                importModal.classList.add('hidden');
+                return;
+            }
+            
+            // Add new players
+            uniqueNames.forEach(name => {
+                const formattedName = formatPlayerName(name);
+                gameSettings.allowedPlayers.push({
+                    name: formattedName,
+                    luckyNumber: generateLuckyNumber()
+                });
             });
             
             renderPlayerListEditor();
-            showNotification(`Imported ${names.length} players`);
+            importModal.classList.add('hidden');
+            showNotification(`Successfully added ${uniqueNames.length} new player${uniqueNames.length !== 1 ? 's' : ''}`);
         }
 
         // Update game status indicator
@@ -1497,6 +1726,19 @@
         // Import players button
         importPlayersBtn.addEventListener('click', function() {
             importPlayersFromText();
+        });
+
+        // Import modal buttons
+        cancelImportBtn.addEventListener('click', function() {
+            importModal.classList.add('hidden');
+        });
+
+        proceedImportBtn.addEventListener('click', function() {
+            processImport(true);
+        });
+
+        cancelAllImportBtn.addEventListener('click', function() {
+            importModal.classList.add('hidden');
         });
 
         // Card navigation
