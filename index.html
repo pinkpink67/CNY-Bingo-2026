@@ -51,8 +51,61 @@
             flex-direction: column;
         }
 
-        /* Header */
-        .header {
+        /* Game Header - Player Screen */
+        .game-header {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .game-header-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .game-header-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            background: linear-gradient(90deg, #FF6B35, #FFD166);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .game-player-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            text-transform: capitalize;
+        }
+
+        .game-lucky-number {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            padding: 8px 12px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            min-width: 80px;
+            text-align: center;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Admin Header */
+        .admin-header {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(10px);
             border-radius: var(--border-radius);
@@ -65,7 +118,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .header h1 {
+        .admin-header h1 {
             font-family: 'Montserrat', sans-serif;
             font-weight: 800;
             font-size: 1.8rem;
@@ -74,31 +127,6 @@
             background-clip: text;
             color: transparent;
             letter-spacing: 1px;
-        }
-
-        .player-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .player-name {
-            font-weight: 600;
-            font-size: 1.1rem;
-            text-transform: capitalize;
-        }
-
-        .lucky-number {
-            background: linear-gradient(135deg, var(--secondary), var(--primary));
-            color: white;
-            padding: 8px 12px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            min-width: 80px;
-            text-align: center;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         /* Login Screen */
@@ -185,6 +213,18 @@
         .btn-secondary:hover, .btn-secondary:active {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #118AB2, #06D6A0);
+            color: white;
+            box-shadow: 0 6px 0 rgba(6, 214, 160, 0.3);
+        }
+
+        .btn-info:hover, .btn-info:active {
+            background: linear-gradient(135deg, #0F7A9C, #05C18F);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 rgba(6, 214, 160, 0.3);
         }
 
         .btn-danger {
@@ -293,21 +333,19 @@
             justify-content: space-between;
             align-items: center;
             margin-top: 20px;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .card-bottom-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
+        .card-nav button {
+            flex: 1;
         }
 
         .card-indicator {
             text-align: center;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 500;
-            flex: 1;
+            font-size: 0.9rem;
+            margin-top: 10px;
         }
 
         /* Admin Panel */
@@ -469,6 +507,13 @@
 
         .player-list-controls button:hover {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        .player-list-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
         }
 
         /* Import Modal */
@@ -653,15 +698,15 @@
                 padding: 15px;
             }
             
-            .header h1 {
+            .admin-header h1, .game-header-title {
                 font-size: 1.5rem;
             }
             
-            .player-name {
+            .game-player-name {
                 font-size: 1rem;
             }
             
-            .lucky-number {
+            .game-lucky-number {
                 padding: 6px 10px;
                 font-size: 1rem;
                 min-width: 70px;
@@ -673,6 +718,15 @@
             
             .admin-controls {
                 grid-template-columns: 1fr;
+            }
+            
+            .card-nav {
+                gap: 8px;
+            }
+            
+            .card-nav button {
+                padding: 10px 8px;
+                font-size: 0.85rem;
             }
         }
 
@@ -699,13 +753,17 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
+        <!-- Admin Header -->
+        <div class="admin-header hidden" id="adminHeader">
             <h1 id="headerTitle">MX BINGO</h1>
-            <div class="player-info hidden" id="playerInfo">
-                <div class="player-name" id="playerNameDisplay">Player Name</div>
-                <div class="lucky-number" id="luckyNumberDisplay">1234</div>
+        </div>
+
+        <!-- Game Header - Player Screen -->
+        <div class="game-header hidden" id="gameHeader">
+            <div class="game-header-center">
+                <div class="game-player-name" id="gamePlayerName">Player Name</div>
             </div>
+            <div class="game-lucky-number" id="gameLuckyNumber">1234</div>
         </div>
 
         <!-- Tabs for Admin -->
@@ -754,17 +812,15 @@
                 <button class="btn btn-secondary btn-small" id="prevCardBtn">
                     <i class="fas fa-chevron-left"></i> Back
                 </button>
-                <div class="card-indicator" id="cardIndicator">Card 1/3</div>
+                <button class="btn btn-danger btn-small" id="clearCardBtn">
+                    <i class="fas fa-eraser"></i> Clear Card
+                </button>
                 <button class="btn btn-secondary btn-small" id="nextCardBtn">
                     Next <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
             
-            <div class="card-bottom-controls">
-                <button class="btn btn-danger btn-small" id="clearCardBtn">
-                    <i class="fas fa-eraser"></i> Clear This Card
-                </button>
-            </div>
+            <div class="card-indicator" id="cardIndicator">Card 1/3</div>
             
             <button class="btn btn-logout" id="logoutBtn">Logout</button>
         </div>
@@ -876,12 +932,15 @@
                         <!-- Player list items will be added here -->
                     </div>
                     
-                    <div style="display: flex; gap: 10px;">
+                    <div class="player-list-actions">
                         <button class="btn btn-secondary btn-small" id="addPlayerBtn">
                             <i class="fas fa-plus"></i> Add Player
                         </button>
                         <button class="btn btn-secondary btn-small" id="importPlayersBtn">
                             <i class="fas fa-file-import"></i> Import List
+                        </button>
+                        <button class="btn btn-info btn-small" id="exportPlayersBtn">
+                            <i class="fas fa-file-export"></i> Export List
                         </button>
                     </div>
                 </div>
@@ -974,9 +1033,10 @@
         const loginScreen = document.getElementById('loginScreen');
         const playerScreen = document.getElementById('playerScreen');
         const adminPanel = document.getElementById('adminPanel');
-        const playerInfo = document.getElementById('playerInfo');
-        const playerNameDisplay = document.getElementById('playerNameDisplay');
-        const luckyNumberDisplay = document.getElementById('luckyNumberDisplay');
+        const adminHeader = document.getElementById('adminHeader');
+        const gameHeader = document.getElementById('gameHeader');
+        const gamePlayerName = document.getElementById('gamePlayerName');
+        const gameLuckyNumber = document.getElementById('gameLuckyNumber');
         const bingoGrid = document.getElementById('bingoGrid');
         const previewGrid = document.getElementById('previewGrid');
         const cardInfo = document.getElementById('cardInfo');
@@ -1014,6 +1074,7 @@
         const playerListEditor = document.getElementById('playerListEditor');
         const addPlayerBtn = document.getElementById('addPlayerBtn');
         const importPlayersBtn = document.getElementById('importPlayersBtn');
+        const exportPlayersBtn = document.getElementById('exportPlayersBtn');
         const cellColorPreview = document.getElementById('cellColorPreview');
         const backgroundColorPreview = document.getElementById('backgroundColorPreview');
 
@@ -1102,6 +1163,41 @@
             if (!name || name.trim() === '') return '';
             const trimmedName = name.trim();
             return trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+        }
+
+        // Export player list
+        function exportPlayerList() {
+            if (!gameSettings.allowedPlayers || gameSettings.allowedPlayers.length === 0) {
+                showNotification('No players to export', false);
+                return;
+            }
+            
+            // Create CSV content
+            const headers = ['Name', 'Lucky Number'];
+            const rows = gameSettings.allowedPlayers.map(player => [
+                player.name,
+                player.luckyNumber
+            ]);
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(row => row.join(','))
+            ].join('\n');
+            
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `mx-bingo-players-${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification(`Exported ${gameSettings.allowedPlayers.length} players`);
         }
 
         // Check for duplicate names
@@ -1285,9 +1381,10 @@
                 isAdmin = true;
                 currentUser = { name: 'Admin' };
                 
-                // Show admin panel
+                // Show admin panel and header
                 loginScreen.classList.add('hidden');
                 adminPanel.classList.remove('hidden');
+                adminHeader.classList.remove('hidden');
                 adminTabs.classList.remove('hidden');
                 gameStatus.classList.remove('hidden');
                 
@@ -1360,14 +1457,14 @@
                     await playersRef.child(playerData.id).update({ cards: playerCards });
                 }
                 
-                // Show player screen
+                // Show player screen with game header
                 loginScreen.classList.add('hidden');
                 playerScreen.classList.remove('hidden');
-                playerInfo.classList.remove('hidden');
+                gameHeader.classList.remove('hidden');
                 
-                // Update player info
-                playerNameDisplay.textContent = formattedName;
-                luckyNumberDisplay.textContent = playerData.luckyNumber;
+                // Update game header
+                gamePlayerName.textContent = formattedName;
+                gameLuckyNumber.textContent = playerData.luckyNumber;
                 
                 // Update card navigation
                 currentCardIndex = 0;
@@ -1404,14 +1501,14 @@
                 
                 playerCards = newPlayer.cards;
                 
-                // Show player screen
+                // Show player screen with game header
                 loginScreen.classList.add('hidden');
                 playerScreen.classList.remove('hidden');
-                playerInfo.classList.remove('hidden');
+                gameHeader.classList.remove('hidden');
                 
-                // Update player info
-                playerNameDisplay.textContent = formattedName;
-                luckyNumberDisplay.textContent = luckyNumber;
+                // Update game header
+                gamePlayerName.textContent = formattedName;
+                gameLuckyNumber.textContent = luckyNumber;
                 
                 // Update card navigation
                 currentCardIndex = 0;
@@ -1728,6 +1825,11 @@
             importPlayersFromText();
         });
 
+        // Export players button
+        exportPlayersBtn.addEventListener('click', function() {
+            exportPlayerList();
+        });
+
         // Import modal buttons
         cancelImportBtn.addEventListener('click', function() {
             importModal.classList.add('hidden');
@@ -1773,7 +1875,7 @@
             currentCardIndex = 0;
             
             playerScreen.classList.add('hidden');
-            playerInfo.classList.add('hidden');
+            gameHeader.classList.add('hidden');
             loginScreen.classList.remove('hidden');
             
             // Clear login form
@@ -1789,6 +1891,7 @@
             currentUser = null;
             
             adminPanel.classList.add('hidden');
+            adminHeader.classList.add('hidden');
             adminTabs.classList.add('hidden');
             gameStatus.classList.add('hidden');
             loginScreen.classList.remove('hidden');
