@@ -1180,7 +1180,7 @@
                             </div>
                         </div>
                         <div class="file-upload-controls">
-                            <input type="file" id="freeCellImage" accept="image/*">
+                            <input type="file" id="freeCellImage" accept=".png,.jpg,.jpeg,.webp,.gif">
                             <label for="freeCellImage">
                                 <i class="fas fa-upload"></i> Upload Image
                             </label>
@@ -1207,7 +1207,7 @@
                             </div>
                         </div>
                         <div class="file-upload-controls">
-                            <input type="file" id="backgroundImage" accept="image/*">
+                            <input type="file" id="backgroundImage" accept=".png,.jpg,.jpeg,.webp,.gif">
                             <label for="backgroundImage">
                                 <i class="fas fa-upload"></i> Upload Image
                             </label>
@@ -1800,6 +1800,12 @@
                         img.className = 'free-image';
                         img.src = gameSettings.freeCellImageUrl;
                         img.alt = 'FREE';
+                        img.onerror = function() {
+                            // If image fails to load, show "FREE" text
+                            console.error('Failed to load FREE cell image');
+                            this.remove();
+                            cell.textContent = 'FREE';
+                        };
                         cell.appendChild(img);
                         cell.textContent = ''; // Remove text
                     } else {
@@ -1902,8 +1908,7 @@
             
             // Apply background image or color
             if (gameSettings.backgroundImageUrl) {
-                document.body.style.backgroundImage = `url('${gameSettings.backgroundImageUrl}')`;
-                document.body.style.background = `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('${gameSettings.backgroundImageUrl}')`;
+                document.body.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('${gameSettings.backgroundImageUrl}')`;
                 document.body.style.backgroundSize = 'cover';
                 document.body.style.backgroundPosition = 'center';
                 document.body.style.backgroundRepeat = 'no-repeat';
@@ -2045,22 +2050,54 @@
             registeredPlayersTableContainer.appendChild(table);
         }
 
-        // Upload image to Firebase Storage
+        // Upload image to Firebase Storage - FIXED VERSION
         async function uploadImage(file, path) {
             try {
+                console.log('Starting upload for file:', file.name, 'to path:', path);
+                
+                // Show loading notification
+                showNotification('Uploading image...', true);
+                
                 // Create storage reference
                 const storageRef = storage.ref();
                 const imageRef = storageRef.child(path);
                 
-                // Upload file
-                const snapshot = await imageRef.put(file);
+                console.log('Storage reference created');
+                
+                // Upload file with metadata
+                const metadata = {
+                    contentType: file.type,
+                    customMetadata: {
+                        'uploadedBy': 'MX BINGO Admin',
+                        'uploadedAt': new Date().toISOString()
+                    }
+                };
+                
+                console.log('Starting upload...');
+                const snapshot = await imageRef.put(file, metadata);
+                console.log('Upload completed, snapshot:', snapshot);
                 
                 // Get download URL
                 const downloadURL = await snapshot.ref.getDownloadURL();
+                console.log('Download URL obtained:', downloadURL);
                 
+                showNotification('Image uploaded successfully!', true);
                 return downloadURL;
             } catch (error) {
                 console.error('Error uploading image:', error);
+                console.error('Error details:', error.message, error.code, error.stack);
+                
+                // Show detailed error message
+                let errorMessage = 'Error uploading image';
+                if (error.code === 'storage/unauthorized') {
+                    errorMessage = 'Storage access denied. Check Firebase Storage rules.';
+                } else if (error.code === 'storage/canceled') {
+                    errorMessage = 'Upload was canceled.';
+                } else if (error.code === 'storage/unknown') {
+                    errorMessage = 'Unknown error occurred during upload.';
+                }
+                
+                showNotification(errorMessage, false);
                 throw error;
             }
         }
@@ -2070,19 +2107,36 @@
             try {
                 if (!url) return;
                 
+                console.log('Deleting image with URL:', url);
+                
                 // Extract path from URL
                 const startIndex = url.indexOf('/o/') + 3;
                 const endIndex = url.indexOf('?');
+                if (startIndex === -1 || endIndex === -1) {
+                    console.error('Invalid URL format for deletion');
+                    return false;
+                }
+                
                 const path = decodeURIComponent(url.substring(startIndex, endIndex));
+                console.log('Extracted path for deletion:', path);
                 
                 // Create reference and delete
                 const storageRef = storage.ref();
                 const imageRef = storageRef.child(path);
                 await imageRef.delete();
                 
+                console.log('Image deleted successfully');
                 return true;
             } catch (error) {
                 console.error('Error deleting image:', error);
+                console.error('Error details:', error.message, error.code);
+                
+                let errorMessage = 'Error deleting image';
+                if (error.code === 'storage/object-not-found') {
+                    errorMessage = 'Image not found in storage.';
+                }
+                
+                showNotification(errorMessage, false);
                 throw error;
             }
         }
@@ -2098,6 +2152,15 @@
                 img.style.width = '100%';
                 img.style.height = '100%';
                 img.style.objectFit = 'contain';
+                img.onerror = function() {
+                    console.error('Failed to load preview image:', imageUrl);
+                    previewElement.innerHTML = `
+                        <div class="file-upload-placeholder">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>Failed to load image</div>
+                        </div>
+                    `;
+                };
                 previewElement.appendChild(img);
                 infoElement.textContent = 'Current: Custom image';
             } else {
@@ -2675,30 +2738,50 @@
             showNotification('Admin logged out');
         });
 
-        // FREE Cell Image Upload
+        // FREE Cell Image Upload - FIXED
         freeCellImageInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
             
-            if (!file.type.startsWith('image/')) {
-                showNotification('Please select an image file', false);
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please select a valid image file (PNG, JPG, JPEG, WEBP, GIF)', false);
                 return;
             }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image size should be less than 5MB', false);
+                return;
+            }
+            
+            console.log('Selected file for FREE cell:', file.name, file.type, file.size);
             
             // Show loading
             freeCellPreview.innerHTML = '<div class="spinner"></div>';
             
             try {
-                // Upload to Firebase Storage
+                // Create unique filename with timestamp
                 const timestamp = Date.now();
-                const fileName = `free-cell-${timestamp}.${file.name.split('.').pop()}`;
-                const path = `images/${fileName}`;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const fileName = `free-cell-${timestamp}.${fileExtension}`;
+                const path = `mx-bingo-images/${fileName}`;
                 
+                console.log('Uploading to path:', path);
+                
+                // Upload to Firebase Storage
                 const downloadURL = await uploadImage(file, path);
+                console.log('Upload successful, URL:', downloadURL);
                 
                 // Delete old image if exists
                 if (gameSettings.freeCellImageUrl) {
-                    await deleteImage(gameSettings.freeCellImageUrl);
+                    try {
+                        await deleteImage(gameSettings.freeCellImageUrl);
+                        console.log('Old FREE cell image deleted');
+                    } catch (deleteError) {
+                        console.warn('Could not delete old image, continuing:', deleteError);
+                    }
                 }
                 
                 // Update settings
@@ -2714,11 +2797,15 @@
                 
                 // Save to Firebase
                 await database.ref('settings/freeCellImageUrl').set(downloadURL);
+                console.log('FREE cell image URL saved to database');
+                
+                // Clear file input
+                freeCellImageInput.value = '';
                 
                 showNotification('FREE cell image uploaded successfully!');
             } catch (error) {
                 console.error('Error uploading FREE cell image:', error);
-                showNotification('Error uploading image', false);
+                showNotification('Error uploading FREE cell image: ' + error.message, false);
                 updateImagePreview(
                     freeCellPreview, 
                     gameSettings.freeCellImageUrl, 
@@ -2735,55 +2822,77 @@
                 return;
             }
             
-            try {
-                // Delete from Firebase Storage
-                await deleteImage(gameSettings.freeCellImageUrl);
-                
-                // Update settings
-                gameSettings.freeCellImageUrl = null;
-                
-                // Update preview
-                updateImagePreview(
-                    freeCellPreview, 
-                    null, 
-                    freeCellImageInfo, 
-                    'Default "FREE" text'
-                );
-                
-                // Save to Firebase
-                await database.ref('settings/freeCellImageUrl').set(null);
-                
-                showNotification('FREE cell image removed successfully!');
-            } catch (error) {
-                console.error('Error removing FREE cell image:', error);
-                showNotification('Error removing image', false);
+            if (await showConfirmationDialog('Are you sure you want to remove the FREE cell image?')) {
+                try {
+                    // Delete from Firebase Storage
+                    await deleteImage(gameSettings.freeCellImageUrl);
+                    
+                    // Update settings
+                    gameSettings.freeCellImageUrl = null;
+                    
+                    // Update preview
+                    updateImagePreview(
+                        freeCellPreview, 
+                        null, 
+                        freeCellImageInfo, 
+                        'Default "FREE" text'
+                    );
+                    
+                    // Save to Firebase
+                    await database.ref('settings/freeCellImageUrl').set(null);
+                    
+                    showNotification('FREE cell image removed successfully!');
+                } catch (error) {
+                    console.error('Error removing FREE cell image:', error);
+                    showNotification('Error removing FREE cell image: ' + error.message, false);
+                }
             }
         });
 
-        // Background Image Upload
+        // Background Image Upload - FIXED
         backgroundImageInput.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
             
-            if (!file.type.startsWith('image/')) {
-                showNotification('Please select an image file', false);
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please select a valid image file (PNG, JPG, JPEG, WEBP, GIF)', false);
                 return;
             }
+            
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('Image size should be less than 5MB', false);
+                return;
+            }
+            
+            console.log('Selected file for background:', file.name, file.type, file.size);
             
             // Show loading
             backgroundPreview.innerHTML = '<div class="spinner"></div>';
             
             try {
-                // Upload to Firebase Storage
+                // Create unique filename with timestamp
                 const timestamp = Date.now();
-                const fileName = `background-${timestamp}.${file.name.split('.').pop()}`;
-                const path = `images/${fileName}`;
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                const fileName = `background-${timestamp}.${fileExtension}`;
+                const path = `mx-bingo-images/${fileName}`;
                 
+                console.log('Uploading to path:', path);
+                
+                // Upload to Firebase Storage
                 const downloadURL = await uploadImage(file, path);
+                console.log('Upload successful, URL:', downloadURL);
                 
                 // Delete old image if exists
                 if (gameSettings.backgroundImageUrl) {
-                    await deleteImage(gameSettings.backgroundImageUrl);
+                    try {
+                        await deleteImage(gameSettings.backgroundImageUrl);
+                        console.log('Old background image deleted');
+                    } catch (deleteError) {
+                        console.warn('Could not delete old image, continuing:', deleteError);
+                    }
                 }
                 
                 // Update settings
@@ -2799,14 +2908,18 @@
                 
                 // Save to Firebase
                 await database.ref('settings/backgroundImageUrl').set(downloadURL);
+                console.log('Background image URL saved to database');
                 
                 // Apply background
                 applyCellStyling();
                 
+                // Clear file input
+                backgroundImageInput.value = '';
+                
                 showNotification('Background image uploaded successfully!');
             } catch (error) {
                 console.error('Error uploading background image:', error);
-                showNotification('Error uploading image', false);
+                showNotification('Error uploading background image: ' + error.message, false);
                 updateImagePreview(
                     backgroundPreview, 
                     gameSettings.backgroundImageUrl, 
@@ -2823,31 +2936,33 @@
                 return;
             }
             
-            try {
-                // Delete from Firebase Storage
-                await deleteImage(gameSettings.backgroundImageUrl);
-                
-                // Update settings
-                gameSettings.backgroundImageUrl = null;
-                
-                // Update preview
-                updateImagePreview(
-                    backgroundPreview, 
-                    null, 
-                    backgroundImageInfo, 
-                    'Color gradient background'
-                );
-                
-                // Save to Firebase
-                await database.ref('settings/backgroundImageUrl').set(null);
-                
-                // Apply background
-                applyCellStyling();
-                
-                showNotification('Background image removed successfully!');
-            } catch (error) {
-                console.error('Error removing background image:', error);
-                showNotification('Error removing image', false);
+            if (await showConfirmationDialog('Are you sure you want to remove the background image?')) {
+                try {
+                    // Delete from Firebase Storage
+                    await deleteImage(gameSettings.backgroundImageUrl);
+                    
+                    // Update settings
+                    gameSettings.backgroundImageUrl = null;
+                    
+                    // Update preview
+                    updateImagePreview(
+                        backgroundPreview, 
+                        null, 
+                        backgroundImageInfo, 
+                        'Color gradient background'
+                    );
+                    
+                    // Save to Firebase
+                    await database.ref('settings/backgroundImageUrl').set(null);
+                    
+                    // Apply background
+                    applyCellStyling();
+                    
+                    showNotification('Background image removed successfully!');
+                } catch (error) {
+                    console.error('Error removing background image:', error);
+                    showNotification('Error removing background image: ' + error.message, false);
+                }
             }
         });
 
@@ -2995,9 +3110,15 @@
                     project: 'mx-bingo'
                 });
                 console.log('✅ Firebase connection successful for MX BINGO');
+                
+                // Test storage connection
+                const storageRef = storage.ref();
+                const testFileRef = storageRef.child('test-connection.txt');
+                await testFileRef.putString('Test connection', 'raw');
+                console.log('✅ Firebase Storage connection successful');
             } catch (error) {
                 console.error('❌ Firebase connection error:', error);
-                showNotification('Firebase connection issue. Check your API key.', false);
+                showNotification('Firebase connection issue. Check your API key and storage rules.', false);
             }
         }
     </script>
