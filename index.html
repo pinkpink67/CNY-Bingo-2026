@@ -466,29 +466,57 @@
             border-color: #FF6B35;
         }
 
-        .color-picker {
+        /* Color picker styles */
+        .color-picker-container {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
+            margin-bottom: 10px;
         }
 
         .color-preview {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border-radius: 8px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            background: #4361ee;
         }
 
-        .rgb-inputs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 5px;
+        .color-input {
+            flex: 1;
         }
 
-        .rgb-inputs input {
+        .color-input input {
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 0.9rem;
             text-align: center;
-            padding: 8px;
+        }
+
+        /* Color palette */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .color-swatch {
+            width: 25px;
+            height: 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
         }
 
         /* Player List Management */
@@ -538,7 +566,6 @@
             color: white;
             padding: 8px;
             font-size: 0.95rem;
-            text-transform: capitalize;
         }
 
         .player-list-item input:focus {
@@ -883,6 +910,10 @@
             .confirmation-message {
                 font-size: 1.1rem;
             }
+            
+            .color-palette {
+                grid-template-columns: repeat(6, 1fr);
+            }
         }
 
         /* Hide elements */
@@ -1041,12 +1072,15 @@
                 <div class="admin-section">
                     <h3><i class="fas fa-palette"></i> Player Name Design</h3>
                     <div class="control-group">
-                        <label>Player Name Color (RGB)</label>
-                        <div class="rgb-inputs">
-                            <input type="number" id="playerNameColorR" min="0" max="255" value="255" placeholder="R">
-                            <input type="number" id="playerNameColorG" min="0" max="255" value="255" placeholder="G">
-                            <input type="number" id="playerNameColorB" min="0" max="255" value="255" placeholder="B">
+                        <label>Player Name Color</label>
+                        <div class="color-picker-container">
+                            <div class="color-preview" id="playerNameColorPreview" style="background: #ffffff;"></div>
+                            <div class="color-input">
+                                <input type="text" id="playerNameColorInput" value="#ffffff" readonly>
+                            </div>
                         </div>
+                        <input type="color" id="playerNameColorPicker" value="#ffffff" style="display: none;">
+                        <div class="color-palette" id="playerNameColorPalette"></div>
                     </div>
                     <div class="control-group">
                         <label for="playerNameSize">Player Name Font Size (px)</label>
@@ -1056,23 +1090,27 @@
                 
                 <div class="admin-section">
                     <h3><i class="fas fa-palette"></i> Cell Design Settings</h3>
-                    <div class="admin-controls">
-                        <div class="control-group">
-                            <label>Cell Background Color (RGB)</label>
-                            <div class="rgb-inputs">
-                                <input type="number" id="cellColorR" min="0" max="255" value="67" placeholder="R">
-                                <input type="number" id="cellColorG" min="0" max="255" value="97" placeholder="G">
-                                <input type="number" id="cellColorB" min="0" max="255" value="238" placeholder="B">
+                    <div class="control-group">
+                        <label>Cell Background Color</label>
+                        <div class="color-picker-container">
+                            <div class="color-preview" id="cellColorPreview" style="background: #4361ee;"></div>
+                            <div class="color-input">
+                                <input type="text" id="cellColorInput" value="#4361ee" readonly>
                             </div>
                         </div>
-                        <div class="control-group">
-                            <label>Cell Number Color (RGB)</label>
-                            <div class="rgb-inputs">
-                                <input type="number" id="cellNumberColorR" min="0" max="255" value="255" placeholder="R">
-                                <input type="number" id="cellNumberColorG" min="0" max="255" value="255" placeholder="G">
-                                <input type="number" id="cellNumberColorB" min="0" max="255" value="255" placeholder="B">
+                        <input type="color" id="cellColorPicker" value="#4361ee" style="display: none;">
+                        <div class="color-palette" id="cellColorPalette"></div>
+                    </div>
+                    <div class="control-group">
+                        <label>Cell Number Color</label>
+                        <div class="color-picker-container">
+                            <div class="color-preview" id="cellNumberColorPreview" style="background: #ffffff;"></div>
+                            <div class="color-input">
+                                <input type="text" id="cellNumberColorInput" value="#ffffff" readonly>
                             </div>
                         </div>
+                        <input type="color" id="cellNumberColorPicker" value="#ffffff" style="display: none;">
+                        <div class="color-palette" id="cellNumberColorPalette"></div>
                     </div>
                     
                     <div class="admin-controls">
@@ -1095,12 +1133,15 @@
                 <div class="admin-section">
                     <h3><i class="fas fa-palette"></i> Background Settings</h3>
                     <div class="control-group">
-                        <label>Background Color (RGB)</label>
-                        <div class="rgb-inputs">
-                            <input type="number" id="bgColorR" min="0" max="255" value="26" placeholder="R">
-                            <input type="number" id="bgColorG" min="0" max="255" value="26" placeholder="G">
-                            <input type="number" id="bgColorB" min="0" max="255" value="46" placeholder="B">
+                        <label>Background Color</label>
+                        <div class="color-picker-container">
+                            <div class="color-preview" id="bgColorPreview" style="background: #1a1a2e;"></div>
+                            <div class="color-input">
+                                <input type="text" id="bgColorInput" value="#1a1a2e" readonly>
+                            </div>
                         </div>
+                        <input type="color" id="bgColorPicker" value="#1a1a2e" style="display: none;">
+                        <div class="color-palette" id="bgColorPalette"></div>
                     </div>
                 </div>
                 
@@ -1123,7 +1164,7 @@
                     <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 15px; font-size: 0.9rem;">
                         Add players who are allowed to join. Each player will be automatically assigned a 4-digit lucky number.
                         <br><br>
-                        <strong>Format for import:</strong> Names separated by commas. Example: "calvin, cindy, JF,"
+                        <strong>Format for import:</strong> Names separated by commas. Example: "calvin, cindy, JF, 何明明, 何美美"
                     </p>
                     
                     <div class="player-list-editor" id="playerListEditor">
@@ -1183,7 +1224,7 @@
                 </div>
                 <div class="modal-body">
                     <div id="duplicateWarning" class="duplicate-warning hidden"></div>
-                    <textarea id="importTextarea" class="modal-textarea" placeholder="Enter names separated by commas (e.g., calvin, cindy, JF, )"></textarea>
+                    <textarea id="importTextarea" class="modal-textarea" placeholder="Enter names separated by commas (e.g., calvin, cindy, JF, 何明明, 何美美)"></textarea>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary btn-small" id="cancelImportBtn">Cancel</button>
@@ -1243,29 +1284,40 @@
             maxPlayers: 50,
             cardsPerPlayer: 3,
             gameActive: false,
-            cellColorR: 67,
-            cellColorG: 97,
-            cellColorB: 238,
-            cellNumberColorR: 255,
-            cellNumberColorG: 255,
-            cellNumberColorB: 255,
+            cellColor: "#4361ee",
+            cellNumberColor: "#ffffff",
             cellNumberSize: 16,
             cellSpacing: 8,
             cellBorder: "2px solid #4361ee",
-            bgColorR: 26,
-            bgColorG: 26,
-            bgColorB: 46,
+            bgColor: "#1a1a2e",
             headerText: "MX BINGO",
             welcomeText: "Welcome to MX BINGO!",
             cardTitleText: "GAME CARD {current}/{total}",
             generalPassword: "bingo123",
             adminId: "admin",
             adminPassword: "1234",
-            playerNameColorR: 255,
-            playerNameColorG: 255,
-            playerNameColorB: 255,
+            playerNameColor: "#ffffff",
             playerNameSize: 35,
             allowedPlayers: []
+        };
+
+        // Predefined color palettes
+        const colorPalettes = {
+            cellColors: [
+                "#4361ee", "#3a56d4", "#7209b7", "#f72585", "#4cc9f0",
+                "#06D6A0", "#118AB2", "#EF476F", "#FFD166", "#FF9E6D",
+                "#8338ec", "#3a86ff", "#fb5607", "#ff006e", "#ffbe0b"
+            ],
+            textColors: [
+                "#ffffff", "#000000", "#f8f9fa", "#e9ecef", "#dee2e6",
+                "#ced4da", "#adb5bd", "#6c757d", "#495057", "#343a40",
+                "#212529", "#FF6B35", "#06D6A0", "#118AB2", "#EF476F"
+            ],
+            bgColors: [
+                "#1a1a2e", "#16213e", "#0f3460", "#1b1b2f", "#1f4068",
+                "#212529", "#343a40", "#495057", "#6c757d", "#adb5bd",
+                "#dee2e6", "#e9ecef", "#f8f9fa", "#ffffff", "#000000"
+            ]
         };
 
         // DOM Elements
@@ -1304,37 +1356,45 @@
         const maxPlayersInput = document.getElementById('maxPlayers');
         const cardsPerPlayerInput = document.getElementById('cardsPerPlayer');
         const gameActiveSelect = document.getElementById('gameActive');
-        const cellColorRInput = document.getElementById('cellColorR');
-        const cellColorGInput = document.getElementById('cellColorG');
-        const cellColorBInput = document.getElementById('cellColorB');
-        const cellNumberColorRInput = document.getElementById('cellNumberColorR');
-        const cellNumberColorGInput = document.getElementById('cellNumberColorG');
-        const cellNumberColorBInput = document.getElementById('cellNumberColorB');
         const cellNumberSizeInput = document.getElementById('cellNumberSize');
         const cellSpacingInput = document.getElementById('cellSpacing');
         const cellBorderInput = document.getElementById('cellBorder');
-        const bgColorRInput = document.getElementById('bgColorR');
-        const bgColorGInput = document.getElementById('bgColorG');
-        const bgColorBInput = document.getElementById('bgColorB');
         const headerTextInput = document.getElementById('headerText');
         const welcomeTextInput = document.getElementById('welcomeTextInput');
         const cardTitleTextInput = document.getElementById('cardTitleText');
         const generalPasswordInput = document.getElementById('generalPassword');
         const adminIdInput = document.getElementById('adminId');
         const adminPasswordInput = document.getElementById('adminPassword');
-        const playerNameColorRInput = document.getElementById('playerNameColorR');
-        const playerNameColorGInput = document.getElementById('playerNameColorG');
-        const playerNameColorBInput = document.getElementById('playerNameColorB');
         const playerNameSizeInput = document.getElementById('playerNameSize');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
         const resetPlayersBtn = document.getElementById('resetPlayersBtn');
-        const playerListContainer = document.getElementById('playerListContainer');
         const playerListEditor = document.getElementById('playerListEditor');
         const addPlayerBtn = document.getElementById('addPlayerBtn');
         const importPlayersBtn = document.getElementById('importPlayersBtn');
         const exportPlayersBtn = document.getElementById('exportPlayersBtn');
         const exportNamesBtn = document.getElementById('exportNamesBtn');
         const exportFullBtn = document.getElementById('exportFullBtn');
+
+        // Color picker elements
+        const playerNameColorPreview = document.getElementById('playerNameColorPreview');
+        const playerNameColorInput = document.getElementById('playerNameColorInput');
+        const playerNameColorPicker = document.getElementById('playerNameColorPicker');
+        const playerNameColorPalette = document.getElementById('playerNameColorPalette');
+        
+        const cellColorPreview = document.getElementById('cellColorPreview');
+        const cellColorInput = document.getElementById('cellColorInput');
+        const cellColorPicker = document.getElementById('cellColorPicker');
+        const cellColorPalette = document.getElementById('cellColorPalette');
+        
+        const cellNumberColorPreview = document.getElementById('cellNumberColorPreview');
+        const cellNumberColorInput = document.getElementById('cellNumberColorInput');
+        const cellNumberColorPicker = document.getElementById('cellNumberColorPicker');
+        const cellNumberColorPalette = document.getElementById('cellNumberColorPalette');
+        
+        const bgColorPreview = document.getElementById('bgColorPreview');
+        const bgColorInput = document.getElementById('bgColorInput');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const bgColorPalette = document.getElementById('bgColorPalette');
 
         // Import modal elements
         const importModal = document.getElementById('importModal');
@@ -1344,18 +1404,14 @@
         const proceedImportBtn = document.getElementById('proceedImportBtn');
         const cancelAllImportBtn = document.getElementById('cancelAllImportBtn');
 
-        // Helper functions for RGB
-        function rgbToHex(r, g, b) {
-            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-        }
-
+        // Helper functions for color conversion
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? {
                 r: parseInt(result[1], 16),
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
-            } : null;
+            } : { r: 255, g: 255, b: 255 };
         }
 
         // Custom confirmation dialog
@@ -1509,21 +1565,23 @@
             };
         }
 
-        // Parse comma-separated names
+        // Parse comma-separated names - FIXED for Chinese names
         function parseCommaSeparatedNames(text) {
             if (!text || text.trim() === '') return [];
             
-            // Split by comma, trim spaces, remove empty entries
-            return text.split(',')
+            // Handle both English commas and Chinese full-width commas
+            const names = text.split(/[,，]\s*/);
+            
+            // Trim spaces and filter empty entries
+            return names
                 .map(name => name.trim())
                 .filter(name => name !== '');
         }
 
-        // Format player name: first character uppercase, rest lowercase
+        // Format player name: keep original formatting (no capitalization for Chinese names)
         function formatPlayerName(name) {
             if (!name || name.trim() === '') return '';
-            const trimmedName = name.trim();
-            return trimmedName.charAt(0).toUpperCase() + trimmedName.slice(1).toLowerCase();
+            return name.trim();
         }
 
         // Export player names only
@@ -1535,7 +1593,7 @@
             
             // Sort alphabetically before export
             const sortedPlayers = [...gameSettings.allowedPlayers].sort((a, b) => 
-                a.name.localeCompare(b.name)
+                a.name.localeCompare(b.name, 'zh-Hans-CN')
             );
             
             // Create CSV with only names
@@ -1578,7 +1636,7 @@
                 });
                 
                 // Sort alphabetically by name
-                players.sort((a, b) => a.name.localeCompare(b.name));
+                players.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
                 
                 // Create CSV with full details
                 const headers = ['No.', 'Name', '4D No.', 'Login Date', 'Time'];
@@ -1651,8 +1709,7 @@
                 }
                 
                 // Apply cell number styling
-                const cellNumberColor = rgbToHex(gameSettings.cellNumberColorR, gameSettings.cellNumberColorG, gameSettings.cellNumberColorB);
-                cell.style.color = cellNumberColor;
+                cell.style.color = gameSettings.cellNumberColor;
                 cell.style.fontSize = `${gameSettings.cellNumberSize}px`;
                 
                 // For player cards, add click event to mark cells
@@ -1723,13 +1780,11 @@
         // Apply cell styling from settings
         function applyCellStyling() {
             const cells = document.querySelectorAll('.cell:not(.cell-header)');
-            const cellColor = rgbToHex(gameSettings.cellColorR, gameSettings.cellColorG, gameSettings.cellColorB);
-            const cellNumberColor = rgbToHex(gameSettings.cellNumberColorR, gameSettings.cellNumberColorG, gameSettings.cellNumberColorB);
             
             cells.forEach(cell => {
-                cell.style.backgroundColor = cellColor;
+                cell.style.backgroundColor = gameSettings.cellColor;
                 cell.style.border = gameSettings.cellBorder;
-                cell.style.color = cellNumberColor;
+                cell.style.color = gameSettings.cellNumberColor;
                 cell.style.fontSize = `${gameSettings.cellNumberSize}px`;
             });
             
@@ -1740,12 +1795,10 @@
             });
             
             // Apply background color
-            const bgColor = rgbToHex(gameSettings.bgColorR, gameSettings.bgColorG, gameSettings.bgColorB);
-            document.body.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${adjustColor(bgColor, -20)} 100%)`;
+            document.body.style.background = `linear-gradient(135deg, ${gameSettings.bgColor} 0%, ${adjustColor(gameSettings.bgColor, -20)} 100%)`;
             
             // Apply player name styling
-            const playerNameColor = rgbToHex(gameSettings.playerNameColorR, gameSettings.playerNameColorG, gameSettings.playerNameColorB);
-            gamePlayerName.style.color = playerNameColor;
+            gamePlayerName.style.color = gameSettings.playerNameColor;
             gamePlayerName.style.fontSize = `${gameSettings.playerNameSize}px`;
         }
 
@@ -1840,7 +1893,7 @@
             });
             
             // Sort alphabetically by name
-            players.sort((a, b) => a.name.localeCompare(b.name));
+            players.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             
             // Create table
             const table = document.createElement('table');
@@ -1982,8 +2035,7 @@
                 gameLuckyNumber.textContent = playerData.luckyNumber;
                 
                 // Apply player name styling
-                const playerNameColor = rgbToHex(gameSettings.playerNameColorR, gameSettings.playerNameColorG, gameSettings.playerNameColorB);
-                gamePlayerName.style.color = playerNameColor;
+                gamePlayerName.style.color = gameSettings.playerNameColor;
                 gamePlayerName.style.fontSize = `${gameSettings.playerNameSize}px`;
                 
                 // Update card navigation
@@ -2035,8 +2087,7 @@
                 gameLuckyNumber.textContent = luckyNumber;
                 
                 // Apply player name styling
-                const playerNameColor = rgbToHex(gameSettings.playerNameColorR, gameSettings.playerNameColorG, gameSettings.playerNameColorB);
-                gamePlayerName.style.color = playerNameColor;
+                gamePlayerName.style.color = gameSettings.playerNameColor;
                 gamePlayerName.style.fontSize = `${gameSettings.playerNameSize}px`;
                 
                 // Update card navigation
@@ -2049,6 +2100,118 @@
                 showNotification(`Welcome to MX BINGO, ${formattedName}! Your lucky number is ${luckyNumber}`);
             }
         });
+
+        // Initialize color pickers
+        function initializeColorPickers() {
+            // Create color palettes
+            function createColorPalette(container, colors, defaultColor) {
+                container.innerHTML = '';
+                colors.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'color-swatch';
+                    swatch.style.backgroundColor = color;
+                    swatch.title = color;
+                    swatch.addEventListener('click', () => {
+                        updateColorPreview(color, container);
+                    });
+                    container.appendChild(swatch);
+                });
+            }
+            
+            // Initialize palettes
+            createColorPalette(playerNameColorPalette, colorPalettes.textColors, gameSettings.playerNameColor);
+            createColorPalette(cellColorPalette, colorPalettes.cellColors, gameSettings.cellColor);
+            createColorPalette(cellNumberColorPalette, colorPalettes.textColors, gameSettings.cellNumberColor);
+            createColorPalette(bgColorPalette, colorPalettes.bgColors, gameSettings.bgColor);
+            
+            // Set up color picker interactions
+            function setupColorPicker(preview, input, picker, palette, updateCallback) {
+                // Click preview to show color picker
+                preview.addEventListener('click', () => {
+                    picker.click();
+                });
+                
+                // Color picker change
+                picker.addEventListener('input', (e) => {
+                    const color = e.target.value;
+                    updateColorPreview(color, palette, preview, input);
+                    if (updateCallback) updateCallback(color);
+                });
+                
+                // Input change
+                input.addEventListener('change', (e) => {
+                    const color = e.target.value;
+                    if (/^#[0-9A-F]{6}$/i.test(color)) {
+                        updateColorPreview(color, palette, preview, input);
+                        if (updateCallback) updateCallback(color);
+                    }
+                });
+            }
+            
+            // Setup each color picker
+            setupColorPicker(
+                playerNameColorPreview,
+                playerNameColorInput,
+                playerNameColorPicker,
+                playerNameColorPalette,
+                (color) => {
+                    gameSettings.playerNameColor = color;
+                    playerNameColorInput.value = color;
+                    playerNameColorPreview.style.backgroundColor = color;
+                }
+            );
+            
+            setupColorPicker(
+                cellColorPreview,
+                cellColorInput,
+                cellColorPicker,
+                cellColorPalette,
+                (color) => {
+                    gameSettings.cellColor = color;
+                    cellColorInput.value = color;
+                    cellColorPreview.style.backgroundColor = color;
+                }
+            );
+            
+            setupColorPicker(
+                cellNumberColorPreview,
+                cellNumberColorInput,
+                cellNumberColorPicker,
+                cellNumberColorPalette,
+                (color) => {
+                    gameSettings.cellNumberColor = color;
+                    cellNumberColorInput.value = color;
+                    cellNumberColorPreview.style.backgroundColor = color;
+                }
+            );
+            
+            setupColorPicker(
+                bgColorPreview,
+                bgColorInput,
+                bgColorPicker,
+                bgColorPalette,
+                (color) => {
+                    gameSettings.bgColor = color;
+                    bgColorInput.value = color;
+                    bgColorPreview.style.backgroundColor = color;
+                }
+            );
+        }
+        
+        // Update color preview
+        function updateColorPreview(color, palette, preview, input) {
+            if (preview) preview.style.backgroundColor = color;
+            if (input) input.value = color;
+            
+            // Highlight selected color in palette
+            if (palette) {
+                const swatches = palette.querySelectorAll('.color-swatch');
+                swatches.forEach(swatch => {
+                    swatch.style.border = swatch.style.backgroundColor === color ? 
+                        '2px solid #FF6B35' : '2px solid rgba(255, 255, 255, 0.1)';
+                });
+            }
+        }
 
         // Load settings from Firebase
         async function loadSettings() {
@@ -2063,28 +2226,33 @@
                 maxPlayersInput.value = gameSettings.maxPlayers;
                 cardsPerPlayerInput.value = gameSettings.cardsPerPlayer;
                 gameActiveSelect.value = gameSettings.gameActive.toString();
-                cellColorRInput.value = gameSettings.cellColorR || 67;
-                cellColorGInput.value = gameSettings.cellColorG || 97;
-                cellColorBInput.value = gameSettings.cellColorB || 238;
-                cellNumberColorRInput.value = gameSettings.cellNumberColorR || 255;
-                cellNumberColorGInput.value = gameSettings.cellNumberColorG || 255;
-                cellNumberColorBInput.value = gameSettings.cellNumberColorB || 255;
                 cellNumberSizeInput.value = gameSettings.cellNumberSize || 16;
                 cellSpacingInput.value = gameSettings.cellSpacing || 8;
                 cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
-                bgColorRInput.value = gameSettings.bgColorR || 26;
-                bgColorGInput.value = gameSettings.bgColorG || 26;
-                bgColorBInput.value = gameSettings.bgColorB || 46;
                 headerTextInput.value = gameSettings.headerText || "MX BINGO";
                 welcomeTextInput.value = gameSettings.welcomeText || "Welcome to MX BINGO!";
                 cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                 generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                 adminIdInput.value = gameSettings.adminId || "admin";
                 adminPasswordInput.value = gameSettings.adminPassword || "1234";
-                playerNameColorRInput.value = gameSettings.playerNameColorR || 255;
-                playerNameColorGInput.value = gameSettings.playerNameColorG || 255;
-                playerNameColorBInput.value = gameSettings.playerNameColorB || 255;
                 playerNameSizeInput.value = gameSettings.playerNameSize || 35;
+                
+                // Update color inputs
+                playerNameColorInput.value = gameSettings.playerNameColor || "#ffffff";
+                playerNameColorPreview.style.backgroundColor = gameSettings.playerNameColor || "#ffffff";
+                playerNameColorPicker.value = gameSettings.playerNameColor || "#ffffff";
+                
+                cellColorInput.value = gameSettings.cellColor || "#4361ee";
+                cellColorPreview.style.backgroundColor = gameSettings.cellColor || "#4361ee";
+                cellColorPicker.value = gameSettings.cellColor || "#4361ee";
+                
+                cellNumberColorInput.value = gameSettings.cellNumberColor || "#ffffff";
+                cellNumberColorPreview.style.backgroundColor = gameSettings.cellNumberColor || "#ffffff";
+                cellNumberColorPicker.value = gameSettings.cellNumberColor || "#ffffff";
+                
+                bgColorInput.value = gameSettings.bgColor || "#1a1a2e";
+                bgColorPreview.style.backgroundColor = gameSettings.bgColor || "#1a1a2e";
+                bgColorPicker.value = gameSettings.bgColor || "#1a1a2e";
                 
                 // Update displayed texts
                 headerTitle.textContent = gameSettings.headerText || "MX BINGO";
@@ -2092,6 +2260,9 @@
                 
                 // Update game status indicator
                 updateGameStatusIndicator();
+                
+                // Initialize color pickers
+                initializeColorPickers();
                 
                 // Apply styling
                 applyCellStyling();
@@ -2118,7 +2289,7 @@
             }
             
             // Sort allowed players alphabetically
-            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name));
+            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             
             gameSettings.allowedPlayers.forEach((player, index) => {
                 const playerItem = document.createElement('div');
@@ -2151,45 +2322,73 @@
                         updatePlayerInList(index, newName);
                     }
                 });
-                
-                // Auto-format name to uppercase first letter
-                input.addEventListener('blur', function() {
-                    if (this.value.trim()) {
-                        const formattedName = formatPlayerName(this.value);
-                        this.value = formattedName;
-                        const index = parseInt(this.getAttribute('data-index'));
-                        updatePlayerInList(index, formattedName);
-                    }
-                });
             });
             
             updatePlayerCount();
         }
 
-        // Add player to list
+        // Check if player name already exists in the list
+        function isPlayerNameDuplicate(name) {
+            if (!gameSettings.allowedPlayers || gameSettings.allowedPlayers.length === 0) {
+                return false;
+            }
+            
+            const formattedName = formatPlayerName(name);
+            return gameSettings.allowedPlayers.some(player => 
+                player.name.toLowerCase() === formattedName.toLowerCase()
+            );
+        }
+
+        // Add player to list - FIXED: check for duplicates
         function addPlayerToList() {
             if (!gameSettings.allowedPlayers) {
                 gameSettings.allowedPlayers = [];
             }
             
+            let baseName = "Player";
+            let playerNumber = gameSettings.allowedPlayers.length + 1;
+            let newName = `${baseName} ${playerNumber}`;
+            
+            // Find a unique name
+            while (isPlayerNameDuplicate(newName)) {
+                playerNumber++;
+                newName = `${baseName} ${playerNumber}`;
+            }
+            
             const newPlayer = {
-                name: `Player ${gameSettings.allowedPlayers.length + 1}`,
+                name: newName,
                 luckyNumber: generateLuckyNumber()
             };
             
             gameSettings.allowedPlayers.push(newPlayer);
             // Sort alphabetically after adding
-            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name));
+            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             renderPlayerListEditor();
+            
+            showNotification(`Added player: ${newName}`);
         }
 
         // Update player in list
         function updatePlayerInList(index, newName) {
             if (gameSettings.allowedPlayers && gameSettings.allowedPlayers[index]) {
                 const formattedName = formatPlayerName(newName);
+                
+                // Check for duplicates (excluding the current player being edited)
+                const isDuplicate = gameSettings.allowedPlayers.some((player, i) => 
+                    i !== index && player.name.toLowerCase() === formattedName.toLowerCase()
+                );
+                
+                if (isDuplicate) {
+                    showNotification(`Player name "${formattedName}" already exists!`, false);
+                    // Revert to original name
+                    const originalName = gameSettings.allowedPlayers[index].name;
+                    document.querySelector(`#playerListEditor input[data-index="${index}"]`).value = originalName;
+                    return;
+                }
+                
                 gameSettings.allowedPlayers[index].name = formattedName;
                 // Sort alphabetically after updating
-                gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name));
+                gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
                 renderPlayerListEditor();
             }
         }
@@ -2197,8 +2396,10 @@
         // Remove player from list
         function removePlayerFromList(index) {
             if (gameSettings.allowedPlayers && gameSettings.allowedPlayers[index]) {
+                const playerName = gameSettings.allowedPlayers[index].name;
                 gameSettings.allowedPlayers.splice(index, 1);
                 renderPlayerListEditor();
+                showNotification(`Removed player: ${playerName}`);
             }
         }
 
@@ -2223,7 +2424,7 @@
             duplicateWarning.classList.remove('hidden');
         }
 
-        // Process import
+        // Process import - FIXED: properly handles Chinese names
         function processImport(skipDuplicates = false) {
             const importText = importTextarea.value.trim();
             if (!importText) {
@@ -2261,19 +2462,23 @@
             }
             
             // Add new players
+            const addedPlayers = [];
             uniqueNames.forEach(name => {
                 const formattedName = formatPlayerName(name);
                 gameSettings.allowedPlayers.push({
                     name: formattedName,
                     luckyNumber: generateLuckyNumber()
                 });
+                addedPlayers.push(formattedName);
             });
             
             // Sort alphabetically after import
-            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name));
+            gameSettings.allowedPlayers.sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'));
             renderPlayerListEditor();
             importModal.classList.add('hidden');
-            showNotification(`Successfully added ${uniqueNames.length} new player${uniqueNames.length !== 1 ? 's' : ''}`);
+            
+            const playerCount = addedPlayers.length;
+            showNotification(`Successfully added ${playerCount} new player${playerCount !== 1 ? 's' : ''}`);
         }
 
         // Update game status indicator
@@ -2294,27 +2499,19 @@
                 maxPlayers: parseInt(maxPlayersInput.value),
                 cardsPerPlayer: parseInt(cardsPerPlayerInput.value),
                 gameActive: gameActiveSelect.value === 'true',
-                cellColorR: parseInt(cellColorRInput.value),
-                cellColorG: parseInt(cellColorGInput.value),
-                cellColorB: parseInt(cellColorBInput.value),
-                cellNumberColorR: parseInt(cellNumberColorRInput.value),
-                cellNumberColorG: parseInt(cellNumberColorGInput.value),
-                cellNumberColorB: parseInt(cellNumberColorBInput.value),
+                cellColor: cellColorInput.value,
+                cellNumberColor: cellNumberColorInput.value,
                 cellNumberSize: parseInt(cellNumberSizeInput.value),
                 cellSpacing: parseInt(cellSpacingInput.value),
                 cellBorder: cellBorderInput.value,
-                bgColorR: parseInt(bgColorRInput.value),
-                bgColorG: parseInt(bgColorGInput.value),
-                bgColorB: parseInt(bgColorBInput.value),
+                bgColor: bgColorInput.value,
                 headerText: headerTextInput.value,
                 welcomeText: welcomeTextInput.value,
                 cardTitleText: cardTitleTextInput.value,
                 generalPassword: generalPasswordInput.value,
                 adminId: adminIdInput.value,
                 adminPassword: adminPasswordInput.value,
-                playerNameColorR: parseInt(playerNameColorRInput.value),
-                playerNameColorG: parseInt(playerNameColorGInput.value),
-                playerNameColorB: parseInt(playerNameColorBInput.value),
+                playerNameColor: playerNameColorInput.value,
                 playerNameSize: parseInt(playerNameSizeInput.value),
                 allowedPlayers: gameSettings.allowedPlayers || []
             };
@@ -2349,7 +2546,7 @@
             clearCurrentCard();
         });
 
-        // Add player button
+        // Add player button - FIXED: checks for duplicates
         addPlayerBtn.addEventListener('click', function() {
             addPlayerToList();
         });
@@ -2448,8 +2645,7 @@
                     cardTitle.textContent = cardTitleText;
                     
                     // Apply player name styling
-                    const playerNameColor = rgbToHex(gameSettings.playerNameColorR, gameSettings.playerNameColorG, gameSettings.playerNameColorB);
-                    gamePlayerName.style.color = playerNameColor;
+                    gamePlayerName.style.color = gameSettings.playerNameColor;
                     gamePlayerName.style.fontSize = `${gameSettings.playerNameSize}px`;
                     
                     // Show game status indicator for players
@@ -2463,28 +2659,29 @@
                     maxPlayersInput.value = gameSettings.maxPlayers;
                     cardsPerPlayerInput.value = gameSettings.cardsPerPlayer;
                     gameActiveSelect.value = gameSettings.gameActive.toString();
-                    cellColorRInput.value = gameSettings.cellColorR || 67;
-                    cellColorGInput.value = gameSettings.cellColorG || 97;
-                    cellColorBInput.value = gameSettings.cellColorB || 238;
-                    cellNumberColorRInput.value = gameSettings.cellNumberColorR || 255;
-                    cellNumberColorGInput.value = gameSettings.cellNumberColorG || 255;
-                    cellNumberColorBInput.value = gameSettings.cellNumberColorB || 255;
                     cellNumberSizeInput.value = gameSettings.cellNumberSize || 16;
                     cellSpacingInput.value = gameSettings.cellSpacing || 8;
                     cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
-                    bgColorRInput.value = gameSettings.bgColorR || 26;
-                    bgColorGInput.value = gameSettings.bgColorG || 26;
-                    bgColorBInput.value = gameSettings.bgColorB || 46;
                     headerTextInput.value = gameSettings.headerText || "MX BINGO";
                     welcomeTextInput.value = gameSettings.welcomeText || "Welcome to MX BINGO!";
                     cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                     generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                     adminIdInput.value = gameSettings.adminId || "admin";
                     adminPasswordInput.value = gameSettings.adminPassword || "1234";
-                    playerNameColorRInput.value = gameSettings.playerNameColorR || 255;
-                    playerNameColorGInput.value = gameSettings.playerNameColorG || 255;
-                    playerNameColorBInput.value = gameSettings.playerNameColorB || 255;
                     playerNameSizeInput.value = gameSettings.playerNameSize || 35;
+                    
+                    // Update color inputs
+                    playerNameColorInput.value = gameSettings.playerNameColor || "#ffffff";
+                    playerNameColorPreview.style.backgroundColor = gameSettings.playerNameColor || "#ffffff";
+                    
+                    cellColorInput.value = gameSettings.cellColor || "#4361ee";
+                    cellColorPreview.style.backgroundColor = gameSettings.cellColor || "#4361ee";
+                    
+                    cellNumberColorInput.value = gameSettings.cellNumberColor || "#ffffff";
+                    cellNumberColorPreview.style.backgroundColor = gameSettings.cellNumberColor || "#ffffff";
+                    
+                    bgColorInput.value = gameSettings.bgColor || "#1a1a2e";
+                    bgColorPreview.style.backgroundColor = gameSettings.bgColor || "#1a1a2e";
                     
                     // Update game status indicator
                     updateGameStatusIndicator();
@@ -2525,6 +2722,9 @@
             if (previewGrid) {
                 renderBingoGrid(previewCard, previewGrid, true);
             }
+            
+            // Initialize color pickers
+            initializeColorPickers();
             
             // Check Firebase connection
             testFirebaseConnection();
