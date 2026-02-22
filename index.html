@@ -969,7 +969,7 @@
 
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <h2 id="welcomeText">Welcome to MX BINGO!</h2>
+            <h2 id="welcomeText">Welcome to<br>MX<br>BINGO!</h2>
             <div class="input-group">
                 <label for="playerName">Player Name</label>
                 <input type="text" id="playerName" placeholder="Enter your name">
@@ -1053,8 +1053,8 @@
                         <input type="text" id="headerText" value="MX BINGO">
                     </div>
                     <div class="control-group">
-                        <label for="welcomeTextInput">Welcome Text</label>
-                        <input type="text" id="welcomeTextInput" value="Welcome to MX BINGO!">
+                        <label for="welcomeTextInput">Welcome Text (use &lt;br&gt; for line breaks)</label>
+                        <textarea id="welcomeTextInput" rows="3">Welcome to<br>MX<br>BINGO!</textarea>
                     </div>
                     <div class="control-group">
                         <label for="cardTitleText">Card Title Format</label>
@@ -1291,7 +1291,7 @@
             cellBorder: "2px solid #4361ee",
             bgColor: "#1a1a2e",
             headerText: "MX BINGO",
-            welcomeText: "Welcome to MX BINGO!",
+            welcomeText: "Welcome to<br>MX<br>BINGO!",
             cardTitleText: "GAME CARD {current}/{total}",
             generalPassword: "bingo123",
             adminId: "admin",
@@ -2230,7 +2230,7 @@
                 cellSpacingInput.value = gameSettings.cellSpacing || 8;
                 cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                 headerTextInput.value = gameSettings.headerText || "MX BINGO";
-                welcomeTextInput.value = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                welcomeTextInput.value = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                 cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                 generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                 adminIdInput.value = gameSettings.adminId || "admin";
@@ -2256,7 +2256,7 @@
                 
                 // Update displayed texts
                 headerTitle.textContent = gameSettings.headerText || "MX BINGO";
-                welcomeText.textContent = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                welcomeText.innerHTML = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                 
                 // Update game status indicator
                 updateGameStatusIndicator();
@@ -2521,7 +2521,7 @@
             
             // Update displayed texts
             headerTitle.textContent = gameSettings.headerText;
-            welcomeText.textContent = gameSettings.welcomeText;
+            welcomeText.innerHTML = gameSettings.welcomeText;
             
             // Update game status indicator
             updateGameStatusIndicator();
@@ -2625,7 +2625,7 @@
                 
                 // Update displayed texts for everyone
                 headerTitle.textContent = gameSettings.headerText || "MX BINGO";
-                welcomeText.textContent = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                welcomeText.innerHTML = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                 
                 // Apply styling for everyone
                 applyCellStyling();
@@ -2663,7 +2663,7 @@
                     cellSpacingInput.value = gameSettings.cellSpacing || 8;
                     cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                     headerTextInput.value = gameSettings.headerText || "MX BINGO";
-                    welcomeTextInput.value = gameSettings.welcomeText || "Welcome to MX BINGO!";
+                    welcomeTextInput.value = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                     cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                     generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                     adminIdInput.value = gameSettings.adminId || "admin";
