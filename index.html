@@ -84,7 +84,7 @@
         }
 
         .game-player-name {
-            font-size: 35px; /* Default 35px as requested */
+            font-size: 35px;
             font-weight: 600;
             color: white;
             text-transform: capitalize;
@@ -146,6 +146,12 @@
             font-weight: 700;
             font-size: 1.8rem;
             color: white;
+        }
+
+        /* Welcome text line styling */
+        .welcome-line {
+            display: block;
+            line-height: 1.4;
         }
 
         .input-group {
@@ -464,6 +470,70 @@
         .control-group input:focus, .control-group select:focus, .control-group textarea:focus {
             outline: none;
             border-color: #FF6B35;
+        }
+
+        /* Welcome text customization panel */
+        .welcome-line-controls {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .welcome-line-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .welcome-line-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .welcome-line-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .welcome-line-header h4 {
+            color: #FF6B35;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .welcome-line-control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .welcome-line-control-row .control-group {
+            flex: 1;
+            margin-bottom: 0;
+            min-width: 120px;
+        }
+
+        .welcome-line-control-row .control-group.text-control {
+            flex: 2;
+        }
+
+        .welcome-line-preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            border: 1px dashed #FF6B35;
+        }
+
+        .preview-line {
+            display: block;
+            text-align: center;
         }
 
         /* Color picker styles */
@@ -866,7 +936,7 @@
             }
             
             .game-player-name {
-                font-size: 28px; /* Slightly smaller on mobile */
+                font-size: 28px;
             }
             
             .game-lucky-number {
@@ -913,6 +983,11 @@
             
             .color-palette {
                 grid-template-columns: repeat(6, 1fr);
+            }
+            
+            .welcome-line-control-row {
+                flex-direction: column;
+                gap: 10px;
             }
         }
 
@@ -969,7 +1044,11 @@
 
         <!-- Login Screen -->
         <div class="login-screen" id="loginScreen">
-            <h2 id="welcomeText">Welcome to<br>MX<br>BINGO!</h2>
+            <h2 id="welcomeText">
+                <span class="welcome-line" id="welcomeLine1">Welcome to</span>
+                <span class="welcome-line" id="welcomeLine2">MX</span>
+                <span class="welcome-line" id="welcomeLine3">BINGO!</span>
+            </h2>
             <div class="input-group">
                 <label for="playerName">Player Name</label>
                 <input type="text" id="playerName" placeholder="Enter your name">
@@ -1052,10 +1131,107 @@
                         <label for="headerText">Header Title</label>
                         <input type="text" id="headerText" value="MX BINGO">
                     </div>
-                    <div class="control-group">
-                        <label for="welcomeTextInput">Welcome Text (use &lt;br&gt; for line breaks)</label>
-                        <textarea id="welcomeTextInput" rows="3">Welcome to<br>MX<br>BINGO!</textarea>
+                    
+                    <!-- Welcome Text Customization - 3 Lines with Text Content -->
+                    <div class="welcome-line-controls">
+                        <h4 style="color: #FF6B35; margin-bottom: 15px;">Welcome Text - Line 1</h4>
+                        <div class="welcome-line-item">
+                            <div class="welcome-line-header">
+                                <h4>Line 1 Settings</h4>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group text-control">
+                                    <label>Text</label>
+                                    <input type="text" id="welcomeLine1Text" value="Welcome to" placeholder="Enter line 1 text">
+                                </div>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group">
+                                    <label>Color</label>
+                                    <div class="color-picker-container">
+                                        <div class="color-preview" id="welcomeLine1ColorPreview" style="background: #ffffff;"></div>
+                                        <div class="color-input">
+                                            <input type="text" id="welcomeLine1ColorInput" value="#ffffff" readonly>
+                                        </div>
+                                    </div>
+                                    <input type="color" id="welcomeLine1ColorPicker" value="#ffffff" style="display: none;">
+                                </div>
+                                <div class="control-group">
+                                    <label>Font Size (px)</label>
+                                    <input type="number" id="welcomeLine1Size" min="10" max="100" value="28">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #FF6B35; margin: 20px 0 15px;">Welcome Text - Line 2</h4>
+                        <div class="welcome-line-item">
+                            <div class="welcome-line-header">
+                                <h4>Line 2 Settings</h4>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group text-control">
+                                    <label>Text</label>
+                                    <input type="text" id="welcomeLine2Text" value="MX" placeholder="Enter line 2 text">
+                                </div>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group">
+                                    <label>Color</label>
+                                    <div class="color-picker-container">
+                                        <div class="color-preview" id="welcomeLine2ColorPreview" style="background: #FF6B35;"></div>
+                                        <div class="color-input">
+                                            <input type="text" id="welcomeLine2ColorInput" value="#FF6B35" readonly>
+                                        </div>
+                                    </div>
+                                    <input type="color" id="welcomeLine2ColorPicker" value="#FF6B35" style="display: none;">
+                                </div>
+                                <div class="control-group">
+                                    <label>Font Size (px)</label>
+                                    <input type="number" id="welcomeLine2Size" min="10" max="100" value="42">
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="color: #FF6B35; margin: 20px 0 15px;">Welcome Text - Line 3</h4>
+                        <div class="welcome-line-item">
+                            <div class="welcome-line-header">
+                                <h4>Line 3 Settings</h4>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group text-control">
+                                    <label>Text</label>
+                                    <input type="text" id="welcomeLine3Text" value="BINGO!" placeholder="Enter line 3 text">
+                                </div>
+                            </div>
+                            <div class="welcome-line-control-row">
+                                <div class="control-group">
+                                    <label>Color</label>
+                                    <div class="color-picker-container">
+                                        <div class="color-preview" id="welcomeLine3ColorPreview" style="background: #06D6A0;"></div>
+                                        <div class="color-input">
+                                            <input type="text" id="welcomeLine3ColorInput" value="#06D6A0" readonly>
+                                        </div>
+                                    </div>
+                                    <input type="color" id="welcomeLine3ColorPicker" value="#06D6A0" style="display: none;">
+                                </div>
+                                <div class="control-group">
+                                    <label>Font Size (px)</label>
+                                    <input type="number" id="welcomeLine3Size" min="10" max="100" value="32">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Preview -->
+                        <div class="welcome-line-preview">
+                            <label style="color: rgba(255,255,255,0.7); margin-bottom: 10px; display: block;">Live Preview:</label>
+                            <div id="welcomePreview">
+                                <span class="preview-line" id="previewLine1" style="color: #ffffff; font-size: 28px;">Welcome to</span>
+                                <span class="preview-line" id="previewLine2" style="color: #FF6B35; font-size: 42px;">MX</span>
+                                <span class="preview-line" id="previewLine3" style="color: #06D6A0; font-size: 32px;">BINGO!</span>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="control-group">
                         <label for="cardTitleText">Card Title Format</label>
                         <input type="text" id="cardTitleText" value="GAME CARD {current}/{total}">
@@ -1291,7 +1467,15 @@
             cellBorder: "2px solid #4361ee",
             bgColor: "#1a1a2e",
             headerText: "MX BINGO",
-            welcomeText: "Welcome to<br>MX<br>BINGO!",
+            welcomeLine1Text: "Welcome to",
+            welcomeLine1Color: "#ffffff",
+            welcomeLine1Size: 28,
+            welcomeLine2Text: "MX",
+            welcomeLine2Color: "#FF6B35",
+            welcomeLine2Size: 42,
+            welcomeLine3Text: "BINGO!",
+            welcomeLine3Color: "#06D6A0",
+            welcomeLine3Size: 32,
             cardTitleText: "GAME CARD {current}/{total}",
             generalPassword: "bingo123",
             adminId: "admin",
@@ -1343,8 +1527,35 @@
         const notificationText = document.getElementById('notificationText');
         const headerTitle = document.getElementById('headerTitle');
         const welcomeText = document.getElementById('welcomeText');
+        const welcomeLine1 = document.getElementById('welcomeLine1');
+        const welcomeLine2 = document.getElementById('welcomeLine2');
+        const welcomeLine3 = document.getElementById('welcomeLine3');
+        const previewLine1 = document.getElementById('previewLine1');
+        const previewLine2 = document.getElementById('previewLine2');
+        const previewLine3 = document.getElementById('previewLine3');
         const playerCount = document.getElementById('playerCount');
         const registeredPlayersTableContainer = document.getElementById('registeredPlayersTableContainer');
+
+        // Welcome line text inputs
+        const welcomeLine1Text = document.getElementById('welcomeLine1Text');
+        const welcomeLine2Text = document.getElementById('welcomeLine2Text');
+        const welcomeLine3Text = document.getElementById('welcomeLine3Text');
+
+        // Welcome line color pickers
+        const welcomeLine1ColorPreview = document.getElementById('welcomeLine1ColorPreview');
+        const welcomeLine1ColorInput = document.getElementById('welcomeLine1ColorInput');
+        const welcomeLine1ColorPicker = document.getElementById('welcomeLine1ColorPicker');
+        const welcomeLine1Size = document.getElementById('welcomeLine1Size');
+
+        const welcomeLine2ColorPreview = document.getElementById('welcomeLine2ColorPreview');
+        const welcomeLine2ColorInput = document.getElementById('welcomeLine2ColorInput');
+        const welcomeLine2ColorPicker = document.getElementById('welcomeLine2ColorPicker');
+        const welcomeLine2Size = document.getElementById('welcomeLine2Size');
+
+        const welcomeLine3ColorPreview = document.getElementById('welcomeLine3ColorPreview');
+        const welcomeLine3ColorInput = document.getElementById('welcomeLine3ColorInput');
+        const welcomeLine3ColorPicker = document.getElementById('welcomeLine3ColorPicker');
+        const welcomeLine3Size = document.getElementById('welcomeLine3Size');
 
         // Confirmation modal elements
         const confirmationModal = document.getElementById('confirmationModal');
@@ -1360,7 +1571,6 @@
         const cellSpacingInput = document.getElementById('cellSpacing');
         const cellBorderInput = document.getElementById('cellBorder');
         const headerTextInput = document.getElementById('headerText');
-        const welcomeTextInput = document.getElementById('welcomeTextInput');
         const cardTitleTextInput = document.getElementById('cardTitleText');
         const generalPasswordInput = document.getElementById('generalPassword');
         const adminIdInput = document.getElementById('adminId');
@@ -1412,6 +1622,37 @@
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
             } : { r: 255, g: 255, b: 255 };
+        }
+
+        // Update welcome text styling and content
+        function updateWelcomeTextStyle() {
+            // Update content
+            welcomeLine1.textContent = gameSettings.welcomeLine1Text || "Welcome to";
+            welcomeLine2.textContent = gameSettings.welcomeLine2Text || "MX";
+            welcomeLine3.textContent = gameSettings.welcomeLine3Text || "BINGO!";
+            
+            // Update colors and sizes
+            welcomeLine1.style.color = gameSettings.welcomeLine1Color;
+            welcomeLine1.style.fontSize = gameSettings.welcomeLine1Size + 'px';
+            
+            welcomeLine2.style.color = gameSettings.welcomeLine2Color;
+            welcomeLine2.style.fontSize = gameSettings.welcomeLine2Size + 'px';
+            
+            welcomeLine3.style.color = gameSettings.welcomeLine3Color;
+            welcomeLine3.style.fontSize = gameSettings.welcomeLine3Size + 'px';
+            
+            // Update preview
+            previewLine1.textContent = gameSettings.welcomeLine1Text || "Welcome to";
+            previewLine1.style.color = gameSettings.welcomeLine1Color;
+            previewLine1.style.fontSize = gameSettings.welcomeLine1Size + 'px';
+            
+            previewLine2.textContent = gameSettings.welcomeLine2Text || "MX";
+            previewLine2.style.color = gameSettings.welcomeLine2Color;
+            previewLine2.style.fontSize = gameSettings.welcomeLine2Size + 'px';
+            
+            previewLine3.textContent = gameSettings.welcomeLine3Text || "BINGO!";
+            previewLine3.style.color = gameSettings.welcomeLine3Color;
+            previewLine3.style.fontSize = gameSettings.welcomeLine3Size + 'px';
         }
 
         // Custom confirmation dialog
@@ -2125,7 +2366,7 @@
             createColorPalette(bgColorPalette, colorPalettes.bgColors, gameSettings.bgColor);
             
             // Set up color picker interactions
-            function setupColorPicker(preview, input, picker, palette, updateCallback) {
+            function setupColorPicker(preview, input, picker, updateCallback) {
                 // Click preview to show color picker
                 preview.addEventListener('click', () => {
                     picker.click();
@@ -2134,7 +2375,8 @@
                 // Color picker change
                 picker.addEventListener('input', (e) => {
                     const color = e.target.value;
-                    updateColorPreview(color, palette, preview, input);
+                    preview.style.backgroundColor = color;
+                    input.value = color;
                     if (updateCallback) updateCallback(color);
                 });
                 
@@ -2142,18 +2384,79 @@
                 input.addEventListener('change', (e) => {
                     const color = e.target.value;
                     if (/^#[0-9A-F]{6}$/i.test(color)) {
-                        updateColorPreview(color, palette, preview, input);
+                        preview.style.backgroundColor = color;
                         if (updateCallback) updateCallback(color);
                     }
                 });
             }
+
+            // Setup welcome line text inputs
+            welcomeLine1Text.addEventListener('input', (e) => {
+                gameSettings.welcomeLine1Text = e.target.value;
+                updateWelcomeTextStyle();
+            });
+
+            welcomeLine2Text.addEventListener('input', (e) => {
+                gameSettings.welcomeLine2Text = e.target.value;
+                updateWelcomeTextStyle();
+            });
+
+            welcomeLine3Text.addEventListener('input', (e) => {
+                gameSettings.welcomeLine3Text = e.target.value;
+                updateWelcomeTextStyle();
+            });
+
+            // Setup welcome line color pickers
+            setupColorPicker(
+                welcomeLine1ColorPreview,
+                welcomeLine1ColorInput,
+                welcomeLine1ColorPicker,
+                (color) => {
+                    gameSettings.welcomeLine1Color = color;
+                    updateWelcomeTextStyle();
+                }
+            );
+
+            welcomeLine1Size.addEventListener('input', (e) => {
+                gameSettings.welcomeLine1Size = parseInt(e.target.value) || 28;
+                updateWelcomeTextStyle();
+            });
+
+            setupColorPicker(
+                welcomeLine2ColorPreview,
+                welcomeLine2ColorInput,
+                welcomeLine2ColorPicker,
+                (color) => {
+                    gameSettings.welcomeLine2Color = color;
+                    updateWelcomeTextStyle();
+                }
+            );
+
+            welcomeLine2Size.addEventListener('input', (e) => {
+                gameSettings.welcomeLine2Size = parseInt(e.target.value) || 42;
+                updateWelcomeTextStyle();
+            });
+
+            setupColorPicker(
+                welcomeLine3ColorPreview,
+                welcomeLine3ColorInput,
+                welcomeLine3ColorPicker,
+                (color) => {
+                    gameSettings.welcomeLine3Color = color;
+                    updateWelcomeTextStyle();
+                }
+            );
+
+            welcomeLine3Size.addEventListener('input', (e) => {
+                gameSettings.welcomeLine3Size = parseInt(e.target.value) || 32;
+                updateWelcomeTextStyle();
+            });
             
             // Setup each color picker
             setupColorPicker(
                 playerNameColorPreview,
                 playerNameColorInput,
                 playerNameColorPicker,
-                playerNameColorPalette,
                 (color) => {
                     gameSettings.playerNameColor = color;
                     playerNameColorInput.value = color;
@@ -2165,7 +2468,6 @@
                 cellColorPreview,
                 cellColorInput,
                 cellColorPicker,
-                cellColorPalette,
                 (color) => {
                     gameSettings.cellColor = color;
                     cellColorInput.value = color;
@@ -2177,7 +2479,6 @@
                 cellNumberColorPreview,
                 cellNumberColorInput,
                 cellNumberColorPicker,
-                cellNumberColorPalette,
                 (color) => {
                     gameSettings.cellNumberColor = color;
                     cellNumberColorInput.value = color;
@@ -2189,7 +2490,6 @@
                 bgColorPreview,
                 bgColorInput,
                 bgColorPicker,
-                bgColorPalette,
                 (color) => {
                     gameSettings.bgColor = color;
                     bgColorInput.value = color;
@@ -2230,12 +2530,30 @@
                 cellSpacingInput.value = gameSettings.cellSpacing || 8;
                 cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                 headerTextInput.value = gameSettings.headerText || "MX BINGO";
-                welcomeTextInput.value = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                 cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                 generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                 adminIdInput.value = gameSettings.adminId || "admin";
                 adminPasswordInput.value = gameSettings.adminPassword || "1234";
                 playerNameSizeInput.value = gameSettings.playerNameSize || 35;
+                
+                // Update welcome line settings
+                welcomeLine1Text.value = gameSettings.welcomeLine1Text || "Welcome to";
+                welcomeLine1ColorInput.value = gameSettings.welcomeLine1Color || "#ffffff";
+                welcomeLine1ColorPreview.style.backgroundColor = gameSettings.welcomeLine1Color || "#ffffff";
+                welcomeLine1ColorPicker.value = gameSettings.welcomeLine1Color || "#ffffff";
+                welcomeLine1Size.value = gameSettings.welcomeLine1Size || 28;
+
+                welcomeLine2Text.value = gameSettings.welcomeLine2Text || "MX";
+                welcomeLine2ColorInput.value = gameSettings.welcomeLine2Color || "#FF6B35";
+                welcomeLine2ColorPreview.style.backgroundColor = gameSettings.welcomeLine2Color || "#FF6B35";
+                welcomeLine2ColorPicker.value = gameSettings.welcomeLine2Color || "#FF6B35";
+                welcomeLine2Size.value = gameSettings.welcomeLine2Size || 42;
+
+                welcomeLine3Text.value = gameSettings.welcomeLine3Text || "BINGO!";
+                welcomeLine3ColorInput.value = gameSettings.welcomeLine3Color || "#06D6A0";
+                welcomeLine3ColorPreview.style.backgroundColor = gameSettings.welcomeLine3Color || "#06D6A0";
+                welcomeLine3ColorPicker.value = gameSettings.welcomeLine3Color || "#06D6A0";
+                welcomeLine3Size.value = gameSettings.welcomeLine3Size || 32;
                 
                 // Update color inputs
                 playerNameColorInput.value = gameSettings.playerNameColor || "#ffffff";
@@ -2256,7 +2574,7 @@
                 
                 // Update displayed texts
                 headerTitle.textContent = gameSettings.headerText || "MX BINGO";
-                welcomeText.innerHTML = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
+                updateWelcomeTextStyle();
                 
                 // Update game status indicator
                 updateGameStatusIndicator();
@@ -2506,7 +2824,15 @@
                 cellBorder: cellBorderInput.value,
                 bgColor: bgColorInput.value,
                 headerText: headerTextInput.value,
-                welcomeText: welcomeTextInput.value,
+                welcomeLine1Text: welcomeLine1Text.value,
+                welcomeLine1Color: welcomeLine1ColorInput.value,
+                welcomeLine1Size: parseInt(welcomeLine1Size.value) || 28,
+                welcomeLine2Text: welcomeLine2Text.value,
+                welcomeLine2Color: welcomeLine2ColorInput.value,
+                welcomeLine2Size: parseInt(welcomeLine2Size.value) || 42,
+                welcomeLine3Text: welcomeLine3Text.value,
+                welcomeLine3Color: welcomeLine3ColorInput.value,
+                welcomeLine3Size: parseInt(welcomeLine3Size.value) || 32,
                 cardTitleText: cardTitleTextInput.value,
                 generalPassword: generalPasswordInput.value,
                 adminId: adminIdInput.value,
@@ -2521,7 +2847,7 @@
             
             // Update displayed texts
             headerTitle.textContent = gameSettings.headerText;
-            welcomeText.innerHTML = gameSettings.welcomeText;
+            updateWelcomeTextStyle();
             
             // Update game status indicator
             updateGameStatusIndicator();
@@ -2625,7 +2951,7 @@
                 
                 // Update displayed texts for everyone
                 headerTitle.textContent = gameSettings.headerText || "MX BINGO";
-                welcomeText.innerHTML = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
+                updateWelcomeTextStyle();
                 
                 // Apply styling for everyone
                 applyCellStyling();
@@ -2663,12 +2989,27 @@
                     cellSpacingInput.value = gameSettings.cellSpacing || 8;
                     cellBorderInput.value = gameSettings.cellBorder || "2px solid #4361ee";
                     headerTextInput.value = gameSettings.headerText || "MX BINGO";
-                    welcomeTextInput.value = gameSettings.welcomeText || "Welcome to<br>MX<br>BINGO!";
                     cardTitleTextInput.value = gameSettings.cardTitleText || "GAME CARD {current}/{total}";
                     generalPasswordInput.value = gameSettings.generalPassword || "bingo123";
                     adminIdInput.value = gameSettings.adminId || "admin";
                     adminPasswordInput.value = gameSettings.adminPassword || "1234";
                     playerNameSizeInput.value = gameSettings.playerNameSize || 35;
+                    
+                    // Update welcome line settings
+                    welcomeLine1Text.value = gameSettings.welcomeLine1Text || "Welcome to";
+                    welcomeLine1ColorInput.value = gameSettings.welcomeLine1Color || "#ffffff";
+                    welcomeLine1ColorPreview.style.backgroundColor = gameSettings.welcomeLine1Color || "#ffffff";
+                    welcomeLine1Size.value = gameSettings.welcomeLine1Size || 28;
+
+                    welcomeLine2Text.value = gameSettings.welcomeLine2Text || "MX";
+                    welcomeLine2ColorInput.value = gameSettings.welcomeLine2Color || "#FF6B35";
+                    welcomeLine2ColorPreview.style.backgroundColor = gameSettings.welcomeLine2Color || "#FF6B35";
+                    welcomeLine2Size.value = gameSettings.welcomeLine2Size || 42;
+
+                    welcomeLine3Text.value = gameSettings.welcomeLine3Text || "BINGO!";
+                    welcomeLine3ColorInput.value = gameSettings.welcomeLine3Color || "#06D6A0";
+                    welcomeLine3ColorPreview.style.backgroundColor = gameSettings.welcomeLine3Color || "#06D6A0";
+                    welcomeLine3Size.value = gameSettings.welcomeLine3Size || 32;
                     
                     // Update color inputs
                     playerNameColorInput.value = gameSettings.playerNameColor || "#ffffff";
@@ -2689,6 +3030,9 @@
                     // Render player list editor
                     renderPlayerListEditor();
                     updatePlayerCount();
+                    
+                    // Update preview
+                    updateWelcomeTextStyle();
                 }
             }
         });
@@ -2737,6 +3081,9 @@
                     { name: "Player 3", luckyNumber: generateLuckyNumber() }
                 ];
             }
+            
+            // Apply welcome text styling
+            updateWelcomeTextStyle();
         });
 
         // Test Firebase connection
